@@ -6,7 +6,7 @@ import { SubcatModule } from './subcategories.js';
 import { Quota, Logs }  from './quota.js';
 import { Pipeline }     from './pipeline.js';
 
-import { SidebarUI, setCategoryModal } from './SidebarUI.js';
+import { SidebarUI } from './SidebarUI.js';
 import { CategoryModal }  from './CategoryModal.js';
 import { PipelineUI }     from './PipelineUI.js';
 import { HistoryUI }      from './HistoryUI.js';
@@ -14,8 +14,6 @@ import { PromptModal }    from './PromptModal.js';
 import { AnalyticsModal } from './AnalyticsModal.js';
 import { SubcatModal }    from './SubcatModal.js';
 import { ConfigUI, ThemeUI, SidebarToggle } from './ConfigUI.js';
-
-setCategoryModal(CategoryModal);
 
 (async function init() {
   ThemeUI.restore();
