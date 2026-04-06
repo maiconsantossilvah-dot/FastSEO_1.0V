@@ -1,4 +1,4 @@
-import { AppState }     from '/state.js';
+import { AppState }     from './state.js';
 import { Categories }   from './categories.js';
 import { History }      from './history.js';
 import { Prompts }      from './prompts.js';
