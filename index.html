@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fast SEO — Pipeline de Fichas Técnicas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="main.css"/>
+<script type="module" src="main.js" defer></script>
+</head>
+<body>
+
+<header class="header" id="appHeader">
+  <div class="header-logo-area">
+    <div class="logo">
+      <div class="logo-icon">F</div>
+      <div><div class="logo-text">Fast<span>SEO</span></div><span class="logo-sub">Pipeline de Fichas</span></div>
+    </div>
+  </div>
+  <button class="btn btn-icon btn-icon--lg" id="sidebarToggle" title="Abrir painel de categorias" aria-label="Abrir painel de categorias" style="flex-shrink:0;margin-left:14px;">🧠</button>
+  <div class="header-right">
+    <div class="quota-bar">
+      <span id="quotaLabel">0 / 1000 hoje</span>
+      <div class="quota-track"><div class="quota-fill" id="quotaFill" style="width:0%"></div></div>
+      <button id="resetCotaBtn" title="Zerar contador" class="btn" style="background:none;border:none;color:var(--color-text-muted);font-size:11px;padding:0 2px;">↺</button>
+    </div>
+    <div class="free-pill">✓ gratuito</div>
+    <button id="openPromptsBtn"   class="btn btn-ghost">✏️ Prompts</button>
+    <button id="openAnalyticsBtn" class="btn btn-ghost">📊 Analytics</button>
+    <button id="openSubcatBtn"    class="btn btn-ghost">📐 Títulos</button>
+    <button class="btn btn-icon"  id="themeBtn" title="Modo escuro" aria-label="Alternar tema">🌙</button>
+  </div>
+</header>
+
+<div class="layout" id="appLayout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-header"><span>🧠</span><span class="sb-title">Categorias</span></div>
+    <div class="sb-content" id="sbContent"></div>
+    <div style="padding:8px 8px 0;">
+      <button class="sb-add-btn" id="addCatBtn">
+        <span style="font-size:15px;line-height:1;">＋</span>
+        <span>Nova Categoria</span>
+      </button>
+    </div>
+    <div class="sb-footer" id="sbFooter"></div>
+  </aside>
+
+  <main class="main" id="mainContent">
+    <div class="page">
+
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">Configuração de APIs</span><span class="hint">Google Gemini · Mistral</span></div>
+        <div class="card-body">
+          <div class="setup-grid">
+            <div class="field">
+              <label>API Key do Gemini <span style="color:var(--color-success);font-weight:400">· A2 e A3</span></label>
+              <div class="key-wrap"><input type="password" id="apiKey" placeholder="AIza..."/><span class="key-status" id="keyStatus"></span></div>
+              <div class="hint">Obtenha grátis em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
+            </div>
+            <div class="field">
+              <label>API Key da Mistral <span style="color:var(--color-success);font-weight:400">· A1</span></label>
+              <div class="key-wrap"><input type="password" id="mistralKey" placeholder="..."/><span class="key-status" id="mistralKeyStatus"></span></div>
+              <div class="hint">Grátis em <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> — sem cartão · usado no A1 (Formatador)</div>
+            </div>
+            <div class="field">
+              <label>Modelo Gemini</label>
+              <select id="modelSel">
+                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite — 1.000 req/dia ⭐</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash — 250 req/dia</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro — 100 req/dia</option>
+              </select>
+              <div class="hint" id="modelHint"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="learn-indicator empty" id="learnIndicator">
+        <div class="learn-indicator-dot"></div>
+        <span id="learnIndicatorText">Nenhum exemplo configurado — abra o painel lateral para adicionar referências</span>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr"><span class="card-title">Dados do Produto</span><span class="char-count" id="charCount">0 caracteres</span></div>
+        <div class="card-body">
+          <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor...
+
+Ex:
+4203900 – EAN: 7893401194859
+Fornecedor: STECK INDUSTRIA ELETRICA
+DISJUNTOR STECK DIN 3P 63A CURVA C 3KA SDD63C63 BRANCO
+
+Marca: Steck
+Corrente nominal: 63A ..."></textarea>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step" id="ps1"><div class="step-num">01</div><div class="step-name">Formatador</div></div>
+        <div class="step" id="ps2"><div class="step-num">02</div><div class="step-name">Conferente</div></div>
+        <div class="step" id="ps3"><div class="step-num">03</div><div class="step-name">Copywriter</div></div>
+      </div>
+
+      <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
+        <span class="run-icon">⚡ Processar Ficha</span>
+        <div class="spinner"></div>
+      </button>
+
+      <div class="log-box" id="logBox"></div>
+
+      <div class="results" id="results">
+        <div class="card">
+          <div class="result-hdr">
+            <span class="result-label">Ficha Técnica Formatada</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span id="bivoltBadge" class="badge badge-bivolt" style="display:none;">⚡ BIVOLT</span>
+              <button class="copy-btn" id="exportTxtBtn" style="background:var(--color-bg-subtle);color:var(--color-text-secondary);">⬇ .txt</button>
+              <button class="copy-btn" id="copyFichaBtn">Copiar</button>
+            </div>
+          </div>
+          <div class="result-content" id="fichaOut"></div>
+        </div>
+        <div class="card">
+          <div class="result-hdr"><span class="result-label">Conferência de Qualidade</span><span id="statusBadge" class="badge"></span></div>
+          <div class="result-content" id="validacaoOut"></div>
+        </div>
+        <div class="card" id="copyBlock" style="display:none">
+          <div class="result-hdr"><span class="result-label">Conteúdo Comercial</span><button class="copy-btn" id="copyConteudoBtn">Copiar</button></div>
+          <div class="result-content" id="conteudoOut"></div>
+        </div>
+      </div>
+
+      <div id="historicoPanel" class="card">
+        <div class="card-hdr">
+          <span class="card-title">📂 Histórico de Resultados</span>
+          <button id="clearHistoricoBtn" class="btn" style="font-size:11px;color:var(--color-text-muted);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;transition:color .15s;">Limpar tudo</button>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:8px;">
+            <input id="historicoBusca" type="text" placeholder="Buscar no histórico..."
+              style="flex:1;background:var(--color-bg-page);border:1px solid var(--color-border);border-radius:var(--radius);color:var(--color-text-primary);font-family:var(--font-body);font-size:12px;padding:8px 12px;outline:none;transition:border-color .15s,box-shadow .15s;"/>
+            <select id="historicoFiltro" style="background:var(--color-bg-page);border:1px solid var(--color-border);border-radius:var(--radius);color:var(--color-text-secondary);font-family:var(--font-body);font-size:12px;padding:8px 10px;outline:none;cursor:pointer;background-image:none;">
+              <option value="todos">Todos</option>
+              <option value="padrao">Padrão</option>
+              <option value="bivolt">Bivolt</option>
+            </select>
+          </div>
+          <div id="historicoLista" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
