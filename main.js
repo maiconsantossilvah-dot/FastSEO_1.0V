@@ -11,7 +11,7 @@ import { CategoryModal }  from './CategoryModal.js';
 import { PipelineUI }     from './PipelineUI.js';
 import { HistoryUI }      from './HistoryUI.js';
 import { PromptModal }    from './PromptModal.js';
-import { AnalyticsModal, Export } from './AnalyticsModal.js';
+import { AnalyticsModal } from './AnalyticsModal.js';
 import { SubcatModal }    from './SubcatModal.js';
 import { ConfigUI, ThemeUI, SidebarToggle } from './ConfigUI.js';
 
