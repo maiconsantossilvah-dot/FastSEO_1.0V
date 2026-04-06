@@ -5,8 +5,8 @@
  * e localStorage como cache offline/fallback.
  */
 
-import { CategoriesDB }  from '../firebase/firestore.js';
-import { SidebarUI }     from '../components/SidebarUI.js';
+import { CategoriesDB }  from './firestore.js';
+import { SidebarUI }     from './SidebarUI.js';
 
 const LS_CATS = 'ficha_categorias'; // chave de cache local
 

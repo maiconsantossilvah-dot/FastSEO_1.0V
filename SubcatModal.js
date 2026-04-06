@@ -2,8 +2,8 @@
  * components/SubcatModal.js
  * Modal de padronização de títulos (subcategorias).
  */
-import { SubcatModule, SUBCAT_RULES_DEFAULT } from '../modules/subcategories.js';
-import { Utils } from '../utils/index.js';
+import { SubcatModule, SUBCAT_RULES_DEFAULT } from './subcategories.js';
+import { Utils } from './index.js';
 
 const $ = id => document.getElementById(id);
 let _search = '';

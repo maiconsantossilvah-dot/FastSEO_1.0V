@@ -4,7 +4,7 @@
  * Gerencia a UI de configuração: API keys, modelo e contador de caracteres.
  */
 
-import { Quota } from '../modules/quota.js';
+import { Quota } from './quota.js';
 
 const $ = id => document.getElementById(id);
 
@@ -82,7 +82,7 @@ export const ConfigUI = {
  * components/ThemeUI.js + SidebarToggle
  * ───────────────────────────────────────
  */
-import { AppState } from '../modules/state.js';
+import { AppState } from './state.js';
 
 export const ThemeUI = {
   toggle() {

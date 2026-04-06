@@ -8,8 +8,8 @@
  *    e nunca hardcoded. Ver config.js para contexto de segurança.
  */
 
-import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from '../config.js';
-import { PipelineUI } from '../components/PipelineUI.js';
+import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from './config.js';
+import { PipelineUI } from './PipelineUI.js';
 
 // ─── Helpers internos ────────────────────────────────────────
 function _sleep(ms, signal) {

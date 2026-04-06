@@ -5,7 +5,7 @@
  * Sincronizadas com Firestore; fallback para SUBCAT_RULES embutidas.
  */
 
-import { SubcategoriesDB } from '../firebase/firestore.js';
+import { SubcategoriesDB } from './firestore.js';
 import { AppState }        from './state.js';
 
 // ─── Regras padrão embutidas (subset reduzido para legibilidade)

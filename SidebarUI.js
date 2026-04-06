@@ -1,9 +1,9 @@
 /**
  * components/SidebarUI.js
  */
-import { AppState }     from '../modules/state.js';
-import { Categories }   from '../modules/categories.js';
-import { Utils }        from '../utils/index.js';
+import { AppState }     from './state.js';
+import { Categories }   from './categories.js';
+import { Utils }        from './index.js';
 
 const $ = id => document.getElementById(id);
 

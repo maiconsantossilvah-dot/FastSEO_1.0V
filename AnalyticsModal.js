@@ -1,7 +1,7 @@
 /**
  * components/AnalyticsModal.js
  */
-import { Logs } from '../modules/quota.js';
+import { Logs } from './quota.js';
 
 const $ = id => document.getElementById(id);
 

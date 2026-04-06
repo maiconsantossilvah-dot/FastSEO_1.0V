@@ -4,7 +4,7 @@
  * Funções utilitárias puras (sem efeitos colaterais nem dependências de módulos do app).
  */
 
-import { APP_CONFIG } from '../config.js';
+import { APP_CONFIG } from './config.js';
 
 export const Utils = {
   // ─── Segurança / sanitização ───────────────────────────────

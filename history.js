@@ -5,9 +5,9 @@
  * Listener em tempo real mantém a UI sempre atualizada.
  */
 
-import { HistoryDB }   from '../firebase/firestore.js';
-import { HistoryUI }   from '../components/HistoryUI.js';
-import { APP_CONFIG }  from '../config.js';
+import { HistoryDB }   from './firestore.js';
+import { HistoryUI }   from './HistoryUI.js';
+import { APP_CONFIG }  from './config.js';
 
 // Cache em memória
 let _items = [];

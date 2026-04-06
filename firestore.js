@@ -11,7 +11,7 @@
  *   /history/{docId}          → { preview, ficha, conteudo, bivolt, data, ts }
  */
 
-import { FIREBASE_CONFIG } from '../config.js';
+import { FIREBASE_CONFIG } from './config.js';
 
 import { initializeApp }            from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {

@@ -8,23 +8,23 @@
  *
  * Depende de:
  *   services/api.js         → callAgent()
- *   modules/prompts.js      → Prompts.get()
- *   modules/categories.js   → Categories.getAll()
- *   modules/quota.js        → Quota
- *   modules/history.js      → History.save()
- *   modules/logs.js         → Logs.save()
+ *   module./prompts.js      → Prompts.get()
+ *   module./categories.js   → Categories.getAll()
+ *   module./quota.js        → Quota
+ *   module./history.js      → History.save()
+ *   module./quota.js         → Logs.save()
  *   utils/index.js          → sanitize, detectBivolt, …
  *   components/PipelineUI.js
  */
 
-import { callAgent }    from '../services/api.js';
+import { callAgent }    from './api.js';
 import { Prompts }      from './prompts.js';
 import { Categories }   from './categories.js';
 import { Quota }        from './quota.js';
 import { History }      from './history.js';
-import { Logs }         from './logs.js';
-import { Utils }        from '../utils/index.js';
-import { PipelineUI }   from '../components/PipelineUI.js';
+import { Logs }         from './quota.js';
+import { Utils }        from './index.js';
+import { PipelineUI }   from './PipelineUI.js';
 import { AppState }     from './state.js';
 
 export const Pipeline = {

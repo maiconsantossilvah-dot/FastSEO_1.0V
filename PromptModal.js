@@ -1,8 +1,8 @@
 /**
  * components/PromptModal.js
  */
-import { AppState }          from '../modules/state.js';
-import { Prompts, PROMPTS_DEFAULT, PROMPT_LABELS } from '../modules/prompts.js';
+import { AppState }          from './state.js';
+import { Prompts, PROMPTS_DEFAULT, PROMPT_LABELS } from './prompts.js';
 
 const $ = id => document.getElementById(id);
 

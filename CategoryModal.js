@@ -1,11 +1,11 @@
 /**
  * components/CategoryModal.js
  */
-import { AppState }   from '../modules/state.js';
-import { Categories } from '../modules/categories.js';
+import { AppState }   from './state.js';
+import { Categories } from './categories.js';
 import { SidebarUI }  from './SidebarUI.js';
-import { Utils }      from '../utils/index.js';
-import { APP_CONFIG } from '../config.js';
+import { Utils }      from './index.js';
+import { APP_CONFIG } from './config.js';
 
 const $ = id => document.getElementById(id);
 

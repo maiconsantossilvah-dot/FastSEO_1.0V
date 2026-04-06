@@ -1,10 +1,10 @@
 /**
  * components/HistoryUI.js
  */
-import { History }    from '../modules/history.js';
-import { AppState }   from '../modules/state.js';
+import { History }    from './history.js';
+import { AppState }   from './state.js';
 import { PipelineUI } from './PipelineUI.js';
-import { Utils }      from '../utils/index.js';
+import { Utils }      from './index.js';
 
 const $ = id => document.getElementById(id);
 
