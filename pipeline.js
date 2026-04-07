@@ -141,7 +141,7 @@ export const Pipeline = {
       if (!reprovado) {
         PipelineUI.setStep(3, 'active');
         PipelineUI.log('[A3] Gerando conteúdo comercial...', 'i');
-        conteudo = await callAgent(sys3, ficha, 500, signal, 3);
+        conteudo = await callAgent(sys3, ficha, 800, signal, 3);
         Quota.add(1);
         PipelineUI.setStep(3, 'done');
         PipelineUI.log('[A3] Conteúdo gerado.', 'o');

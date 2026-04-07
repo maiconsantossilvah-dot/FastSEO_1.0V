@@ -65,21 +65,59 @@ STATUS: REPROVADO
 ERROS:
 - [erro específico citando o dado nos brutos vs o que foi gerado]`,
 
-P3: `Crie conteúdo comercial para e-commerce com base na ficha fornecida. Cada seção deve ser diferente das outras — varie o ângulo, os benefícios destacados e a linguagem.
+P3: `Com base na ficha técnica formatada acima, crie conteúdo comercial para e-commerce.
+Cada seção deve ser diferente das outras — varie o ângulo e os benefícios destacados.
+Se a ficha tiver poucas informações, redistribua os ângulos para evitar repetição.
+Entregue apenas o bloco de cópia, sem comentários ou perguntas.
 
-REGRAS ABSOLUTAS:
-- Jamais mencione o nome do produto, marca ou modelo em nenhuma das seções.
-- Não use traços (-), bullets (•), hífens ou qualquer símbolo no início das frases. Escreva em texto corrido.
-- Respeite rigorosamente os limites de caracteres de cada seção — não ultrapasse.
+REGRAS:
+- Não mencione nome do produto, marca ou modelo em nenhuma das seções.
+- Não use traços, bullets ou símbolos no início das frases.
+- Escreva sempre em texto corrido, sem listas.
+- Respeite os limites de cada seção.
+- Não use ponto final no SUBTÍTULO DO PRODUTO.
 
 DESCRIÇÃO ABREVIADA: (máximo 600 caracteres)
-Texto em terceira pessoa, linguagem de venda. Destaque os principais diferenciais, características e benefícios. Texto corrido, sem listas.
+Texto em terceira pessoa, linguagem de venda. Destaque diferenciais, características
+e benefícios práticos. Não comece com frases genéricas como "Descubra" ou "Conheça".
 
-KEYWORD: (máximo 240 caracteres)
-Texto chamativo em terceira pessoa, linguagem persuasiva. Desperte o interesse do consumidor destacando um benefício. Texto corrido.
+❌ ERRADO: "Descubra a combinação perfeita de tecnologia e design."
+✓ CERTO: "Solução versátil com ampla capacidade interna e controle multitemperatura,
+ideal para diferentes tipos de conservação. Conta com prateleiras ajustáveis que
+facilitam a organização e melhor aproveitamento do espaço."
+
+SUBTÍTULO DO PRODUTO: (máximo 240 caracteres)
+Texto em segunda pessoa, tom explicativo e conversacional. Apresente uma ou duas
+funcionalidades concretas usando dados reais da ficha. Use conectivos como "Além disso".
+Não use linguagem de venda. Sem ponto final.
+
+❌ ERRADO: "Refrigerador, geladeira, duplex, frost free, inverter, 391 litros"
+✓ CERTO: "No refrigerador, você conta com 5 níveis de temperatura, permitindo o
+armazenamento adequado de diferentes tipos de alimentos. Além disso, o compartimento
+Fresh Zone é ideal para preservar alimentos mais sensíveis"
 
 META DESCRIPTION: (máximo 140 caracteres)
-Texto em terceira pessoa destacando um diferencial. Termine obrigatoriamente com "Confira agora!". Texto corrido.`,
+Liste 2 a 3 diferenciais reais separados por vírgulas, de forma direta e enxuta.
+Não mencione nome, marca ou modelo. Termine com "Confira agora!"
+
+❌ ERRADO: "Refrigerador Duplex 391L Frost Free Inverter em Aço Escovado. Confira agora!"
+✓ CERTO: "Frost Free, tecnologia Inverter, compartimento extrafrio e aço escovado. Confira agora!"`,
+
+P3B: `Com base na ficha técnica formatada acima, crie conteúdo comercial para e-commerce
+de produto com versões 110V e 220V. Use apenas informações comuns aos dois modelos.
+Entregue apenas o bloco de cópia, sem comentários ou perguntas.
+
+REGRAS:
+- Jamais mencione nome do produto, marca, modelo ou voltagem.
+- Não use traços, bullets ou símbolos no início das frases.
+- Escreva sempre em texto corrido, sem listas.
+- Respeite os limites de cada seção.
+- Não use ponto final no SUBTÍTULO DO PRODUTO.
+
+TÍTULO PAI: (máximo 150 caracteres)
+DESCRIÇÃO ABREVIADA: (máximo 600 caracteres)
+SUBTÍTULO DO PRODUTO: (máximo 240 caracteres)
+META DESCRIPTION: (máximo 140 caracteres) — termine com "Confira agora!"`,
 
 P1B: `Formate ficha técnica bivolt (110V e 220V) em blocos temáticos com tópicos. Use só o que foi fornecido.
 
