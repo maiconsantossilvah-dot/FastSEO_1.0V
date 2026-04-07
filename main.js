@@ -1,3 +1,4 @@
+import { Auth }         from './auth.js';
 import { AppState }     from './state.js';
 import { Categories }   from './categories.js';
 import { History }      from './history.js';
@@ -6,7 +7,7 @@ import { SubcatModule } from './subcategories.js';
 import { Quota, Logs }  from './quota.js';
 import { Pipeline }     from './pipeline.js';
 
-import { SidebarUI } from './SidebarUI.js';
+import { SidebarUI }      from './SidebarUI.js';
 import { CategoryModal }  from './CategoryModal.js';
 import { PipelineUI }     from './PipelineUI.js';
 import { HistoryUI }      from './HistoryUI.js';
@@ -15,8 +16,30 @@ import { AnalyticsModal } from './AnalyticsModal.js';
 import { SubcatModal }    from './SubcatModal.js';
 import { ConfigUI, ThemeUI, SidebarToggle } from './ConfigUI.js';
 
-(async function init() {
-  ThemeUI.restore();
+// ── Restaura tema imediatamente (evita flash de tema errado) ──
+ThemeUI.restore();
+
+// ── Tela de login ─────────────────────────────────────────────
+function showLogin() {
+  document.getElementById('appLoading').style.display   = 'none';
+  document.getElementById('loginScreen').style.display  = 'flex';
+  document.getElementById('appHeader').style.display    = 'none';
+  document.getElementById('appLayout').style.display    = 'none';
+}
+
+function showApp(user) {
+  document.getElementById('appLoading').style.display   = 'none';
+  document.getElementById('loginScreen').style.display  = 'none';
+  document.getElementById('appHeader').style.display    = '';
+  document.getElementById('appLayout').style.display    = '';
+
+  // Mostra nome do usuário no header
+  const nameEl = document.getElementById('userDisplayName');
+  if (nameEl) nameEl.textContent = user.displayName || user.email;
+}
+
+// ── Inicialização do app (só roda uma vez após login) ─────────
+async function init() {
   SidebarToggle.restore();
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateQuotaInfo();
@@ -28,8 +51,47 @@ import { ConfigUI, ThemeUI, SidebarToggle } from './ConfigUI.js';
   SubcatModule.migrateDefaultsToFirestore().catch(console.warn);
   SidebarUI.render();
   HistoryUI.render();
-})();
+}
 
+// ── Observador de autenticação ────────────────────────────────
+let appStarted = false;
+
+Auth.onChange(user => {
+  if (user) {
+    showApp(user);
+    if (!appStarted) {
+      appStarted = true;
+      init();
+    }
+  } else {
+    showLogin();
+  }
+});
+
+// ── Botão de login ────────────────────────────────────────────
+const _loginBtn     = document.getElementById('loginGoogleBtn');
+const _loginBtnHTML = _loginBtn?.innerHTML; // guarda o HTML original com o ícone
+
+_loginBtn?.addEventListener('click', async () => {
+  const btn = document.getElementById('loginGoogleBtn');
+  const err = document.getElementById('loginError');
+  btn.disabled   = true;
+  btn.innerHTML  = 'Entrando...';
+  err.textContent = '';
+
+  try {
+    await Auth.login();
+  } catch (e) {
+    btn.disabled  = false;
+    btn.innerHTML = _loginBtnHTML; // restaura ícone + texto originais
+    err.textContent = e.message;
+  }
+});
+
+// ── Botão de logout ───────────────────────────────────────────
+document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
+
+// ── Eventos do app ────────────────────────────────────────────
 document.getElementById('sidebarToggle')?.addEventListener('click', () => SidebarToggle.toggle());
 document.getElementById('themeBtn')?.addEventListener('click',       () => ThemeUI.toggle());
 document.getElementById('openPromptsBtn')?.addEventListener('click',  () => PromptModal.open());

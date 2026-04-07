@@ -6,12 +6,132 @@
 <title>Fast SEO — Pipeline de Fichas Técnicas</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="main.css"/>
-<script type="module" src="main.js"></script>
+<style>
+  /* ── Loading inicial (evita flash enquanto Firebase verifica auth) ── */
+  #appLoading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--color-bg-page);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    gap: 10px;
+  }
+  .loading-spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ── Tela de login ── */
+  #loginScreen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--color-bg-page);
+  }
+  .login-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 4px 32px rgba(0,0,0,.08);
+  }
+  .login-logo { font-size: 32px; font-weight: 700; color: var(--color-accent); }
+  .login-logo span { color: var(--color-text-primary); }
+  .login-subtitle { font-size: 13px; color: var(--color-text-muted); text-align: center; }
+  #loginGoogleBtn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    transition: opacity .15s;
+  }
+  #loginGoogleBtn:hover   { opacity: .88; }
+  #loginGoogleBtn:disabled { opacity: .5; cursor: not-allowed; }
+  #loginError {
+    font-size: 12px;
+    color: var(--color-danger, #e53e3e);
+    text-align: center;
+    min-height: 16px;
+  }
+
+  /* ── Info do usuário no header ── */
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+  #logoutBtn {
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+  #logoutBtn:hover { color: var(--color-danger); border-color: var(--color-danger); }
+</style>
 </head>
 <body>
 
-<header class="header" id="appHeader">
+<!-- ═══════════════════════════════════════════════════════════
+     LOADING — exibido enquanto Firebase verifica autenticação
+════════════════════════════════════════════════════════════ -->
+<div id="appLoading">
+  <div class="loading-spinner"></div>
+  <span>Verificando acesso...</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TELA DE LOGIN — oculta até Firebase confirmar sem sessão
+════════════════════════════════════════════════════════════ -->
+<div id="loginScreen" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">Fast<span>SEO</span></div>
+    <p class="login-subtitle">Acesso restrito à equipe.<br/>Entre com sua conta Google autorizada.</p>
+    <button id="loginGoogleBtn">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908C16.658 14.121 17.64 11.834 17.64 9.2z" fill="#fff"/>
+        <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#fff" fill-opacity=".8"/>
+        <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#fff" fill-opacity=".6"/>
+        <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#fff" fill-opacity=".4"/>
+      </svg>
+      Entrar com Google
+    </button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     APP (oculto até autenticação)
+════════════════════════════════════════════════════════════ -->
+
+<header class="header" id="appHeader" style="display:none">
   <div class="header-logo-area">
     <div class="logo">
       <div class="logo-icon">F</div>
@@ -30,10 +150,15 @@
     <button id="openAnalyticsBtn" class="btn btn-ghost">📊 Analytics</button>
     <button id="openSubcatBtn"    class="btn btn-ghost">📐 Títulos</button>
     <button class="btn btn-icon"  id="themeBtn" title="Modo escuro" aria-label="Alternar tema">🌙</button>
+    <!-- Usuário logado -->
+    <div class="user-info">
+      <span id="userDisplayName"></span>
+      <button id="logoutBtn" title="Sair">Sair</button>
+    </div>
   </div>
 </header>
 
-<div class="layout" id="appLayout">
+<div class="layout" id="appLayout" style="display:none">
 
   <aside class="sidebar" id="sidebar">
     <div class="sb-header"><span>🧠</span><span class="sb-title">Categorias</span></div>
