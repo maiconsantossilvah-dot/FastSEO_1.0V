@@ -532,97 +532,18 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
   font-family: var(--font-mono); font-weight: 600; vertical-align: middle; margin-left: 4px;
 }
 
-</style>
-</head>
-<body>
 
-<!-- HEADER -->
-<header class="header" id="appHeader">
-  <div class="header-logo-area">
-    <div class="logo">
-      <div class="logo-icon">F</div>
-      <div>
-        <div class="logo-text">Fast<span>SEO</span></div>
-        <span class="logo-sub">Pipeline de Fichas</span>
-      </div>
-    </div>
-  </div>
-  <button class="btn btn-icon btn-icon--lg" id="sidebarToggle" title="Abrir painel de categorias" aria-label="Abrir painel de categorias" style="flex-shrink:0;margin-left:14px;">🧠</button>
-  <div class="header-right">
-    <div class="quota-bar">
-      <span id="quotaLabel">0 / 1000 hoje</span>
-      <div class="quota-track"><div class="quota-fill" id="quotaFill" style="width:0%"></div></div>
-      <button id="resetCotaBtn" title="Zerar contador" class="btn" style="background:none;border:none;color:var(--color-text-muted);font-size:11px;padding:0 2px;">↺</button>
-    </div>
-    <div class="free-pill">✓ gratuito</div>
-    <button id="openPromptsBtn" class="btn btn-ghost">✏️ Prompts</button>
-    <button id="openAnalyticsBtn" class="btn btn-ghost">📊 Analytics</button>
-    <button id="openSubcatBtn" class="btn btn-ghost">📐 Títulos</button>
-    <button class="btn btn-icon" id="themeBtn" title="Modo escuro" aria-label="Alternar tema">🌙</button>
-  </div>
-</header>
-
-<!-- APP LAYOUT -->
-<div class="layout" id="appLayout">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sb-header">
-      <span>🧠</span>
-      <span class="sb-title">Categorias</span>
-    </div>
-    <div class="sb-content" id="sbContent"></div>
-    <div style="padding:8px 8px 0;">
-      <button class="sb-add-btn" id="addCatBtn">
-        <span style="font-size:15px;line-height:1;">＋</span>
-        <span>Nova Categoria</span>
-      </button>
-    </div>
-    <div class="sb-footer" id="sbFooter"></div>
-  </aside>
-
-  <!-- MAIN CONTENT -->
-  <main class="main" id="mainContent">
-    <div class="page">
-
-      <!-- CONFIGURATION CARD -->
-      <div class="card">
-        <div class="card-hdr">
-          <span class="card-title">Configuração de APIs</span>
-          <span class="hint">Google Gemini · Mistral</span>
-        </div>
-        <div class="card-body">
-          <div class="setup-grid">
-            <div class="field">
-              <label>API Key do Gemini <span style="color:var(--color-success);font-weight:400">· A2 e A3</span></label>
-              <div class="key-wrap">
-                <input type="password" id="apiKey" placeholder="AIza..."/>
-                <span class="key-status" id="keyStatus"></span>
-              </div>
-              <div class="hint">Obtenha grátis em <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></div>
-            </div>
-            <div class="field">
-              <label>API Key da Mistral <span style="color:var(--color-success);font-weight:400">· A1</span></label>
-              <div class="key-wrap">
-                <input type="password" id="mistralKey" placeholder="..."/>
-                <span class="key-status" id="mistralKeyStatus"></span>
-              </div>
-              <div class="hint">Grátis em <a href="https://console.mistral.ai/api-keys" target="_blank">console.mistral.ai</a> — sem cartão · usado no A1 (Formatador)</div>
-            </div>
-
-            <div class="field">
-              <label>Modelo Gemini</label>
-              <select id="modelSel">
-                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite — 1.000 req/dia ⭐</option>
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash — 250 req/dia</option>
-                <option value="gemini-2.5-pro">Gemini 2.5 Pro — 100 req/dia</option>
-              </select>
-              <div class="hint" id="modelHint"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- LEARN INDICATOR -->
-      <div class="learn-indicator empty" id="learnIndicator">
-        <div class="learn-indicator-dot"></div>
+/* ─── HISTÓRICO COLAPSÁVEL ─── */
+.hist-toggle-hdr:hover { background: var(--color-bg-subtle); }
+#historicoBody { opacity: 0; transition: opacity .2s ease; }
+#historicoBody.hist-body--open { opacity: 1; }
+.hist-cat-tag {
+  font-size: 9px; background: var(--color-bg-subtle); color: var(--color-text-secondary);
+  border: 1px solid var(--color-border); padding: 2px 7px; border-radius: 99px;
+  font-family: var(--font-mono); font-weight: 500;
+  white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 480px) {
+  #historicoBody > div:first-child { flex-direction: column; }
+  #historicoFiltro { width: 100%; }
+}

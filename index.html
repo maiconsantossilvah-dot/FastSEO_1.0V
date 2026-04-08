@@ -94,7 +94,7 @@
     cursor: pointer;
     transition: color .15s, border-color .15s;
   }
-  #logoutBtn:hover { color: var(--color-danger); border-color: var(--color-danger); }
+
 </style>
 </head>
 <body>
@@ -258,21 +258,63 @@ Corrente nominal: 63A ..."></textarea>
       </div>
 
       <div id="historicoPanel" class="card">
-        <div class="card-hdr">
-          <span class="card-title">📂 Histórico de Resultados</span>
-          <button id="clearHistoricoBtn" class="btn" style="font-size:11px;color:var(--color-text-muted);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;transition:color .15s;">Limpar tudo</button>
+
+        <!-- Cabeçalho clicável — abre/fecha o painel -->
+        <div class="card-hdr hist-toggle-hdr" id="historicoToggleBtn"
+          style="cursor:pointer;user-select:none;transition:background .12s;"
+          title="Clique para abrir/fechar o histórico">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="card-title">📂 Histórico de Resultados</span>
+            <!-- Badge com total de fichas (atualizado mesmo com painel fechado) -->
+            <span id="historicoCount"
+              style="display:none;font-size:10px;font-family:var(--font-mono);
+                     color:var(--color-text-muted);background:var(--color-bg-subtle);
+                     border:1px solid var(--color-border);padding:2px 7px;border-radius:99px;">
+            </span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button id="clearHistoricoBtn" class="btn"
+              style="font-size:11px;color:var(--color-text-muted);background:none;border:none;
+                     cursor:pointer;padding:4px 8px;border-radius:6px;transition:color .15s;"
+              title="Limpar todo o histórico"
+              onclick="event.stopPropagation()">
+              Limpar tudo
+            </button>
+            <!-- Seta animada -->
+            <span id="historicoChevron"
+              style="font-size:11px;color:var(--color-text-muted);
+                     transition:transform .2s ease;display:inline-block;line-height:1;">▼</span>
+          </div>
         </div>
-        <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
-          <div style="display:flex;gap:8px;">
-            <input id="historicoBusca" type="text" placeholder="Buscar no histórico..."
-              style="flex:1;background:var(--color-bg-page);border:1px solid var(--color-border);border-radius:var(--radius);color:var(--color-text-primary);font-family:var(--font-body);font-size:12px;padding:8px 12px;outline:none;transition:border-color .15s,box-shadow .15s;"/>
-            <select id="historicoFiltro" style="background:var(--color-bg-page);border:1px solid var(--color-border);border-radius:var(--radius);color:var(--color-text-secondary);font-family:var(--font-body);font-size:12px;padding:8px 10px;outline:none;cursor:pointer;background-image:none;">
+
+        <!-- Corpo colapsável — começa OCULTO -->
+        <div id="historicoBody"
+          style="display:none;flex-direction:column;gap:12px;opacity:0;
+                 transition:opacity .2s ease;"
+          class="card-body">
+
+          <!-- Busca + Filtro -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input id="historicoBusca" type="text" placeholder="🔍 Buscar no histórico..."
+              style="flex:1;min-width:160px;background:var(--color-bg-page);
+                     border:1px solid var(--color-border);border-radius:var(--radius);
+                     color:var(--color-text-primary);font-family:var(--font-body);
+                     font-size:12px;padding:8px 12px;outline:none;
+                     transition:border-color .15s,box-shadow .15s;"/>
+            <select id="historicoFiltro"
+              style="background:var(--color-bg-page);border:1px solid var(--color-border);
+                     border-radius:var(--radius);color:var(--color-text-secondary);
+                     font-family:var(--font-body);font-size:12px;
+                     padding:8px 10px;outline:none;cursor:pointer;">
               <option value="todos">Todos</option>
               <option value="padrao">Padrão</option>
               <option value="bivolt">Bivolt</option>
             </select>
           </div>
+
+          <!-- Lista (preenchida pelo HistoryUI.js só quando aberto) -->
           <div id="historicoLista" style="display:flex;flex-direction:column;gap:6px;"></div>
+
         </div>
       </div>
 

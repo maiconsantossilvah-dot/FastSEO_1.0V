@@ -50,7 +50,8 @@ async function init() {
   const _unsubSubcategories = SubcatModule.startSync();
   SubcatModule.migrateDefaultsToFirestore().catch(console.warn);
   SidebarUI.render();
-  HistoryUI.render();
+  // Painel começa fechado — History.startSync() atualiza só o badge.
+  // A lista é renderizada apenas quando o usuário abrir o painel.
 }
 
 // ── Observador de autenticação ────────────────────────────────
@@ -121,8 +122,9 @@ document.getElementById('runBtn')?.addEventListener('click', () => Pipeline.run(
 document.getElementById('copyFichaBtn')?.addEventListener('click',    () => Export.copy('ficha'));
 document.getElementById('copyConteudoBtn')?.addEventListener('click', () => Export.copy('conteudo'));
 document.getElementById('exportTxtBtn')?.addEventListener('click',    () => Export.txt());
-document.getElementById('historicoBusca')?.addEventListener('input',   () => HistoryUI.render());
-document.getElementById('historicoFiltro')?.addEventListener('change', () => HistoryUI.render());
+document.getElementById('historicoToggleBtn')?.addEventListener('click', () => HistoryUI.toggle());
+document.getElementById('historicoBusca')?.addEventListener('input',   () => { HistoryUI.resetPage(); HistoryUI.render(); });
+document.getElementById('historicoFiltro')?.addEventListener('change', () => { HistoryUI.resetPage(); HistoryUI.render(); });
 document.getElementById('clearHistoricoBtn')?.addEventListener('click', async () => {
   await History.clear();
   HistoryUI.render();
