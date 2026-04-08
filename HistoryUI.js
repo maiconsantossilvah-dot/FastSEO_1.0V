@@ -3,12 +3,11 @@
  * ─────────────
  * Painel de histórico colapsável com paginação.
  *
- * Comportamento:
- *  - Inicia FECHADO — nenhum item renderizado no DOM
- *  - Ao abrir, renderiza apenas a página atual (PAGE_SIZE itens)
- *  - Ao fechar, limpa o DOM da lista (libera memória)
- *  - Contador no cabeçalho atualizado sempre, mesmo fechado
- *  - Busca e filtro resetam para página 1
+ * - Inicia FECHADO — nenhum item renderizado no DOM
+ * - Ao abrir, renderiza apenas a página atual (PAGE_SIZE itens)
+ * - Ao fechar, limpa o DOM da lista (libera memória)
+ * - Contador no cabeçalho atualizado sempre, mesmo fechado
+ * - Busca e filtro resetam para página 1
  */
 
 import { History }    from './history.js';
@@ -24,8 +23,8 @@ let _isOpen      = false;
 
 export const HistoryUI = {
 
-  // Chamado pelo History.startSync() a cada atualização do Firestore.
-  // Só atualiza o badge; não toca na lista enquanto o painel está fechado.
+  // Chamado pelo History.startSync() a cada sync do Firestore.
+  // Só atualiza o badge; não toca na lista enquanto fechado.
   render() {
     _updateCounter();
     if (_isOpen) _renderList();
@@ -33,19 +32,25 @@ export const HistoryUI = {
 
   resetPage() { _currentPage = 1; },
 
-  // Abre/fecha o painel ao clicar no cabeçalho
   toggle() {
     _isOpen = !_isOpen;
     const body    = $('historicoBody');
     const chevron = $('historicoChevron');
+    if (!body) return;
 
     if (_isOpen) {
-      body.style.display = 'flex';
-      requestAnimationFrame(() => body.classList.add('hist-body--open'));
-      if (chevron) chevron.style.transform = 'rotate(180deg)';
+      // 1. Mostra o elemento
+      body.style.display  = 'flex';
+      body.style.opacity  = '0';
+      // 2. Renderiza a lista ANTES da animação
       _renderList();
+      // 3. Anima opacidade no próximo frame
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { body.style.opacity = '1'; });
+      });
+      if (chevron) chevron.style.transform = 'rotate(180deg)';
     } else {
-      body.classList.remove('hist-body--open');
+      body.style.opacity = '0';
       if (chevron) chevron.style.transform = 'rotate(0deg)';
       setTimeout(() => {
         body.style.display = 'none';
@@ -84,7 +89,7 @@ function _updateCounter() {
   const countEl = $('historicoCount');
   if (!countEl) return;
   if (total > 0) {
-    countEl.textContent = `${total} ficha${total !== 1 ? 's' : ''}`;
+    countEl.textContent   = `${total} ficha${total !== 1 ? 's' : ''}`;
     countEl.style.display = '';
   } else {
     countEl.style.display = 'none';
@@ -109,7 +114,7 @@ function _renderList() {
     const busca  = $('historicoBusca')?.value?.trim();
     const filtro = $('historicoFiltro')?.value;
     lista.innerHTML = `
-      <p style="color:var(--color-text-muted);font-size:12px;text-align:center;padding:24px 0">
+      <p style="color:var(--color-text-muted);font-size:12px;text-align:center;padding:24px 0;">
         ${busca || filtro !== 'todos'
           ? 'Nenhum resultado encontrado para o filtro aplicado.'
           : 'Nenhum resultado salvo ainda.'}
@@ -117,16 +122,16 @@ function _renderList() {
     return;
   }
 
-  // Itens via fragment (uma só inserção no DOM)
+  // Itens via DocumentFragment (uma só inserção no DOM)
   const todos    = History.getAll();
   const fragment = document.createDocumentFragment();
 
   page.forEach(item => {
-    const el = document.createElement('div');
-    el.className    = 'hist-item';
-    el.dataset.id   = String(item.id || '');
-    el.title        = 'Clique para restaurar esta ficha';
-    el.innerHTML    = `
+    const el      = document.createElement('div');
+    el.className  = 'hist-item';
+    el.dataset.id = String(item.id || '');
+    el.title      = 'Clique para restaurar esta ficha';
+    el.innerHTML  = `
       <div class="hist-meta">
         <span class="hist-date">${Utils.escHtml(item.data || '')}</span>
         ${item.bivolt ? '<span class="hist-bivolt-tag">⚡ BIVOLT</span>' : ''}
@@ -141,10 +146,11 @@ function _renderList() {
   });
   lista.appendChild(fragment);
 
-  // Paginação (só se > 1 página)
+  // Paginação — só aparece se tiver mais de uma página
   if (totalPages > 1) {
     const nav = document.createElement('div');
-    nav.style.cssText = 'display:flex;align-items:center;justify-content:space-between;' +
+    nav.style.cssText =
+      'display:flex;align-items:center;justify-content:space-between;' +
       'padding:10px 0 2px;border-top:1px solid var(--color-border);margin-top:8px;gap:8px;';
 
     const info = document.createElement('span');
@@ -176,8 +182,8 @@ function _renderList() {
 
 function _pageBtn(label, disabled) {
   const btn = document.createElement('button');
-  btn.textContent = label;
-  btn.disabled    = disabled;
+  btn.textContent   = label;
+  btn.disabled      = disabled;
   btn.style.cssText =
     `height:26px;padding:0 10px;border:1px solid var(--color-border);border-radius:6px;` +
     `background:transparent;color:${disabled ? 'var(--color-text-muted)' : 'var(--color-text-secondary)'};` +
@@ -185,14 +191,14 @@ function _pageBtn(label, disabled) {
     `cursor:${disabled ? 'not-allowed' : 'pointer'};opacity:${disabled ? '.4' : '1'};transition:all .12s;`;
   if (!disabled) {
     btn.addEventListener('mouseenter', () => {
-      btn.style.background   = 'var(--color-bg-subtle)';
-      btn.style.color        = 'var(--color-text-primary)';
-      btn.style.borderColor  = 'var(--color-border-strong)';
+      btn.style.background  = 'var(--color-bg-subtle)';
+      btn.style.color       = 'var(--color-text-primary)';
+      btn.style.borderColor = 'var(--color-border-strong)';
     });
     btn.addEventListener('mouseleave', () => {
-      btn.style.background   = 'transparent';
-      btn.style.color        = 'var(--color-text-secondary)';
-      btn.style.borderColor  = 'var(--color-border)';
+      btn.style.background  = 'transparent';
+      btn.style.color       = 'var(--color-text-secondary)';
+      btn.style.borderColor = 'var(--color-border)';
     });
   }
   return btn;

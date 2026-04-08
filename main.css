@@ -535,8 +535,7 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
 
 /* ─── HISTÓRICO COLAPSÁVEL ─── */
 .hist-toggle-hdr:hover { background: var(--color-bg-subtle); }
-#historicoBody { opacity: 0; transition: opacity .2s ease; }
-#historicoBody.hist-body--open { opacity: 1; }
+#historicoBody { transition: opacity .2s ease; }
 .hist-cat-tag {
   font-size: 9px; background: var(--color-bg-subtle); color: var(--color-text-secondary);
   border: 1px solid var(--color-border); padding: 2px 7px; border-radius: 99px;
