@@ -546,3 +546,22 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
   #historicoBody > div:first-child { flex-direction: column; }
   #historicoFiltro { width: 100%; }
 }
+
+/* ─── BOTÃO REGENERAR ─── */
+#regenConteudoBtn.regen-loading {
+  opacity: .6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+#regenConteudoBtn.regen-loading::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  margin-right: 5px;
+  vertical-align: middle;
+}

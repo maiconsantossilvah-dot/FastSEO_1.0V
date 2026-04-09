@@ -19,6 +19,60 @@ import { ConfigUI, ThemeUI, SidebarToggle } from './ConfigUI.js';
 // ── Restaura tema imediatamente (evita flash de tema errado) ──
 ThemeUI.restore();
 
+// ── Export — copia e baixa os resultados gerados ──────────────
+// CORREÇÃO: Export não estava definido em nenhum lugar do código,
+// por isso copyFichaBtn, copyConteudoBtn e exportTxtBtn falhavam
+// com "Export is not defined". Agora definido aqui, no escopo correto.
+const Export = {
+  /**
+   * Copia o texto de um dos blocos de resultado para a área de transferência.
+   * @param {'ficha'|'conteudo'} which
+   */
+  copy(which) {
+    const elId   = which === 'ficha' ? 'fichaOut' : 'conteudoOut';
+    const btnId  = which === 'ficha' ? 'copyFichaBtn' : 'copyConteudoBtn';
+    const text   = document.getElementById(elId)?.innerText?.trim() || '';
+
+    if (!text) {
+      PipelineUI.log('Nada para copiar — execute o pipeline primeiro.', 'w');
+      return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      const original = btn.textContent;
+      btn.textContent = '✓ Copiado!';
+      setTimeout(() => { btn.textContent = original; }, 1800);
+    }).catch(err => {
+      PipelineUI.log(`Erro ao copiar: ${err.message}`, 'e');
+    });
+  },
+
+  /**
+   * Baixa a Ficha Técnica Formatada como arquivo .txt
+   */
+  txt() {
+    const text = document.getElementById('fichaOut')?.innerText?.trim() || '';
+    if (!text) {
+      PipelineUI.log('Nada para exportar — execute o pipeline primeiro.', 'w');
+      return;
+    }
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    // Nome do arquivo: primeiras palavras do texto ou fallback
+    const slug = text.split('\n')[0].slice(0, 40).trim().replace(/[^a-zA-Z0-9À-ú\s]/g, '').trim().replace(/\s+/g, '_') || 'ficha';
+    a.download = `${slug}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },
+};
+
 // ── Tela de login ─────────────────────────────────────────────
 function showLogin() {
   document.getElementById('appLoading').style.display   = 'none';
@@ -119,9 +173,31 @@ document.getElementById('mistralKey')?.addEventListener('input', () => ConfigUI.
 document.getElementById('modelSel')?.addEventListener('change',  () => ConfigUI.updateQuotaInfo());
 document.getElementById('inputText')?.addEventListener('input',  () => ConfigUI.updateCharCount());
 document.getElementById('runBtn')?.addEventListener('click', () => Pipeline.run());
+
+// ── Botões de exportação (CORRIGIDOS: Export agora está definido) ──
 document.getElementById('copyFichaBtn')?.addEventListener('click',    () => Export.copy('ficha'));
 document.getElementById('copyConteudoBtn')?.addEventListener('click', () => Export.copy('conteudo'));
 document.getElementById('exportTxtBtn')?.addEventListener('click',    () => Export.txt());
+
+// ── NOVO: Botão Regenerar — reexecuta só o A3 (Copywriter) ───
+// Lê ficha e validação já geradas, chama Pipeline.rerunCopywriter()
+// sem consumir cota dos agentes A1 e A2.
+document.getElementById('regenConteudoBtn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('regenConteudoBtn');
+  if (!btn) return;
+
+  // Feedback visual durante a geração
+  btn.classList.add('regen-loading');
+  btn.textContent = 'Gerando...';
+
+  try {
+    await Pipeline.rerunCopywriter();
+  } finally {
+    btn.classList.remove('regen-loading');
+    btn.textContent = '↺ Regenerar';
+  }
+});
+
 document.getElementById('historicoToggleBtn')?.addEventListener('click', () => HistoryUI.toggle());
 document.getElementById('historicoBusca')?.addEventListener('input',   () => { HistoryUI.resetPage(); HistoryUI.render(); });
 document.getElementById('historicoFiltro')?.addEventListener('change', () => { HistoryUI.resetPage(); HistoryUI.render(); });

@@ -251,10 +251,26 @@ Corrente nominal: 63A ..."></textarea>
           <div class="result-hdr"><span class="result-label">Conferência de Qualidade</span><span id="statusBadge" class="badge"></span></div>
           <div class="result-content" id="validacaoOut"></div>
         </div>
+
+        <!-- ── Bloco: Conteúdo Comercial ── -->
         <div class="card" id="copyBlock" style="display:none">
-          <div class="result-hdr"><span class="result-label">Conteúdo Comercial</span><button class="copy-btn" id="copyConteudoBtn">Copiar</button></div>
+          <div class="result-hdr">
+            <span class="result-label">Conteúdo Comercial</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <!-- NOVO: botão Regenerar — chama só o A3 sem reprocessar A1 e A2 -->
+              <button
+                class="copy-btn"
+                id="regenConteudoBtn"
+                title="Gerar novamente sem reprocessar os outros agentes"
+                style="background:var(--color-bg-subtle);color:var(--color-text-secondary);">
+                ↺ Regenerar
+              </button>
+              <button class="copy-btn" id="copyConteudoBtn">Copiar</button>
+            </div>
+          </div>
           <div class="result-content" id="conteudoOut"></div>
         </div>
+
       </div>
 
       <div id="historicoPanel" class="card">

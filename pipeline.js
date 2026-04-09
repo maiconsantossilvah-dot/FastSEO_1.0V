@@ -42,6 +42,79 @@ export const Pipeline = {
     await this._execute(inputRaw);
   },
 
+  // ─── NOVO: Reexecuta só o Agente 3 (Copywriter) ─────────────
+  // Reutiliza ficha e validação já geradas (AppState.pipeline.result),
+  // sem chamar A1 (Formatador) nem A2 (Conferente).
+  // Consome apenas 1 requisição de cota.
+  async rerunCopywriter() {
+    const { ficha, bivolt } = AppState.pipeline.result || {};
+
+    // Fallback: lê do DOM caso o state tenha sido perdido (ex: reload parcial)
+    const fichaText = ficha || document.getElementById('fichaOut')?.innerText?.trim() || '';
+
+    if (!fichaText) {
+      PipelineUI.log('⚠ Execute o pipeline completo (⚡ Processar Ficha) antes de regenerar.', 'w');
+      return;
+    }
+
+    const geminiKey = document.getElementById('apiKey')?.value.trim() || '';
+    if (!geminiKey.startsWith('AIza') || geminiKey.length <= 20) {
+      PipelineUI.log('⚠ API Key do Gemini necessária para regenerar o Conteúdo Comercial.', 'w');
+      return;
+    }
+
+    // Verificação de cota
+    const uso = Quota.getUsage(), lim = Quota.getLimit();
+    if (uso.count + 1 > lim) {
+      alert(`Cota diária esgotada (${uso.count}/${lim}). A cota renova à meia-noite.`);
+      return;
+    }
+
+    // Abort controller próprio para não cancelar um pipeline em andamento
+    const abort  = new AbortController();
+    const signal = abort.signal;
+
+    // Feedback de progresso no step 3
+    PipelineUI.setStep(3, 'active');
+    PipelineUI.log('[A3] Regenerando conteúdo comercial...', 'i');
+
+    try {
+      // Monta o prompt exatamente igual ao fluxo principal
+      const input      = document.getElementById('inputText')?.value || fichaText;
+      const allCats    = Categories.getAll().filter(c => c.ficha || c.campos || c.copy);
+      const matched    = Utils.matchCategories(input, Categories.getAll());
+      const fewShot    = Utils.buildFewShot(bivolt, matched);
+
+      const subcatRule    = AppState.subcatRules.match(input);
+      const subcatSnippet = AppState.subcatRules.buildSnippet(subcatRule);
+
+      const sys3 = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
+
+      const conteudo = await callAgent(sys3, fichaText, 800, signal, 3);
+
+      Quota.add(1);
+      PipelineUI.setStep(3, 'done');
+      PipelineUI.log('[A3] Conteúdo regenerado.', 'o');
+
+      // Atualiza state e DOM
+      AppState.pipeline.result.conteudo = conteudo;
+      const outEl = document.getElementById('conteudoOut');
+      if (outEl) outEl.innerText = conteudo;
+
+      // Garante que o bloco esteja visível
+      const copyBlock = document.getElementById('copyBlock');
+      if (copyBlock) copyBlock.style.display = '';
+
+      Quota.updateUI();
+
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      PipelineUI.setStep(3, 'error');
+      PipelineUI.log(`[A3] ERRO ao regenerar: ${err.message}`, 'e');
+      alert(`Erro ao regenerar:\n${err.message}`);
+    }
+  },
+
   // ─── Execução principal ─────────────────────────────────────
   async _execute(inputRaw) {
     const t0 = Date.now();
