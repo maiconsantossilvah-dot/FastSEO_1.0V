@@ -182,13 +182,8 @@
           <span class="card-title">Configuração de APIs</span>
           <div style="display:flex;align-items:center;gap:10px;">
             <span class="hint">Google Gemini · Mistral</span>
-            <button id="toggleFallbackBtn"
-              title="Exibir chaves de fallback (sobrecarga / 503)"
-              style="font-size:11px;padding:3px 10px;border-radius:6px;
-                     border:1px solid var(--color-border);background:none;
-                     color:var(--color-text-muted);cursor:pointer;
-                     font-family:var(--font-body);white-space:nowrap;
-                     transition:color .15s,border-color .15s;">
+            <button id="toggleFallbackBtn" class="fallback-toggle-btn"
+              title="Exibir chaves de fallback (sobrecarga / 503)">
               🔀 Fallback
             </button>
           </div>
@@ -385,68 +380,6 @@ Corrente nominal: 63A ..."></textarea>
 
 <script type="module" src="main.js"></script>
 <script>
-/* ── Fallback keys panel: toggle + persistência no localStorage ── */
-(function () {
-  const PANEL_KEY   = 'fastseo_fallback_open';
-  const FALLBACK_IDS = ['apiKey2', 'apiKey3', 'mistralKey2'];
-
-  function validateKey(id, value) {
-    const statusId = { apiKey2: 'keyStatus2', apiKey3: 'keyStatus3', mistralKey2: 'mistralKeyStatus2' }[id];
-    const st = document.getElementById(statusId);
-    if (!st) return;
-    const isGemini = id.startsWith('apiKey');
-    const valid = isGemini ? (value.startsWith('AIza') && value.length > 20) : value.length > 20;
-    st.textContent = value ? (valid ? '✓' : '✗') : '';
-    st.style.color = valid ? 'var(--color-success)' : 'var(--color-danger)';
-  }
-
-  function init() {
-    const btn   = document.getElementById('toggleFallbackBtn');
-    const panel = document.getElementById('fallbackKeysPanel');
-    if (!btn || !panel) return;
-
-    // Restaura estado aberto/fechado
-    if (localStorage.getItem(PANEL_KEY) === '1') {
-      panel.style.display  = '';
-      btn.style.color      = 'var(--color-accent)';
-      btn.style.borderColor= 'var(--color-accent)';
-    }
-
-    // Restaura chaves salvas e valida
-    FALLBACK_IDS.forEach(id => {
-      const el    = document.getElementById(id);
-      const saved = localStorage.getItem('fastseo_' + id) || '';
-      if (el && saved) { el.value = saved; validateKey(id, saved); }
-    });
-
-    // Toggle
-    btn.addEventListener('click', () => {
-      const show = panel.style.display === 'none';
-      panel.style.display   = show ? '' : 'none';
-      btn.style.color       = show ? 'var(--color-accent)' : '';
-      btn.style.borderColor = show ? 'var(--color-accent)' : '';
-      localStorage.setItem(PANEL_KEY, show ? '1' : '0');
-    });
-
-    // Auto-save + validação em tempo real
-    FALLBACK_IDS.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener('input', () => {
-        const v = el.value.trim();
-        localStorage.setItem('fastseo_' + id, v);
-        validateKey(id, v);
-      });
-    });
-  }
-
-  document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', init)
-    : init();
-})();
-</script>
-
-<script>
 /* ── Fallback keys: toggle do painel + persistência no localStorage ── */
 (function () {
   const LS_OPEN = 'fastseo_fallback_open';
@@ -471,12 +404,10 @@ Corrente nominal: 63A ..."></textarea>
 
     // Restaura estado aberto/fechado
     if (localStorage.getItem(LS_OPEN) === '1') {
-      panel.style.display   = '';
-      btn.style.color       = 'var(--color-accent)';
-      btn.style.borderColor = 'var(--color-accent)';
+      panel.style.display = '';
+      btn.classList.add('active');
     }
 
-    // Restaura chaves salvas e valida
     FALLBACK_KEYS.forEach(({ id, statusId, isGemini }) => {
       const el = document.getElementById(id);
       const st = document.getElementById(statusId);
@@ -493,9 +424,8 @@ Corrente nominal: 63A ..."></textarea>
     // Toggle
     btn.addEventListener('click', () => {
       const show = panel.style.display === 'none';
-      panel.style.display   = show ? '' : 'none';
-      btn.style.color       = show ? 'var(--color-accent)' : '';
-      btn.style.borderColor = show ? 'var(--color-accent)' : '';
+      panel.style.display = show ? '' : 'none';
+      btn.classList.toggle('active', show);
       localStorage.setItem(LS_OPEN, show ? '1' : '0');
     });
   }

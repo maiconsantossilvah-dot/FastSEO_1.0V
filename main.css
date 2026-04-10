@@ -566,6 +566,22 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
   vertical-align: middle;
 }
 /* ─── FALLBACK KEYS PANEL ─── */
+.fallback-toggle-btn {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: var(--font-body);
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+.fallback-toggle-btn.active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
 .fallback-panel {
   margin-top: 18px;
   padding-top: 16px;
