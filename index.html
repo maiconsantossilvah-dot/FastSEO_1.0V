@@ -95,6 +95,8 @@
     transition: color .15s, border-color .15s;
   }
 
+
+
 </style>
 </head>
 <body>
@@ -176,8 +178,23 @@
     <div class="page">
 
       <div class="card">
-        <div class="card-hdr"><span class="card-title">Configuração de APIs</span><span class="hint">Google Gemini · Mistral</span></div>
+        <div class="card-hdr">
+          <span class="card-title">Configuração de APIs</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="hint">Google Gemini · Mistral</span>
+            <button id="toggleFallbackBtn"
+              title="Exibir chaves de fallback (sobrecarga / 503)"
+              style="font-size:11px;padding:3px 10px;border-radius:6px;
+                     border:1px solid var(--color-border);background:none;
+                     color:var(--color-text-muted);cursor:pointer;
+                     font-family:var(--font-body);white-space:nowrap;
+                     transition:color .15s,border-color .15s;">
+              🔀 Fallback
+            </button>
+          </div>
+        </div>
         <div class="card-body">
+
           <div class="setup-grid">
             <div class="field">
               <label>API Key do Gemini <span style="color:var(--color-success);font-weight:400">· A2 e A3</span></label>
@@ -199,6 +216,34 @@
               <div class="hint" id="modelHint"></div>
             </div>
           </div>
+
+          <!-- ── Painel de chaves de fallback (oculto por padrão) ── -->
+          <div id="fallbackKeysPanel" class="fallback-panel" style="display:none">
+            <div class="fallback-panel-info">
+              <span class="fallback-panel-icon">🔀</span>
+              <div>
+                <strong class="fallback-panel-title">Chaves de Fallback</strong>
+                <p class="fallback-panel-desc">
+                  Acionadas automaticamente quando a chave primária retornar <strong>503</strong>, <strong>529</strong> ou <strong>sobrecarga</strong>. Cota diária esgotada também aciona a troca.
+                </p>
+              </div>
+            </div>
+            <div class="setup-grid">
+              <div class="field">
+                <label>Gemini — Chave 2 <span class="fallback-badge">fallback</span></label>
+                <div class="key-wrap"><input type="password" id="apiKey2" placeholder="AIza... (secundária)"/><span class="key-status" id="keyStatus2"></span></div>
+              </div>
+              <div class="field">
+                <label>Mistral — Chave 2 <span class="fallback-badge">fallback</span></label>
+                <div class="key-wrap"><input type="password" id="mistralKey2" placeholder="... (secundária)"/><span class="key-status" id="mistralKeyStatus2"></span></div>
+              </div>
+              <div class="field">
+                <label>Gemini — Chave 3 <span class="fallback-badge">fallback</span></label>
+                <div class="key-wrap"><input type="password" id="apiKey3" placeholder="AIza... (terciária)"/><span class="key-status" id="keyStatus3"></span></div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -339,5 +384,127 @@ Corrente nominal: 63A ..."></textarea>
 </div>
 
 <script type="module" src="main.js"></script>
+<script>
+/* ── Fallback keys panel: toggle + persistência no localStorage ── */
+(function () {
+  const PANEL_KEY   = 'fastseo_fallback_open';
+  const FALLBACK_IDS = ['apiKey2', 'apiKey3', 'mistralKey2'];
+
+  function validateKey(id, value) {
+    const statusId = { apiKey2: 'keyStatus2', apiKey3: 'keyStatus3', mistralKey2: 'mistralKeyStatus2' }[id];
+    const st = document.getElementById(statusId);
+    if (!st) return;
+    const isGemini = id.startsWith('apiKey');
+    const valid = isGemini ? (value.startsWith('AIza') && value.length > 20) : value.length > 20;
+    st.textContent = value ? (valid ? '✓' : '✗') : '';
+    st.style.color = valid ? 'var(--color-success)' : 'var(--color-danger)';
+  }
+
+  function init() {
+    const btn   = document.getElementById('toggleFallbackBtn');
+    const panel = document.getElementById('fallbackKeysPanel');
+    if (!btn || !panel) return;
+
+    // Restaura estado aberto/fechado
+    if (localStorage.getItem(PANEL_KEY) === '1') {
+      panel.style.display  = '';
+      btn.style.color      = 'var(--color-accent)';
+      btn.style.borderColor= 'var(--color-accent)';
+    }
+
+    // Restaura chaves salvas e valida
+    FALLBACK_IDS.forEach(id => {
+      const el    = document.getElementById(id);
+      const saved = localStorage.getItem('fastseo_' + id) || '';
+      if (el && saved) { el.value = saved; validateKey(id, saved); }
+    });
+
+    // Toggle
+    btn.addEventListener('click', () => {
+      const show = panel.style.display === 'none';
+      panel.style.display   = show ? '' : 'none';
+      btn.style.color       = show ? 'var(--color-accent)' : '';
+      btn.style.borderColor = show ? 'var(--color-accent)' : '';
+      localStorage.setItem(PANEL_KEY, show ? '1' : '0');
+    });
+
+    // Auto-save + validação em tempo real
+    FALLBACK_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', () => {
+        const v = el.value.trim();
+        localStorage.setItem('fastseo_' + id, v);
+        validateKey(id, v);
+      });
+    });
+  }
+
+  document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', init)
+    : init();
+})();
+</script>
+
+<script>
+/* ── Fallback keys: toggle do painel + persistência no localStorage ── */
+(function () {
+  const LS_OPEN = 'fastseo_fallback_open';
+  const FALLBACK_KEYS = [
+    { id: 'apiKey2',     statusId: 'keyStatus2',      isGemini: true  },
+    { id: 'apiKey3',     statusId: 'keyStatus3',      isGemini: true  },
+    { id: 'mistralKey2', statusId: 'mistralKeyStatus2', isGemini: false },
+  ];
+
+  function validateStatus(el, statusEl, isGemini) {
+    if (!statusEl) return;
+    const v = el.value.trim();
+    const ok = isGemini ? (v.startsWith('AIza') && v.length > 20) : v.length > 20;
+    statusEl.textContent = v ? (ok ? '✓' : '✗') : '';
+    statusEl.style.color = ok ? 'var(--color-success)' : 'var(--color-danger)';
+  }
+
+  function init() {
+    const btn   = document.getElementById('toggleFallbackBtn');
+    const panel = document.getElementById('fallbackKeysPanel');
+    if (!btn || !panel) return;
+
+    // Restaura estado aberto/fechado
+    if (localStorage.getItem(LS_OPEN) === '1') {
+      panel.style.display   = '';
+      btn.style.color       = 'var(--color-accent)';
+      btn.style.borderColor = 'var(--color-accent)';
+    }
+
+    // Restaura chaves salvas e valida
+    FALLBACK_KEYS.forEach(({ id, statusId, isGemini }) => {
+      const el = document.getElementById(id);
+      const st = document.getElementById(statusId);
+      if (!el) return;
+      const saved = localStorage.getItem('fastseo_' + id);
+      if (saved) el.value = saved;
+      validateStatus(el, st, isGemini);
+      el.addEventListener('input', () => {
+        localStorage.setItem('fastseo_' + id, el.value.trim());
+        validateStatus(el, st, isGemini);
+      });
+    });
+
+    // Toggle
+    btn.addEventListener('click', () => {
+      const show = panel.style.display === 'none';
+      panel.style.display   = show ? '' : 'none';
+      btn.style.color       = show ? 'var(--color-accent)' : '';
+      btn.style.borderColor = show ? 'var(--color-accent)' : '';
+      localStorage.setItem(LS_OPEN, show ? '1' : '0');
+    });
+  }
+
+  document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', init)
+    : init();
+})();
+</script>
+
 </body>
 </html>

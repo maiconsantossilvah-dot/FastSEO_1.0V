@@ -565,3 +565,38 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
   margin-right: 5px;
   vertical-align: middle;
 }
+/* ─── FALLBACK KEYS PANEL ─── */
+.fallback-panel {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--color-border);
+  animation: fadeIn .18s ease;
+}
+.fallback-panel-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+.fallback-panel-icon { font-size: 14px; flex-shrink: 0; }
+.fallback-panel-title { display: block; font-size: 12px; font-weight: 600; color: var(--color-text-primary); }
+.fallback-panel-desc { margin: 2px 0 0; font-size: 11px; color: var(--color-text-muted); line-height: 1.5; }
+.fallback-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
+  border: 1px solid rgba(59,130,246,.25);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
