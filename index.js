@@ -76,32 +76,59 @@ export const Utils = {
   },
 
   // ─── Matching de categorias ────────────────────────────────
+  /**
+   * Determina se o input é SOBRE esta categoria.
+   *
+   * Regras:
+   *  1. Usa a primeira linha do input como âncora (título do produto).
+   *  2. O nome da categoria deve aparecer nas primeiras (N+1) palavras
+   *     da âncora, onde N = número de palavras do nome.
+   *  3. Não pode ser precedido por preposição (evita falsos positivos
+   *     como "TV" em "Cabo de TV", "Notebook" em "Mochila para Notebook").
+   *  4. Quando duas categorias batem e uma é prefixo da outra,
+   *     mantém apenas a mais específica ("Impressora Térmica" > "Impressora").
+   */
   matchCategories(input, allCats = []) {
-    const validCats  = allCats.filter(c => c.ficha || c.campos || c.copy);
-    const inputLower = input.toLowerCase();
+    const validCats = allCats.filter(c => c.ficha || c.campos || c.copy);
 
-    return validCats.filter(cat => {
-      const nome          = cat.nome.toLowerCase().trim();
-      const nomeSemHifen  = nome.replace(/-/g, ' ');
-      const inputSemHifen = inputLower.replace(/-/g, ' ');
+    // Normaliza removendo acentos, hifens e barras
+    const norm = s => s
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+      .replace(/[-\/]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-      const rePhrase = new RegExp(
-        '(?<![\\w\\u00C0-\\u024F])' +
-        nomeSemHifen.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
-        '(?![\\w\\u00C0-\\u024F])'
-      );
-      if (rePhrase.test(inputSemHifen)) return true;
+    const reEscape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const PREPOS   = /\b(de|do|da|dos|das|para|com|por|em|no|na|nos|nas|e)\s+$/i;
+    const STOP_INI = /^(o|a|os|as|um|uma|uns|umas|novo|nova)\s+/i;
 
-      const unica = !nome.includes(' ') && !nome.includes('-');
-      if (unica && nome.length >= 4) {
-        const reWord = new RegExp(
-          '(?<![\\w\\u00C0-\\u024F])' +
-          nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
-          '(?![\\w\\u00C0-\\u024F])'
-        );
-        return reWord.test(inputLower);
-      }
-      return false;
+    const primeiraLinha = input.split('\n').map(l => l.trim()).filter(Boolean)[0] || '';
+    const ancoraNorm    = norm(primeiraLinha).slice(0, 150).replace(STOP_INI, '');
+    const palavrasAnc   = ancoraNorm.split(/\s+/);
+
+    // Primeiro passo: coleta todos que batem
+    const candidatos = validCats.filter(cat => {
+      const nome         = norm(cat.nome);
+      const palavrasNome = nome.split(/\s+/);
+      const janela       = palavrasAnc.slice(0, palavrasNome.length + 1).join(' ');
+      const re           = new RegExp('(?<![\\w])' + reEscape(nome) + '(?![\\w])');
+      if (!re.test(janela)) return false;
+      const idx = janela.search(re);
+      if (idx > 0 && PREPOS.test(janela.slice(0, idx))) return false;
+      return true;
+    });
+
+    // Segundo passo: remove os menos específicos quando um mais específico
+    // já cobre o mesmo prefixo (ex: remove "Impressora" se "Impressora Térmica" bateu)
+    return candidatos.filter(cat => {
+      const nomeNorm = norm(cat.nome);
+      return !candidatos.some(outro => {
+        if (outro === cat) return false;
+        const outroNorm = norm(outro.nome);
+        // outro é mais específico e começa com o nome de cat
+        return outroNorm.startsWith(nomeNorm + ' ') && outroNorm.length > nomeNorm.length;
+      });
     });
   },
 
