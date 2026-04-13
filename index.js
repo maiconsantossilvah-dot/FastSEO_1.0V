@@ -80,21 +80,21 @@ export const Utils = {
    * Determina se o input é SOBRE esta categoria.
    *
    * Regras:
-   *  1. Usa a primeira linha do input como âncora (título do produto).
+   *  1. Encontra a "linha âncora" — a primeira linha que parece ser
+   *     o nome/título do produto, pulando linhas de código, EAN,
+   *     fornecedor, marca isolada, etc.
    *  2. O nome da categoria deve aparecer nas primeiras (N+1) palavras
-   *     da âncora, onde N = número de palavras do nome.
-   *  3. Não pode ser precedido por preposição (evita falsos positivos
-   *     como "TV" em "Cabo de TV", "Notebook" em "Mochila para Notebook").
+   *     da âncora (N = palavras do nome), com tolerância de 1 qualificador.
+   *  3. Não pode ser precedido por preposição.
    *  4. Quando duas categorias batem e uma é prefixo da outra,
-   *     mantém apenas a mais específica ("Impressora Térmica" > "Impressora").
+   *     mantém apenas a mais específica.
    */
   matchCategories(input, allCats = []) {
     const validCats = allCats.filter(c => c.ficha || c.campos || c.copy);
 
-    // Normaliza removendo acentos, hifens e barras
     const norm = s => s
       .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/[-\/]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
@@ -103,32 +103,43 @@ export const Utils = {
     const PREPOS   = /\b(de|do|da|dos|das|para|com|por|em|no|na|nos|nas|e)\s+$/i;
     const STOP_INI = /^(o|a|os|as|um|uma|uns|umas|novo|nova)\s+/i;
 
-    const primeiraLinha = input.split('\n').map(l => l.trim()).filter(Boolean)[0] || '';
-    const ancoraNorm    = norm(primeiraLinha).slice(0, 150).replace(STOP_INI, '');
-    const palavrasAnc   = ancoraNorm.split(/\s+/);
+    // Detecta linhas que NÃO são o título do produto:
+    // - maioria dos chars são dígitos (códigos, EAN, referências)
+    // - contém palavras-chave de metadado como EAN, NCM, GTIN
+    // - são labels de campo: "Fornecedor:", "Marca:", "Ref:", etc.
+    const isLinhaRuido = l => {
+      const semEsp = l.replace(/\s/g, '');
+      if (!semEsp.length) return true;
+      if ((semEsp.match(/\d/g) || []).length / semEsp.length > 0.5) return true;
+      if (/\bean\b|\bncm\b|\bgtin\b/i.test(l)) return true;
+      if (/^\s*(fornecedor|marca|ref|cod|codigo|cód|fabricante|modelo|origem)\s*:/i.test(l)) return true;
+      return false;
+    };
 
-    // Primeiro passo: coleta todos que batem
+    // Encontra a primeira linha que parece ser o nome do produto,
+    // pulando linhas de código, EAN, metadados de fornecedor, etc.
+    // Busca nas primeiras 6 linhas para cobrir formatos variados de fornecedor.
+    const linhas = input.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 6);
+    const linhaAncora = linhas.find(l => !isLinhaRuido(l) && l.replace(/\d/g, '').trim().length >= 4) || linhas[0] || '';
+
+    const ancoraNorm  = norm(linhaAncora).slice(0, 150).replace(STOP_INI, '');
+    const palavrasAnc = ancoraNorm.split(/\s+/);
+
     const candidatos = validCats.filter(cat => {
-      const nome         = norm(cat.nome);
-      const palavrasNome = nome.split(/\s+/);
-      const janela       = palavrasAnc.slice(0, palavrasNome.length + 1).join(' ');
-      const re           = new RegExp('(?<![\\w])' + reEscape(nome) + '(?![\\w])');
+      const nome  = norm(cat.nome);
+      const pNome = nome.split(/\s+/);
+      const janela = palavrasAnc.slice(0, pNome.length + 1).join(' ');
+      const re = new RegExp('(?<![\\w])' + reEscape(nome) + '(?![\\w])');
       if (!re.test(janela)) return false;
       const idx = janela.search(re);
       if (idx > 0 && PREPOS.test(janela.slice(0, idx))) return false;
       return true;
     });
 
-    // Segundo passo: remove os menos específicos quando um mais específico
-    // já cobre o mesmo prefixo (ex: remove "Impressora" se "Impressora Térmica" bateu)
+    // Remove menos específicos quando um mais específico já cobre o prefixo
     return candidatos.filter(cat => {
-      const nomeNorm = norm(cat.nome);
-      return !candidatos.some(outro => {
-        if (outro === cat) return false;
-        const outroNorm = norm(outro.nome);
-        // outro é mais específico e começa com o nome de cat
-        return outroNorm.startsWith(nomeNorm + ' ') && outroNorm.length > nomeNorm.length;
-      });
+      const nN = norm(cat.nome);
+      return !candidatos.some(o => o !== cat && norm(o.nome).startsWith(nN + ' '));
     });
   },
 
