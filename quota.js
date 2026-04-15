@@ -41,14 +41,18 @@ export const Quota = {
 
   updateUI() {
     const uso = this.getUsage(), lim = this.getLimit();
-    const pct = Math.min(100, (uso.count / lim) * 100);
+    const pct = Math.min(100, Math.round((uso.count / lim) * 100));
     const label = document.getElementById('quotaLabel');
     const fill  = document.getElementById('quotaFill');
-    if (label) label.textContent = `${uso.count} / ${lim} hoje`;
+    const pctEl = document.getElementById('quotaPct');
+    if (label) label.textContent = `${uso.count} / ${lim}`;
+    if (pctEl) pctEl.textContent = `${pct}%`;
+    const color = pct > 80 ? 'var(--color-danger)' : pct > 50 ? 'var(--color-warn)' : 'var(--color-success)';
     if (fill) {
       fill.style.width      = pct + '%';
-      fill.style.background = pct > 80 ? 'var(--color-warn)' : 'var(--color-success)';
+      fill.style.background = color;
     }
+    if (pctEl) pctEl.style.color = pct > 80 ? 'var(--color-danger)' : pct > 50 ? 'var(--color-warn)' : 'var(--color-text-muted)';
   },
 };
 

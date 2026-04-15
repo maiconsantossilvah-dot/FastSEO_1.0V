@@ -143,9 +143,15 @@
   <button class="btn btn-icon btn-icon--lg" id="sidebarToggle" title="Abrir painel de categorias" aria-label="Abrir painel de categorias" style="flex-shrink:0;margin-left:14px;">🧠</button>
   <div class="header-right">
     <div class="quota-bar">
-      <span id="quotaLabel">0 / 1000 hoje</span>
-      <div class="quota-track"><div class="quota-fill" id="quotaFill" style="width:0%"></div></div>
-      <button id="resetCotaBtn" title="Zerar contador" class="btn" style="background:none;border:none;color:var(--color-text-muted);font-size:11px;padding:0 2px;">↺</button>
+      <div class="quota-info">
+        <span class="quota-label-top">cota hoje</span>
+        <span id="quotaLabel">0 / 1000</span>
+      </div>
+      <div class="quota-track">
+        <div class="quota-fill" id="quotaFill" style="width:0%"></div>
+      </div>
+      <span id="quotaPct" class="quota-pct">0%</span>
+      <button id="resetCotaBtn" title="Zerar contador" class="quota-reset-btn">↺</button>
     </div>
     <div class="free-pill">✓ gratuito</div>
     <button id="openPromptsBtn"   class="btn btn-ghost">✏️ Prompts</button>
