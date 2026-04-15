@@ -143,15 +143,9 @@
   <button class="btn btn-icon btn-icon--lg" id="sidebarToggle" title="Abrir painel de categorias" aria-label="Abrir painel de categorias" style="flex-shrink:0;margin-left:14px;">🧠</button>
   <div class="header-right">
     <div class="quota-bar">
-      <div class="quota-info">
-        <span class="quota-label-top">cota hoje</span>
-        <span id="quotaLabel">0 / 1000</span>
-      </div>
-      <div class="quota-track">
-        <div class="quota-fill" id="quotaFill" style="width:0%"></div>
-      </div>
-      <span id="quotaPct" class="quota-pct">0%</span>
-      <button id="resetCotaBtn" title="Zerar contador" class="quota-reset-btn">↺</button>
+      <span id="quotaLabel">0 / 1000 hoje</span>
+      <div class="quota-track"><div class="quota-fill" id="quotaFill" style="width:0%"></div></div>
+      <button id="resetCotaBtn" title="Zerar contador" class="btn" style="background:none;border:none;color:var(--color-text-muted);font-size:11px;padding:0 2px;">↺</button>
     </div>
     <div class="free-pill">✓ gratuito</div>
     <button id="openPromptsBtn"   class="btn btn-ghost">✏️ Prompts</button>
@@ -269,9 +263,27 @@ Corrente nominal: 63A ..."></textarea>
       </div>
 
       <div class="steps">
-        <div class="step" id="ps1"><div class="step-num">01</div><div class="step-name">Formatador</div></div>
-        <div class="step" id="ps2"><div class="step-num">02</div><div class="step-name">Conferente</div></div>
-        <div class="step" id="ps3"><div class="step-num">03</div><div class="step-name">Copywriter</div></div>
+        <div class="step" id="ps1">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <div class="step-name">Formatador</div>
+            <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time" id="ps1Time"></span></div>
+          </div>
+        </div>
+        <div class="step" id="ps2">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <div class="step-name">Conferente</div>
+            <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time" id="ps2Time"></span></div>
+          </div>
+        </div>
+        <div class="step" id="ps3">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <div class="step-name">Copywriter</div>
+            <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time" id="ps3Time"></span></div>
+          </div>
+        </div>
       </div>
 
       <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">

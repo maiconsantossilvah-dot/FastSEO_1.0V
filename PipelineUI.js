@@ -5,6 +5,12 @@
 
 const $ = id => document.getElementById(id);
 
+// Guarda timestamps de início por step para calcular duração
+const _stepStart = {};
+
+// Mapa de qual API cada step usa (pode ser sobrescrito por setStepApi)
+const _stepApiLabel = { 1: 'Mistral', 2: 'Gemini', 3: 'Gemini' };
+
 export const PipelineUI = {
   log(msg, type = 'i') {
     const box = $('logBox');
@@ -19,8 +25,48 @@ export const PipelineUI = {
     box.appendChild(el);
     box.scrollTop = box.scrollHeight;
   },
-  setStep(n, state) { const el = $(`ps${n}`); if (el) el.className = `step ${state}`; },
-  resetSteps() { [1, 2, 3].forEach(n => this.setStep(n, '')); },
+
+  // Atualiza label de API de um step (chamado pelo pipeline quando faz fallback)
+  setStepApi(n, apiName) {
+    _stepApiLabel[n] = apiName;
+    const el = $(`ps${n}Api`);
+    if (el) el.textContent = apiName;
+  },
+
+  setStep(n, state) {
+    const el = $(`ps${n}`);
+    if (el) el.className = `step ${state}`.trim();
+
+    const apiEl  = $(`ps${n}Api`);
+    const timeEl = $(`ps${n}Time`);
+
+    if (state === 'active') {
+      _stepStart[n] = performance.now();
+      if (apiEl)  apiEl.textContent  = _stepApiLabel[n] || '';
+      if (timeEl) timeEl.textContent = '';
+    } else if ((state === 'done' || state === 'error' || state === 'skip') && _stepStart[n]) {
+      const ms  = Math.round(performance.now() - _stepStart[n]);
+      const sec = (ms / 1000).toFixed(1);
+      if (timeEl) timeEl.textContent = `· ${sec}s`;
+      if (apiEl && state !== 'skip') apiEl.textContent = _stepApiLabel[n] || '';
+      if (apiEl && state === 'skip') apiEl.textContent = '';
+      delete _stepStart[n];
+    }
+  },
+
+  resetSteps() {
+    [1, 2, 3].forEach(n => {
+      this.setStep(n, '');
+      const apiEl  = $(`ps${n}Api`);
+      const timeEl = $(`ps${n}Time`);
+      if (apiEl)  apiEl.textContent  = '';
+      if (timeEl) timeEl.textContent = '';
+    });
+    // Reseta labels para padrão
+    _stepApiLabel[1] = 'Mistral';
+    _stepApiLabel[2] = 'Gemini';
+    _stepApiLabel[3] = 'Gemini';
+  },
   setRunning(on) {
     const btn = $('runBtn');
     if (!btn) return;

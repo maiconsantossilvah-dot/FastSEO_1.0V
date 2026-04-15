@@ -148,24 +148,8 @@ body {
   font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted);
   padding-right: 12px; border-right: 1px solid var(--color-border); margin-right: 4px;
 }
-.quota-info {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 1px;
-}
-.quota-label-top {
-  font-size: 9px; color: var(--color-text-muted); opacity: .7; line-height: 1;
-}
-.quota-track { width: 90px; height: 5px; background: var(--color-bg-muted); border-radius: 99px; overflow: hidden; }
+.quota-track { width: 60px; height: 3px; background: var(--color-bg-muted); border-radius: 99px; overflow: hidden; }
 .quota-fill { height: 100%; border-radius: 99px; background: var(--color-success); transition: width .4s ease, background .3s; }
-.quota-pct {
-  font-size: 10px; font-weight: 500; min-width: 26px; text-align: right;
-  color: var(--color-text-muted);
-}
-.quota-reset-btn {
-  background: none; border: none;
-  color: var(--color-text-muted); font-size: 12px;
-  padding: 0 2px; cursor: pointer; opacity: .6; transition: opacity .15s;
-}
-.quota-reset-btn:hover { opacity: 1; }
 .free-pill {
   font-family: var(--font-mono); font-size: 10px; font-weight: 500;
   color: var(--color-success); background: var(--color-success-bg);
@@ -301,8 +285,12 @@ select {
   background: var(--color-bg-page); border: 1px solid var(--color-border);
   font-size: 12px; color: var(--color-text-muted); transition: var(--tr);
 }
-.step-num { font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
+.step-num { font-family: var(--font-mono); font-size: 10px; font-weight: 600; flex-shrink: 0; }
+.step-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .step-name { font-weight: 500; }
+.step-meta { display: flex; align-items: center; gap: 6px; min-height: 14px; }
+.step-api  { font-family: var(--font-mono); font-size: 9px; opacity: .7; }
+.step-time { font-family: var(--font-mono); font-size: 9px; opacity: .6; }
 .step.active { background: var(--color-accent-bg); border-color: rgba(59,130,246,.4); color: var(--color-accent); }
 .step.done   { background: var(--color-success-bg); border-color: var(--color-success-border); color: var(--color-success); }
 .step.error  { background: var(--color-danger-bg); border-color: rgba(220,38,38,.3); color: var(--color-danger); }
