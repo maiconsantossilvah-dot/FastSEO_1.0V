@@ -316,6 +316,18 @@ Corrente nominal: 63A ..."></textarea>
 
 </div>
 
+
+<!-- Inputs ocultos: api.js lê daqui; ConfigModal sincroniza ao abrir/fechar -->
+<div id="hiddenApiInputs" style="display:none;position:absolute;left:-9999px;top:-9999px;pointer-events:none">
+  <input type="password" id="apiKey"     autocomplete="off"/>
+  <input type="password" id="mistralKey" autocomplete="off"/>
+  <select id="modelSel">
+    <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+  </select>
+</div>
+
 <script type="module" src="main.js"></script>
 
 

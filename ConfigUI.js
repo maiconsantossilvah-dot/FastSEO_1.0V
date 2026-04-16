@@ -140,6 +140,11 @@ export const SidebarToggle = {
 
 /**
  * ConfigModal — modal de configuração de APIs e modelo
+ *
+ * Estratégia: os inputs #apiKey, #mistralKey e #modelSel vivem em
+ * #hiddenApiInputs (fora da tela) para que api.js sempre os encontre.
+ * Ao abrir o modal, os inputs são MOVIDOS para dentro dele.
+ * Ao fechar, são DEVOLVIDOS ao container oculto.
  */
 export const ConfigModal = {
   open() {
@@ -159,21 +164,17 @@ export const ConfigModal = {
           <div class="setup-grid">
             <div class="field">
               <label>API Key do Gemini <span style="color:var(--color-success);font-weight:400">· A2 e A3</span></label>
-              <div class="key-wrap"><input type="password" id="apiKey" placeholder="AIza..."/><span class="key-status" id="keyStatus"></span></div>
+              <div class="key-wrap" id="apiKeySlot"><span class="key-status" id="keyStatus"></span></div>
               <div class="hint">Obtenha grátis em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
             </div>
             <div class="field">
               <label>API Key da Mistral <span style="color:var(--color-success);font-weight:400">· A1</span></label>
-              <div class="key-wrap"><input type="password" id="mistralKey" placeholder="..."/><span class="key-status" id="mistralKeyStatus"></span></div>
+              <div class="key-wrap" id="mistralKeySlot"><span class="key-status" id="mistralKeyStatus"></span></div>
               <div class="hint">Grátis em <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> — sem cartão · usado no A1 (Formatador)</div>
             </div>
             <div class="field" style="grid-column:1/-1">
               <label>Modelo Gemini</label>
-              <select id="modelSel">
-                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite — 1.000 req/dia ⭐</option>
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash — 250 req/dia</option>
-                <option value="gemini-2.5-pro">Gemini 2.5 Pro — 100 req/dia</option>
-              </select>
+              <div id="modelSelSlot"></div>
               <div class="hint" id="modelHint"></div>
             </div>
           </div>
@@ -186,20 +187,20 @@ export const ConfigModal = {
           <div class="setup-grid">
             <div class="field">
               <label>Gemini — Chave 2 <span class="fallback-badge">fallback</span></label>
-              <div class="key-wrap"><input type="password" id="apiKey2" placeholder="AIza... (secundária)"/><span class="key-status" id="keyStatus2"></span></div>
+              <div class="key-wrap" id="apiKey2Slot"><span class="key-status" id="keyStatus2"></span></div>
             </div>
             <div class="field">
               <label>Mistral — Chave 2 <span class="fallback-badge">fallback</span></label>
-              <div class="key-wrap"><input type="password" id="mistralKey2" placeholder="... (secundária)"/><span class="key-status" id="mistralKeyStatus2"></span></div>
+              <div class="key-wrap" id="mistralKey2Slot"><span class="key-status" id="mistralKeyStatus2"></span></div>
             </div>
             <div class="field">
               <label>Gemini — Chave 3 <span class="fallback-badge">fallback</span></label>
-              <div class="key-wrap"><input type="password" id="apiKey3" placeholder="AIza... (terciária)"/><span class="key-status" id="keyStatus3"></span></div>
+              <div class="key-wrap" id="apiKey3Slot"><span class="key-status" id="keyStatus3"></span></div>
             </div>
           </div>
 
         </div>
-        <div class="modal-ftr">
+        <div class="modal-ftr" style="justify-content:flex-end">
           <span class="modal-saved" id="configSavedMsg">✓ Salvo</span>
           <button class="btn btn-primary" id="configModalClose2">Fechar</button>
         </div>
@@ -207,83 +208,83 @@ export const ConfigModal = {
 
     document.body.appendChild(overlay);
 
-    // Restaurar keys salvas nos inputs recém-criados
-    const LS_get = k => { try { return localStorage.getItem(k); } catch { return null; }};
-    const LS_set = (k,v) => { try { localStorage.setItem(k, v); } catch {} };
-    const LS_del = k => { try { localStorage.removeItem(k); } catch {} };
-
-    const restoreAndBind = (id, statusId, lsKey, validator) => {
-      const el = document.getElementById(id);
-      const st = document.getElementById(statusId);
-      if (!el) return;
-      const saved = LS_get(lsKey);
-      if (saved) el.value = saved;
-      validator(el, st, LS_set, LS_del);
-      el.addEventListener('input', () => {
-        validator(el, st, LS_set, LS_del);
-        ConfigModal._showSaved();
-      });
+    // Mover inputs principais para dentro dos slots do modal
+    const moveToSlot = (inputId, slotId) => {
+      const input = document.getElementById(inputId);
+      const slot  = document.getElementById(slotId);
+      if (input && slot) slot.prepend(input);
     };
+    moveToSlot('apiKey',     'apiKeySlot');
+    moveToSlot('mistralKey', 'mistralKeySlot');
+    moveToSlot('modelSel',   'modelSelSlot');
 
-    const validateGemini = (el, st, set, del) => {
-      const v = el.value.trim();
-      if (!v) { el.className = ''; if (st) st.textContent = ''; del('gemini_key'); return; }
-      if (v.startsWith('AIza') && v.length > 20) { el.className = 'valid'; if (st) st.textContent = '✓'; set('gemini_key', v); }
-      else { el.className = 'invalid'; if (st) st.textContent = '✗'; }
-    };
-    const validateMistral = (el, st, set, del) => {
-      const v = el.value.trim();
-      if (!v) { el.className = ''; if (st) st.textContent = ''; del('mistral_key'); return; }
-      if (v.length > 20) { el.className = 'valid'; if (st) st.textContent = '✓'; set('mistral_key', v); }
-      else { el.className = 'invalid'; if (st) st.textContent = '✗'; }
-    };
-    const validateGeminiFallback = (el, st, set, del) => {
-      const v = el.value.trim();
-      if (!v) { el.className = ''; if (st) st.textContent = ''; del('fastseo_' + el.id); return; }
-      if (v.startsWith('AIza') && v.length > 20) { el.className = 'valid'; if (st) st.textContent = '✓'; set('fastseo_' + el.id, v); }
-      else { el.className = 'invalid'; if (st) st.textContent = '✗'; }
-    };
+    // Criar e mover inputs de fallback (esses ficam só no modal)
+    this._ensureFallbackInputs();
+    moveToSlot('apiKey2',    'apiKey2Slot');
+    moveToSlot('apiKey3',    'apiKey3Slot');
+    moveToSlot('mistralKey2','mistralKey2Slot');
 
-    restoreAndBind('apiKey',    'keyStatus',        'gemini_key',  validateGemini);
-    restoreAndBind('mistralKey','mistralKeyStatus',  'mistral_key', validateMistral);
-    restoreAndBind('apiKey2',   'keyStatus2',        'fastseo_apiKey2',   validateGeminiFallback);
-    restoreAndBind('apiKey3',   'keyStatus3',        'fastseo_apiKey3',   validateGeminiFallback);
-    restoreAndBind('mistralKey2','mistralKeyStatus2','fastseo_mistralKey2', validateMistral);
-
-    // Restaurar modelo selecionado
+    // Atualizar hint do modelo
+    const hints = {
+      'gemini-2.5-flash-lite': '✓ recomendado — maior cota diária gratuita',
+      'gemini-2.5-flash':      '✓ boa qualidade, cota intermediária',
+      'gemini-2.5-pro':        '⚠ apenas 100 req/dia — use para tarefas que exigem mais raciocínio',
+    };
     const modelEl = document.getElementById('modelSel');
-    const savedModel = LS_get('fastseo_model') || 'gemini-2.5-flash-lite';
-    if (modelEl) {
-      modelEl.value = savedModel;
-      modelEl.addEventListener('change', () => {
-        LS_set('fastseo_model', modelEl.value);
-        ConfigModal._showSaved();
-        // Atualiza hint
-        const hints = {
-          'gemini-2.5-flash-lite': '✓ recomendado — maior cota diária gratuita',
-          'gemini-2.5-flash':      '✓ boa qualidade, cota intermediária',
-          'gemini-2.5-pro':        '⚠ apenas 100 req/dia — use para tarefas que exigem mais raciocínio',
-        };
-        const h = document.getElementById('modelHint');
-        if (h) h.textContent = hints[modelEl.value] || '';
-        // Atualiza quota
-        import('./quota.js').then(({ Quota }) => Quota.updateUI());
+    const hintEl  = document.getElementById('modelHint');
+    if (modelEl && hintEl) hintEl.textContent = hints[modelEl.value] || '';
+
+    // Listeners
+    document.getElementById('apiKey')?.addEventListener('input',     () => { ConfigUI.validateGeminiKey();  this._showSaved(); });
+    document.getElementById('mistralKey')?.addEventListener('input', () => { ConfigUI.validateMistralKey(); this._showSaved(); });
+    document.getElementById('modelSel')?.addEventListener('change',  () => {
+      ConfigUI.updateQuotaInfo();
+      if (hintEl) hintEl.textContent = hints[modelEl?.value] || '';
+      this._showSaved();
+    });
+
+    // Fallback listeners
+    [['apiKey2','keyStatus2',true],['apiKey3','keyStatus3',true],['mistralKey2','mistralKeyStatus2',false]].forEach(([id,stId,isGemini]) => {
+      const el = document.getElementById(id);
+      const st = document.getElementById(stId);
+      if (!el) return;
+      el.addEventListener('input', () => {
+        const v = el.value.trim();
+        const ok = isGemini ? (v.startsWith('AIza') && v.length > 20) : v.length > 20;
+        if (!v) { el.className=''; if(st) st.textContent=''; try{localStorage.removeItem('fastseo_'+id);}catch{} return; }
+        el.className = ok ? 'valid' : 'invalid';
+        if (st) st.textContent = ok ? '✓' : '✗';
+        if (ok) try{localStorage.setItem('fastseo_'+id, v);}catch{}
+        this._showSaved();
       });
-      // hint inicial
-      const hints = {
-        'gemini-2.5-flash-lite': '✓ recomendado — maior cota diária gratuita',
-        'gemini-2.5-flash':      '✓ boa qualidade, cota intermediária',
-        'gemini-2.5-pro':        '⚠ apenas 100 req/dia — use para tarefas que exigem mais raciocínio',
-      };
-      const h = document.getElementById('modelHint');
-      if (h) h.textContent = hints[modelEl.value] || '';
-    }
+    });
 
     const close = () => this.close();
     overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
     document.getElementById('configModalClose')?.addEventListener('click', close);
     document.getElementById('configModalClose2')?.addEventListener('click', close);
     document.addEventListener('keydown', this._esc);
+  },
+
+  // Garante que os inputs de fallback existem no DOM (oculto)
+  _ensureFallbackInputs() {
+    const hidden = document.getElementById('hiddenApiInputs');
+    if (!hidden) return;
+    const fallbacks = [
+      { id: 'apiKey2',     placeholder: 'AIza... (secundária)' },
+      { id: 'apiKey3',     placeholder: 'AIza... (terciária)'  },
+      { id: 'mistralKey2', placeholder: '... (secundária)'     },
+    ];
+    fallbacks.forEach(({ id, placeholder }) => {
+      if (!document.getElementById(id)) {
+        const inp = document.createElement('input');
+        inp.type = 'password'; inp.id = id; inp.placeholder = placeholder;
+        inp.autocomplete = 'off';
+        const saved = (() => { try { return localStorage.getItem('fastseo_'+id); } catch { return null; }})();
+        if (saved) inp.value = saved;
+        hidden.appendChild(inp);
+      }
+    });
   },
 
   _showSaved() {
@@ -295,22 +296,17 @@ export const ConfigModal = {
   },
 
   close() {
+    // Devolver inputs ao container oculto antes de remover o modal
+    const hidden = document.getElementById('hiddenApiInputs');
+    if (hidden) {
+      ['apiKey','mistralKey','modelSel','apiKey2','apiKey3','mistralKey2'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) hidden.appendChild(el);
+      });
+    }
     document.getElementById('configModalOverlay')?.remove();
     document.removeEventListener('keydown', this._esc);
-    // Ressincroniza ConfigUI com os valores salvos
-    import('./quota.js').then(({ Quota }) => Quota.updateUI());
   },
 
   _esc(e) { if (e.key === 'Escape') ConfigModal.close(); },
-
-  /** Restaura modelo salvo no select (chamado no init antes do modal abrir) */
-  restoreModel() {
-    try {
-      const saved = localStorage.getItem('fastseo_model');
-      if (saved) {
-        const el = document.getElementById('modelSel');
-        if (el) el.value = saved;
-      }
-    } catch {}
-  },
 };
