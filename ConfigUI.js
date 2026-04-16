@@ -84,41 +84,112 @@ export const ConfigUI = {
  */
 import { AppState } from './state.js';
 
+// ── Grupos de temas ──────────────────────────────────────────
+// Cada tema pode ter: accent, orb1, orb2, bg, surface, border, text
+// Campos omitidos usam os valores padrão do CSS.
 const THEMES = [
+
+  // ── Glassmorphism (com orbs de luz) ──────────────────────
   {
-    id: 'dark-glass',
-    name: 'Dark Glass',
-    desc: 'Glassmorphism com orbs roxos',
-    preview: ['#07080f', '#6366f1', '#4ade80'],
+    id: 'glass-indigo',
+    group: 'Glassmorphism',
+    name: 'Indigo Glass',
+    desc: 'Orbs roxos vibrantes',
+    preview: ['#07080f', '#6366f1', '#818cf8'],
     accent: '#6366f1', orb1: '#4f46e5', orb2: '#7c3aed',
+    bg: '#07080f',
   },
   {
-    id: 'dark-cyan',
-    name: 'Dark Cyan',
-    desc: 'Escuro com acento ciano',
-    preview: ['#060d12', '#06b6d4', '#34d399'],
+    id: 'glass-cyan',
+    group: 'Glassmorphism',
+    name: 'Cyan Glass',
+    desc: 'Orbs em verde-água',
+    preview: ['#050e12', '#06b6d4', '#34d399'],
     accent: '#06b6d4', orb1: '#0e7490', orb2: '#065f46',
+    bg: '#050e12',
   },
   {
-    id: 'dark-rose',
-    name: 'Dark Rose',
-    desc: 'Escuro com acento rosa',
-    preview: ['#0d0709', '#f43f5e', '#c084fc'],
-    accent: '#f43f5e', orb1: '#9f1239', orb2: '#7e22ce',
+    id: 'glass-rose',
+    group: 'Glassmorphism',
+    name: 'Rose Glass',
+    desc: 'Orbs em rosa e violeta',
+    preview: ['#0d0709', '#e879a0', '#c084fc'],
+    accent: '#e879a0', orb1: '#9f1239', orb2: '#7e22ce',
+    bg: '#0d0709',
+  },
+
+  // ── Sólido escuro (sem orbs, cores suaves) ────────────────
+  {
+    id: 'solid-charcoal',
+    group: 'Sólido escuro',
+    name: 'Charcoal',
+    desc: 'Cinza carvão, acento azul',
+    preview: ['#1a1b1e', '#3b82f6', '#60a5fa'],
+    accent: '#3b82f6', orb1: 'transparent', orb2: 'transparent',
+    bg: '#141517', surface: 'rgba(255,255,255,.05)',
+    border: 'rgba(255,255,255,.1)',
   },
   {
-    id: 'dark-amber',
-    name: 'Dark Amber',
-    desc: 'Escuro com acento dourado',
-    preview: ['#0c0a03', '#f59e0b', '#fb923c'],
-    accent: '#f59e0b', orb1: '#92400e', orb2: '#7c2d12',
+    id: 'solid-graphite',
+    group: 'Sólido escuro',
+    name: 'Graphite',
+    desc: 'Quase preto, acento verde',
+    preview: ['#111111', '#22c55e', '#4ade80'],
+    accent: '#22c55e', orb1: 'transparent', orb2: 'transparent',
+    bg: '#0d0d0d', surface: 'rgba(255,255,255,.04)',
+    border: 'rgba(255,255,255,.09)',
   },
   {
-    id: 'dark-slate',
-    name: 'Dark Slate',
-    desc: 'Minimalista sem orbs',
-    preview: ['#0f1117', '#64748b', '#94a3b8'],
-    accent: '#64748b', orb1: 'transparent', orb2: 'transparent',
+    id: 'solid-navy',
+    group: 'Sólido escuro',
+    name: 'Navy',
+    desc: 'Azul marinho profundo',
+    preview: ['#0d1117', '#58a6ff', '#79c0ff'],
+    accent: '#58a6ff', orb1: 'transparent', orb2: 'transparent',
+    bg: '#0d1117', surface: 'rgba(255,255,255,.05)',
+    border: 'rgba(255,255,255,.1)',
+  },
+  {
+    id: 'solid-espresso',
+    group: 'Sólido escuro',
+    name: 'Espresso',
+    desc: 'Marrom escuro, acento âmbar',
+    preview: ['#1a1208', '#d97706', '#fbbf24'],
+    accent: '#d97706', orb1: 'transparent', orb2: 'transparent',
+    bg: '#130e06', surface: 'rgba(255,255,255,.05)',
+    border: 'rgba(255,255,255,.09)',
+  },
+
+  // ── Neutro / sem brilho ───────────────────────────────────
+  {
+    id: 'neutral-zinc',
+    group: 'Neutro',
+    name: 'Zinc',
+    desc: 'Cinza frio, sem destaques',
+    preview: ['#18181b', '#71717a', '#a1a1aa'],
+    accent: '#71717a', orb1: 'transparent', orb2: 'transparent',
+    bg: '#18181b', surface: 'rgba(255,255,255,.04)',
+    border: 'rgba(255,255,255,.08)',
+  },
+  {
+    id: 'neutral-stone',
+    group: 'Neutro',
+    name: 'Stone',
+    desc: 'Bege escuro, tom quente',
+    preview: ['#1c1917', '#78716c', '#a8a29e'],
+    accent: '#a8a29e', orb1: 'transparent', orb2: 'transparent',
+    bg: '#1c1917', surface: 'rgba(255,255,255,.04)',
+    border: 'rgba(255,255,255,.08)',
+  },
+  {
+    id: 'neutral-void',
+    group: 'Neutro',
+    name: 'Void',
+    desc: 'Preto puro, mínimo absoluto',
+    preview: ['#000000', '#404040', '#737373'],
+    accent: '#525252', orb1: 'transparent', orb2: 'transparent',
+    bg: '#000000', surface: 'rgba(255,255,255,.03)',
+    border: 'rgba(255,255,255,.07)',
   },
 ];
 
@@ -128,19 +199,40 @@ function applyTheme(t) {
   const root = document.documentElement;
   root.setAttribute('data-theme', 'dark');
   root.setAttribute('data-theme-id', t.id);
-  root.style.setProperty('--color-accent',        t.accent);
-  root.style.setProperty('--color-accent-hover',   t.accent + 'cc');
-  root.style.setProperty('--color-accent-bg',      t.accent + '1f');
-  root.style.setProperty('--color-accent-glow',    t.accent + '40');
-  root.style.setProperty('--orb1-color', t.orb1);
-  root.style.setProperty('--orb2-color', t.orb2);
+
+  // Accent
+  root.style.setProperty('--color-accent',       t.accent);
+  root.style.setProperty('--color-accent-hover',  t.accent + 'dd');
+  root.style.setProperty('--color-accent-bg',     t.accent + '1a');
+  root.style.setProperty('--color-accent-glow',   t.accent + '35');
+
+  // Orbs (glassmorphism)
+  root.style.setProperty('--orb1-color', t.orb1 || 'transparent');
+  root.style.setProperty('--orb2-color', t.orb2 || 'transparent');
+
+  // Fundo e superfície (temas sólidos)
+  if (t.bg)      root.style.setProperty('--color-bg-page',  t.bg);
+  else           root.style.setProperty('--color-bg-page',  '#07080f');
+
+  if (t.surface) root.style.setProperty('--color-surface',  t.surface);
+  else           root.style.setProperty('--color-surface',  'rgba(255,255,255,.04)');
+
+  if (t.border)  root.style.setProperty('--color-border',   t.border);
+  else           root.style.setProperty('--color-border',   'rgba(255,255,255,.08)');
+
+  // Logo glow — apaga em temas neutros
+  const hasOrbs = t.orb1 && t.orb1 !== 'transparent';
+  root.style.setProperty('--logo-glow', hasOrbs
+    ? `0 0 16px ${t.accent}70`
+    : 'none');
+
   try { localStorage.setItem(LS_THEME, t.id); } catch {}
 }
 
 export const ThemeModal = {
   open() {
     if ($('themeModalOverlay')) return;
-    const savedId  = (() => { try { return localStorage.getItem(LS_THEME); } catch { return null; } })() || 'dark-glass';
+    const savedId = (() => { try { return localStorage.getItem(LS_THEME); } catch { return null; } })() || 'glass-indigo';
 
     const overlay = document.createElement('div');
     overlay.id = 'themeModalOverlay';
@@ -151,9 +243,7 @@ export const ThemeModal = {
           <span class="modal-title">🎨 Aparência do site</span>
           <button class="modal-close" id="themeModalClose">✕</button>
         </div>
-        <div class="modal-body">
-          <p style="font-size:12px;color:var(--color-text-muted);margin-top:-4px">Escolha o tema visual. A mudança é aplicada imediatamente.</p>
-          <div class="theme-grid" id="themeGrid"></div>
+        <div class="modal-body" id="themeModalBody">
         </div>
         <div class="modal-ftr" style="justify-content:flex-end">
           <button class="btn btn-primary" id="themeModalConfirm">Fechar</button>
@@ -161,34 +251,50 @@ export const ThemeModal = {
       </div>`;
     document.body.appendChild(overlay);
 
-    const grid = overlay.querySelector('#themeGrid');
+    const body = overlay.querySelector('#themeModalBody');
 
-    THEMES.forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'theme-card' + (t.id === savedId ? ' theme-card--active' : '');
-      card.dataset.id = t.id;
-      card.innerHTML = `
-        <div class="theme-preview">
-          <div class="theme-preview-bg" style="background:${t.preview[0]}">
-            <div class="theme-preview-orb" style="background:${t.preview[1]}"></div>
-            <div class="theme-preview-card">
-              <div class="theme-preview-bar" style="background:${t.preview[1]}88"></div>
-              <div class="theme-preview-bar short" style="background:${t.preview[2]}66"></div>
-              <div class="theme-preview-btn" style="background:${t.preview[1]}"></div>
+    // Agrupar por grupo
+    const groups = [...new Set(THEMES.map(t => t.group))];
+    groups.forEach(groupName => {
+      const groupThemes = THEMES.filter(t => t.group === groupName);
+
+      const label = document.createElement('div');
+      label.className = 'theme-group-label';
+      label.textContent = groupName;
+      body.appendChild(label);
+
+      const grid = document.createElement('div');
+      grid.className = 'theme-grid';
+      body.appendChild(grid);
+
+      groupThemes.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'theme-card' + (t.id === savedId ? ' theme-card--active' : '');
+        card.dataset.id = t.id;
+        const hasOrbs = t.orb1 && t.orb1 !== 'transparent';
+        card.innerHTML = `
+          <div class="theme-preview">
+            <div class="theme-preview-bg" style="background:${t.preview[0]}">
+              ${hasOrbs ? `<div class="theme-preview-orb" style="background:${t.orb1}"></div>` : ''}
+              <div class="theme-preview-card">
+                <div class="theme-preview-bar" style="background:${t.accent}99"></div>
+                <div class="theme-preview-bar short" style="background:${t.preview[2]}66"></div>
+                <div class="theme-preview-btn" style="background:${t.accent}"></div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="theme-card-info">
-          <span class="theme-card-name">${t.name}</span>
-          <span class="theme-card-desc">${t.desc}</span>
-        </div>
-        <div class="theme-check">✓</div>`;
-      card.addEventListener('click', () => {
-        grid.querySelectorAll('.theme-card').forEach(c => c.classList.remove('theme-card--active'));
-        card.classList.add('theme-card--active');
-        applyTheme(t);
+          <div class="theme-card-info">
+            <span class="theme-card-name">${t.name}</span>
+            <span class="theme-card-desc">${t.desc}</span>
+          </div>
+          <div class="theme-check">✓</div>`;
+        card.addEventListener('click', () => {
+          overlay.querySelectorAll('.theme-card').forEach(c => c.classList.remove('theme-card--active'));
+          card.classList.add('theme-card--active');
+          applyTheme(t);
+        });
+        grid.appendChild(card);
       });
-      grid.appendChild(card);
     });
 
     const close = () => this.close();
