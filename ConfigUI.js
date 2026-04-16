@@ -230,7 +230,7 @@ const THEMES = [
     bgImage: true,
     surface: 'rgba(0,0,0,.55)',
     border: 'rgba(0,191,255,.25)',
-    logoIcon: `<img src='${GOKU_LOGO_IMG}' style='width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;filter:sepia(1) saturate(5) hue-rotate(175deg) brightness(1.1)'/>`, ,
+    logoIcon: `<img src='${GOKU_LOGO_IMG}' style='width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;filter:sepia(1) saturate(5) hue-rotate(175deg) brightness(1.1)'/>`,
     runIcon: `<svg style="width:16px;height:16px" viewBox="0 0 16 16" fill="none">
       <path d="M8 1 L9.5 6 L14 6 L10 9 L11.5 14 L8 11 L4.5 14 L6 9 L2 6 L6.5 6 Z" fill="#60e0ff" stroke="#00bfff" stroke-width=".5" opacity=".9"/>
       <path d="M5 4 L4 2 M8 3 L8 1 M11 4 L12 2" stroke="#fff" stroke-width=".6" stroke-linecap="round" opacity=".7"/>
