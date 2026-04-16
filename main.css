@@ -392,7 +392,7 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
   min-height: 360px;
   border: 1px dashed rgba(255,255,255,.1);
   border-radius: var(--radius-lg);
@@ -407,6 +407,13 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
 .results-placeholder-icon {
   font-size: 32px;
   opacity: .3;
+}
+#placeholderImg {
+  display: block;
+  width: 160px;
+  height: auto;
+  margin: 0 auto;
+  opacity: .2;
 }
 /* Esconde placeholder quando results estiver visível */
 .col-results:has(.results.vis) .results-placeholder {

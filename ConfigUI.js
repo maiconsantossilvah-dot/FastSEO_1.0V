@@ -354,14 +354,15 @@ function applyTheme(t) {
   if (phImg && phIcon) {
     if (isAnime) {
       phImg.src = GOKU_PH_IMG;
-      phImg.style.display = 'block';
-      phImg.style.filter = t.id === 'anime-vegito-ssj'
-        ? 'sepia(1) saturate(3) hue-rotate(15deg) brightness(.7)'
-        : 'sepia(1) saturate(2) hue-rotate(180deg) brightness(.7)';
+      phImg.style.cssText = 'display:block;width:160px;height:auto;margin:0 auto;opacity:.2;filter:' + (
+        t.id === 'anime-vegito-ssj'
+          ? 'sepia(1) saturate(3) hue-rotate(15deg) brightness(.8)'
+          : 'sepia(1) saturate(2) hue-rotate(180deg) brightness(.8)'
+      );
       phIcon.style.display = 'none';
     } else {
       phImg.src = '';
-      phImg.style.display = 'none';
+      phImg.style.cssText = 'display:none';
       phIcon.style.display = '';
     }
   }
