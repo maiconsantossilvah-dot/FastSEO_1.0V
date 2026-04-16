@@ -14,10 +14,10 @@ import { HistoryUI }      from './HistoryUI.js';
 import { PromptModal }    from './PromptModal.js';
 import { AnalyticsModal } from './AnalyticsModal.js';
 import { SubcatModal }    from './SubcatModal.js';
-import { ConfigUI, ThemeUI, SidebarToggle } from './ConfigUI.js';
+import { ConfigUI, ThemeModal, SidebarToggle } from './ConfigUI.js';
 
-// ── Restaura tema imediatamente (evita flash de tema errado) ──
-ThemeUI.restore();
+// ── Restaura tema salvo ──
+// ThemeModal.restore() é chamado via import abaixo
 
 // ── Export — copia e baixa os resultados gerados ──────────────
 // CORREÇÃO: Export não estava definido em nenhum lugar do código,
@@ -94,6 +94,7 @@ function showApp(user) {
 
 // ── Inicialização do app (só roda uma vez após login) ─────────
 async function init() {
+  ThemeModal.restore();
   SidebarToggle.restore();
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateQuotaInfo();
@@ -148,7 +149,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logou
 
 // ── Eventos do app ────────────────────────────────────────────
 document.getElementById('sidebarToggle')?.addEventListener('click', () => SidebarToggle.toggle());
-document.getElementById('themeBtn')?.addEventListener('click',       () => ThemeUI.toggle());
+document.getElementById('themeBtn')?.addEventListener('click',       () => ThemeModal.open());
 document.getElementById('openPromptsBtn')?.addEventListener('click',  () => PromptModal.open());
 document.getElementById('openAnalyticsBtn')?.addEventListener('click',() => AnalyticsModal.open());
 document.getElementById('openSubcatBtn')?.addEventListener('click',   () => SubcatModal.open());
