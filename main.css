@@ -882,3 +882,34 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   background: linear-gradient(135deg, #0044aa, #00bfff) !important;
   box-shadow: 0 0 30px #00bfff44, 0 4px 20px rgba(0,0,0,.4) !important;
 }
+
+/* ─── VEGITO BLUE — fundo com imagem ─── */
+[data-theme-id="anime-vegito-blue"] body::before,
+[data-theme-id="anime-vegito-blue"] body::after {
+  display: none;
+}
+[data-theme-id="anime-vegito-blue"] .header {
+  background: rgba(2,5,15,.88) !important;
+  border-bottom-color: rgba(0,191,255,.15) !important;
+}
+[data-theme-id="anime-vegito-blue"] .sidebar {
+  background: rgba(2,5,15,.85) !important;
+}
+[data-theme-id="anime-vegito-blue"] .card {
+  background: rgba(0,5,20,.6) !important;
+  border-color: rgba(0,191,255,.2) !important;
+  backdrop-filter: blur(20px) !important;
+}
+[data-theme-id="anime-vegito-blue"] .log-box {
+  background: rgba(0,0,0,.7) !important;
+  backdrop-filter: blur(16px) !important;
+}
+[data-theme-id="anime-vegito-blue"] .page--wide {
+  position: relative;
+  z-index: 1;
+}
+[data-theme-id="anime-vegito-blue"] .results-placeholder {
+  background: rgba(0,5,20,.5) !important;
+  border-color: rgba(0,191,255,.15) !important;
+  backdrop-filter: blur(12px) !important;
+}
