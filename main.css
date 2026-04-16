@@ -655,3 +655,58 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
 }
 .hdr-menu-item:last-child { border-bottom: none; }
 .hdr-menu-item:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.9); }
+
+/* ─── GAVETA LATERAL DIREITA ─── */
+.side-drawer-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
+  animation: fadeIn .15s ease;
+}
+.side-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 301;
+  width: 240px;
+  background: rgba(10,11,20,.97);
+  border-left: 1px solid rgba(255,255,255,.09);
+  backdrop-filter: blur(20px);
+  display: flex; flex-direction: column;
+  box-shadow: -8px 0 32px rgba(0,0,0,.5);
+  animation: slideInRight .2s ease;
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.side-drawer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  flex-shrink: 0;
+}
+.side-drawer-title {
+  font-size: 13px; font-weight: 600; color: rgba(255,255,255,.7);
+}
+.side-drawer-body {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 10px;
+  overflow-y: auto;
+}
+.side-drawer-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 12px; border-radius: 10px;
+  border: 1px solid transparent; background: none;
+  width: 100%; text-align: left; cursor: pointer;
+  transition: all .12s; font-family: var(--font-body);
+}
+.side-drawer-item:hover {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.08);
+}
+.side-drawer-icon { font-size: 18px; flex-shrink: 0; line-height: 1; }
+.side-drawer-item-name {
+  font-size: 13px; font-weight: 500; color: rgba(255,255,255,.75);
+  line-height: 1.3;
+}
+.side-drawer-item-desc {
+  font-size: 10px; color: rgba(255,255,255,.3); margin-top: 2px;
+}

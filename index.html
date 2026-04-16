@@ -151,15 +151,7 @@
     <button id="openHistoricoBtn"   class="btn btn-ghost" title="Histórico de fichas geradas">📂 Histórico <span id="historicoCount" style="font-size:9px;padding:1px 5px;border-radius:99px;background:rgba(99,102,241,.2);color:#a5b4fc;margin-left:2px;display:none"></span></button>
     <button id="openConfigBtn"      class="btn btn-ghost" title="Configuração de APIs e modelo">⚙️ Config</button>
     <button class="btn btn-ghost" id="themeBtn" title="Aparência do site" aria-label="Escolher tema">🎨 Tema</button>
-    <!-- Menu "Mais" para botões secundários -->
-    <div class="hdr-more-wrap" id="hdrMoreWrap">
-      <button class="btn btn-ghost" id="hdrMoreBtn" title="Mais opções">⋯</button>
-      <div class="hdr-more-menu" id="hdrMoreMenu" style="display:none">
-        <button id="openPromptsBtn"   class="hdr-menu-item">✏️ Prompts</button>
-        <button id="openAnalyticsBtn" class="hdr-menu-item">📊 Analytics</button>
-        <button id="openSubcatBtn"    class="hdr-menu-item">📐 Títulos</button>
-      </div>
-    </div>
+    <button class="btn btn-ghost" id="hdrMoreBtn" title="Mais opções">⋯</button>
     <!-- Usuário logado -->
     <div class="user-info">
       <span id="userDisplayName"></span>
@@ -292,6 +284,29 @@ Corrente nominal: 63A ..."></textarea>
   <div id="sbContent"></div>
   <div id="sbFooter"></div>
   <button id="addCatBtn"></button>
+</div>
+
+<!-- Gaveta lateral direita — botões secundários -->
+<div id="sideDrawerOverlay" class="side-drawer-overlay" style="display:none"></div>
+<div id="sideDrawer" class="side-drawer" style="display:none">
+  <div class="side-drawer-header">
+    <span class="side-drawer-title">Mais opções</span>
+    <button class="modal-close" id="sideDrawerClose">✕</button>
+  </div>
+  <div class="side-drawer-body">
+    <button id="openPromptsBtn"   class="side-drawer-item">
+      <span class="side-drawer-icon">✏️</span>
+      <div><div class="side-drawer-item-name">Prompts</div><div class="side-drawer-item-desc">Editar prompts dos agentes</div></div>
+    </button>
+    <button id="openAnalyticsBtn" class="side-drawer-item">
+      <span class="side-drawer-icon">📊</span>
+      <div><div class="side-drawer-item-name">Analytics</div><div class="side-drawer-item-desc">Métricas de pipeline</div></div>
+    </button>
+    <button id="openSubcatBtn"    class="side-drawer-item">
+      <span class="side-drawer-icon">📐</span>
+      <div><div class="side-drawer-item-name">Títulos</div><div class="side-drawer-item-desc">Padrões de subcategoria</div></div>
+    </button>
+  </div>
 </div>
 <script type="module" src="main.js"></script>
 

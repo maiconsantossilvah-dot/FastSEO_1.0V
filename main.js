@@ -205,26 +205,27 @@ document.addEventListener('click', async e => {
 });
 // focus/blur do historicoBusca agora geridos dentro do HistoryModal
 
-// ── Menu "Mais" (botões secundários do header) ────────────────
-const _moreBtn  = document.getElementById('hdrMoreBtn');
-const _moreMenu = document.getElementById('hdrMoreMenu');
+// ── Gaveta lateral (botões secundários) ───────────────────────
+const _drawerBtn     = document.getElementById('hdrMoreBtn');
+const _drawer        = document.getElementById('sideDrawer');
+const _drawerOverlay = document.getElementById('sideDrawerOverlay');
 
-_moreBtn?.addEventListener('click', e => {
-  e.stopPropagation();
-  const isOpen = _moreMenu?.style.display !== 'none';
-  if (_moreMenu) _moreMenu.style.display = isOpen ? 'none' : '';
-});
+function _openDrawer() {
+  if (!_drawer) return;
+  _drawer.style.display        = 'flex';
+  _drawerOverlay.style.display = '';
+}
+function _closeDrawer() {
+  if (!_drawer) return;
+  _drawer.style.display        = 'none';
+  _drawerOverlay.style.display = 'none';
+}
 
-// Fecha ao clicar fora — usa setTimeout para deixar o click do botão processar primeiro
-document.addEventListener('click', e => {
-  if (!e.target.closest('#hdrMoreWrap')) {
-    if (_moreMenu) _moreMenu.style.display = 'none';
-  }
-});
+_drawerBtn?.addEventListener('click', _openDrawer);
+_drawerOverlay?.addEventListener('click', _closeDrawer);
+document.getElementById('sideDrawerClose')?.addEventListener('click', _closeDrawer);
 
-// Fecha o menu ao clicar em qualquer item dele
-_moreMenu?.querySelectorAll('.hdr-menu-item').forEach(item => {
-  item.addEventListener('click', () => {
-    if (_moreMenu) _moreMenu.style.display = 'none';
-  });
+// Fecha ao clicar em qualquer item da gaveta
+document.getElementById('sideDrawer')?.querySelectorAll('.side-drawer-item').forEach(item => {
+  item.addEventListener('click', _closeDrawer);
 });
