@@ -15,6 +15,8 @@ import { PromptModal }    from './PromptModal.js';
 import { AnalyticsModal } from './AnalyticsModal.js';
 import { SubcatModal }    from './SubcatModal.js';
 import { ConfigUI, ThemeUI, SidebarToggle, ConfigModal } from './ConfigUI.js';
+import { HistoryModal }  from './HistoryModal.js';
+import { ExemplosModal } from './ExemplosModal.js';
 
 // ── Restaura tema imediatamente (evita flash de tema errado) ──
 ThemeUI.restore();
@@ -93,6 +95,9 @@ function showApp(user) {
 }
 
 // ── Inicialização do app (só roda uma vez após login) ─────────
+// Ponte: HistoryModal dispara evento, HistoryUI escuta
+document.addEventListener('fastseo:historyRender', () => { HistoryUI.resetPage(); HistoryUI.render(); });
+
 async function init() {
   SidebarToggle.restore();
   ConfigUI.restoreSavedKeys();
@@ -153,6 +158,7 @@ document.getElementById('openPromptsBtn')?.addEventListener('click',  () => Prom
 document.getElementById('openAnalyticsBtn')?.addEventListener('click',() => AnalyticsModal.open());
 document.getElementById('openSubcatBtn')?.addEventListener('click',   () => SubcatModal.open());
 document.getElementById('openConfigBtn')?.addEventListener('click',    () => ConfigModal.open());
+document.getElementById('openExemplosBtn')?.addEventListener('click',   () => ExemplosModal.open());
 document.getElementById('resetCotaBtn')?.addEventListener('click', () => {
   Quota.reset();
   PipelineUI.log('Contador local zerado.', 'o');
@@ -197,20 +203,13 @@ document.getElementById('regenConteudoBtn')?.addEventListener('click', async () 
   }
 });
 
-document.getElementById('historicoToggleBtn')?.addEventListener('click', () => HistoryUI.toggle());
-document.getElementById('historicoBusca')?.addEventListener('input',   () => { HistoryUI.resetPage(); HistoryUI.render(); });
-document.getElementById('historicoFiltro')?.addEventListener('change', () => { HistoryUI.resetPage(); HistoryUI.render(); });
-document.getElementById('clearHistoricoBtn')?.addEventListener('click', async () => {
-  await History.clear();
-  HistoryUI.render();
+document.getElementById('openHistoricoBtn')?.addEventListener('click',  () => HistoryModal.open());
+// busca/filtro agora vivem dentro do HistoryModal
+// clearHistoricoBtn é dinâmico (dentro do modal) — usar delegação no document
+document.addEventListener('click', async e => {
+  if (e.target.id === 'clearHistoricoBtn') {
+    await History.clear();
+    HistoryUI.render();
+  }
 });
-document.getElementById('clearHistoricoBtn')?.addEventListener('mouseover', e => e.target.style.color = 'var(--color-danger)');
-document.getElementById('clearHistoricoBtn')?.addEventListener('mouseout',  e => e.target.style.color = 'var(--color-text-muted)');
-document.getElementById('historicoBusca')?.addEventListener('focus', e => {
-  e.target.style.borderColor = 'var(--color-accent)';
-  e.target.style.boxShadow   = '0 0 0 3px var(--color-accent-glow)';
-});
-document.getElementById('historicoBusca')?.addEventListener('blur', e => {
-  e.target.style.borderColor = 'var(--color-border)';
-  e.target.style.boxShadow   = 'none';
-});
+// focus/blur do historicoBusca agora geridos dentro do HistoryModal
