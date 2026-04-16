@@ -24,40 +24,19 @@ let _isOpen      = false;
 export const HistoryUI = {
 
   // Chamado pelo History.startSync() a cada sync do Firestore.
-  // Só atualiza o badge; não toca na lista enquanto fechado.
+  // Atualiza badge no header e, se o modal estiver aberto, re-renderiza a lista.
   render() {
     _updateCounter();
-    if (_isOpen) _renderList();
+    // Renderiza a lista se o modal estiver aberto (elemento existe no DOM)
+    if ($('historicoLista')) _renderList();
   },
 
   resetPage() { _currentPage = 1; },
 
+  // toggle() mantido por compatibilidade — agora delega ao HistoryModal
   toggle() {
-    _isOpen = !_isOpen;
-    const body    = $('historicoBody');
-    const chevron = $('historicoChevron');
-    if (!body) return;
-
-    if (_isOpen) {
-      // 1. Mostra o elemento
-      body.style.display  = 'flex';
-      body.style.opacity  = '0';
-      // 2. Renderiza a lista ANTES da animação
-      _renderList();
-      // 3. Anima opacidade no próximo frame
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => { body.style.opacity = '1'; });
-      });
-      if (chevron) chevron.style.transform = 'rotate(180deg)';
-    } else {
-      body.style.opacity = '0';
-      if (chevron) chevron.style.transform = 'rotate(0deg)';
-      setTimeout(() => {
-        body.style.display = 'none';
-        const lista = $('historicoLista');
-        if (lista) lista.innerHTML = '';
-      }, 220);
-    }
+    // Importação dinâmica para evitar ciclo
+    import('./HistoryModal.js').then(({ HistoryModal }) => HistoryModal.toggle());
   },
 
   _restore(item) {
@@ -85,15 +64,18 @@ function _getFiltered() {
 }
 
 function _updateCounter() {
-  const total   = History.getAll().length;
-  const countEl = $('historicoCount');
-  if (!countEl) return;
-  if (total > 0) {
-    countEl.textContent   = `${total} ficha${total !== 1 ? 's' : ''}`;
-    countEl.style.display = '';
-  } else {
-    countEl.style.display = 'none';
-  }
+  const total = History.getAll().length;
+  // Atualiza todos os badges de contagem (header + dentro do modal)
+  ['historicoCount', 'historicoCountModal'].forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    if (total > 0) {
+      el.textContent   = `${total} ficha${total !== 1 ? 's' : ''}`;
+      el.style.display = '';
+    } else {
+      el.style.display = 'none';
+    }
+  });
 }
 
 function _renderList() {
@@ -205,5 +187,7 @@ function _pageBtn(label, disabled) {
 }
 
 function _scrollPanel() {
-  $('historicoPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Scroll dentro do modal se existir, senão no painel legado
+  const lista = $('historicoLista');
+  if (lista) lista.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }

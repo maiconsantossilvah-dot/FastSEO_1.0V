@@ -211,10 +211,20 @@ const _moreMenu = document.getElementById('hdrMoreMenu');
 
 _moreBtn?.addEventListener('click', e => {
   e.stopPropagation();
-  const open = _moreMenu.style.display === 'none';
-  _moreMenu.style.display = open ? '' : 'none';
+  const isOpen = _moreMenu?.style.display !== 'none';
+  if (_moreMenu) _moreMenu.style.display = isOpen ? 'none' : '';
 });
 
-document.addEventListener('click', () => {
-  if (_moreMenu) _moreMenu.style.display = 'none';
+// Fecha ao clicar fora — usa setTimeout para deixar o click do botão processar primeiro
+document.addEventListener('click', e => {
+  if (!e.target.closest('#hdrMoreWrap')) {
+    if (_moreMenu) _moreMenu.style.display = 'none';
+  }
+});
+
+// Fecha o menu ao clicar em qualquer item dele
+_moreMenu?.querySelectorAll('.hdr-menu-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (_moreMenu) _moreMenu.style.display = 'none';
+  });
 });

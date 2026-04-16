@@ -47,9 +47,13 @@ export const HistoryModal = {
 
     document.body.appendChild(overlay);
 
-    // Eventos de busca/filtro
-    overlay.querySelector('#historicoBusca')?.addEventListener('input', () => this._triggerRender());
-    overlay.querySelector('#historicoFiltro')?.addEventListener('change', () => this._triggerRender());
+    // Eventos de busca/filtro — elementos já existem no DOM após appendChild
+    document.getElementById('historicoBusca')?.addEventListener('input', () => {
+      import('./HistoryUI.js').then(({ HistoryUI }) => { HistoryUI.resetPage(); HistoryUI.render(); });
+    });
+    document.getElementById('historicoFiltro')?.addEventListener('change', () => {
+      import('./HistoryUI.js').then(({ HistoryUI }) => { HistoryUI.resetPage(); HistoryUI.render(); });
+    });
 
     const close = () => this.close();
     overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
@@ -57,16 +61,12 @@ export const HistoryModal = {
     overlay.querySelector('#historicoModalClose2')?.addEventListener('click', close);
     document.addEventListener('keydown', this._esc);
 
-    // Renderizar imediatamente
-    this._triggerRender();
+    // Renderizar imediatamente via HistoryUI (que tem acesso ao cache do History)
+    import('./HistoryUI.js').then(({ HistoryUI }) => { HistoryUI.resetPage(); HistoryUI.render(); });
   },
 
   _triggerRender() {
-    // Dispara o render do HistoryUI dinamicamente sem acoplamento direto
-    try {
-      // HistoryUI.render() está registrado no módulo — disparar via evento customizado
-      document.dispatchEvent(new CustomEvent('fastseo:historyRender'));
-    } catch {}
+    import('./HistoryUI.js').then(({ HistoryUI }) => HistoryUI.render()).catch(() => {});
   },
 
   updateCount(n) {
