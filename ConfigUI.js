@@ -211,7 +211,7 @@ const THEMES = [
     bg: '#07040a',
     surface: 'rgba(245,166,35,.06)',
     border: 'rgba(245,166,35,.18)',
-    logoIcon: `<img src='${GOKU_LOGO_IMG}' style='width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%'/>` ,
+    logoIcon: `<img src='${GOKU_LOGO_IMG}' style='width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;filter:sepia(1) saturate(4) hue-rotate(5deg) brightness(1.2)'/>`,
     runIcon: `<svg style="width:16px;height:16px" viewBox="0 0 16 16" fill="none">
       <path d="M8 1 L6 6 L2 6 L5.5 9.5 L4 14 L8 11 L12 14 L10.5 9.5 L14 6 L10 6 Z" fill="#ffe066" stroke="#f5a623" stroke-width=".5"/>
       <path d="M6.5 5 L5 3 M9.5 5 L11 3 M8 4 L8 1.5" stroke="#fff8cc" stroke-width=".7" stroke-linecap="round"/>
@@ -230,7 +230,7 @@ const THEMES = [
     bgImage: true,
     surface: 'rgba(0,0,0,.55)',
     border: 'rgba(0,191,255,.25)',
-    logoIcon: `<img src='${GOKU_LOGO_IMG}' style='width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;filter:hue-rotate(180deg) saturate(1.5)'/>`  ,
+    logoIcon: `<img src='${GOKU_LOGO_IMG}' style='width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;filter:sepia(1) saturate(5) hue-rotate(175deg) brightness(1.1)'/>`, ,
     runIcon: `<svg style="width:16px;height:16px" viewBox="0 0 16 16" fill="none">
       <path d="M8 1 L9.5 6 L14 6 L10 9 L11.5 14 L8 11 L4.5 14 L6 9 L2 6 L6.5 6 Z" fill="#60e0ff" stroke="#00bfff" stroke-width=".5" opacity=".9"/>
       <path d="M5 4 L4 2 M8 3 L8 1 M11 4 L12 2" stroke="#fff" stroke-width=".6" stroke-linecap="round" opacity=".7"/>
@@ -354,11 +354,10 @@ function applyTheme(t) {
   if (phImg && phIcon) {
     if (isAnime) {
       phImg.src = GOKU_PH_IMG;
-      phImg.style.cssText = 'display:block;width:180px;height:auto;margin:0 auto;opacity:.55;filter:' + (
-        t.id === 'anime-vegito-ssj'
-          ? 'brightness(1.1) saturate(1.2)'
-          : 'hue-rotate(180deg) saturate(1.5) brightness(1.1)'
-      );
+      const phFilter = t.id === 'anime-vegito-ssj'
+        ? 'sepia(1) saturate(4) hue-rotate(5deg) brightness(1.15)'
+        : 'sepia(1) saturate(5) hue-rotate(175deg) brightness(1.1)';
+      phImg.style.cssText = 'display:block;width:180px;height:auto;margin:0 auto;opacity:.6;filter:' + phFilter;
       phIcon.style.display = 'none';
     } else {
       phImg.src = '';
