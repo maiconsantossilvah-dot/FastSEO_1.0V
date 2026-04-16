@@ -101,6 +101,7 @@ document.addEventListener('fastseo:historyRender', () => { HistoryUI.resetPage()
 document.addEventListener('fastseo:catsChanged',    () => { CategoriasModal.onCatsChanged(); });
 
 async function init() {
+  ThemeModal.restoreDom();
   SidebarToggle.restore();
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateQuotaInfo();

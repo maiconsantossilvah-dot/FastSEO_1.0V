@@ -322,7 +322,18 @@ function applyTheme(t) {
     ? `0 0 20px ${t.accent}80`
     : 'none');
 
-  // Ícone customizado do logo (temas anime)
+  // Hachuras Seinen no body
+  document.body.classList.toggle('theme-seinen', !!t.isLight);
+
+  // Elementos DOM — seguros mesmo se ainda não existirem
+  _applyDomTheme(t);
+
+  try { localStorage.setItem(LS_THEME, t.id); } catch {}
+}
+
+// Aplicado separadamente para não bloquear o restore() antes do DOM carregar
+function _applyDomTheme(t) {
+  // Logo icon
   const logoEl = document.querySelector('.logo-icon');
   if (logoEl) {
     if (t.logoIcon) {
@@ -337,7 +348,7 @@ function applyTheme(t) {
     }
   }
 
-  // Ícone customizado do botão run
+  // Botão run
   const runIconEl = document.querySelector('.run-icon');
   if (runIconEl) {
     if (t.runIcon) {
@@ -347,17 +358,17 @@ function applyTheme(t) {
     }
   }
 
-  // Placeholder do output — mostra imagem nos temas anime
+  // Placeholder
   const phImg  = document.getElementById('placeholderImg');
   const phIcon = document.getElementById('placeholderIcon');
   const isAnime = t.group === 'Anime' && t.id !== 'anime-seinen';
   if (phImg && phIcon) {
     if (isAnime) {
-      phImg.src = GOKU_PH_IMG;
       const phFilter = t.id === 'anime-vegito-ssj'
         ? 'sepia(1) saturate(4) hue-rotate(5deg) brightness(1.15)'
         : 'sepia(1) saturate(5) hue-rotate(175deg) brightness(1.1)';
       phImg.style.cssText = 'display:block;width:180px;height:auto;margin:0 auto;opacity:.6;filter:' + phFilter;
+      phImg.src = GOKU_PH_IMG;
       phIcon.style.display = 'none';
     } else {
       phImg.src = '';
@@ -365,11 +376,6 @@ function applyTheme(t) {
       phIcon.style.display = '';
     }
   }
-
-  // Hachuras Seinen no body
-  document.body.classList.toggle('theme-seinen', !!t.isLight);
-
-  try { localStorage.setItem(LS_THEME, t.id); } catch {}
 }
 
 export const ThemeModal = {
@@ -467,6 +473,15 @@ export const ThemeModal = {
       const id = localStorage.getItem(LS_THEME) || 'dark-glass';
       const t  = THEMES.find(t => t.id === id) || THEMES[0];
       applyTheme(t);
+    } catch {}
+  },
+
+  // Chamado após o DOM do app estar visível (após login)
+  restoreDom() {
+    try {
+      const id = localStorage.getItem(LS_THEME) || 'dark-glass';
+      const t  = THEMES.find(t => t.id === id) || THEMES[0];
+      _applyDomTheme(t);
     } catch {}
   },
 };
