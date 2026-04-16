@@ -774,3 +774,111 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
 /* Orbs dinâmicos via ThemeModal */
 body::before { background: var(--orb1-color, #4f46e5); }
 body::after  { background: var(--orb2-color, #7c3aed); }
+
+/* ─── TEMA SEINEN (manga/berserk) ─── */
+body.theme-seinen {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(0,0,0,.04) 0px, rgba(0,0,0,.04) 1px,
+    transparent 1px, transparent 6px
+  );
+}
+body.theme-seinen .card {
+  border: 2px solid #111 !important;
+  border-radius: 4px !important;
+  box-shadow: 3px 3px 0 #111 !important;
+  backdrop-filter: none !important;
+}
+body.theme-seinen .card-hdr {
+  border-bottom: 2px solid #111 !important;
+  background: rgba(0,0,0,.04) !important;
+}
+body.theme-seinen .card-title {
+  color: #111 !important;
+  font-weight: 900 !important;
+  letter-spacing: .04em;
+}
+body.theme-seinen .run-btn {
+  background: #111 !important;
+  border: 2.5px solid #000 !important;
+  border-radius: 4px !important;
+  box-shadow: 4px 4px 0 #000 !important;
+  font-style: italic;
+  font-weight: 900 !important;
+  letter-spacing: .06em;
+  color: #f0ebe0 !important;
+}
+body.theme-seinen .run-btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 5px 5px 0 #000 !important;
+}
+body.theme-seinen .step {
+  border: 2px solid #999 !important;
+  border-radius: 3px !important;
+  box-shadow: 2px 2px 0 #999 !important;
+  background: #fff !important;
+}
+body.theme-seinen .step.done {
+  border-color: #111 !important;
+  box-shadow: 2px 2px 0 #111 !important;
+}
+body.theme-seinen .step-name { color: #777 !important; font-weight: 700 !important; }
+body.theme-seinen .step.done .step-name { color: #111 !important; }
+body.theme-seinen .step.done .step-num  { color: #111 !important; }
+body.theme-seinen .log-box {
+  background: #111 !important;
+  border: 2px solid #000 !important;
+  border-radius: 3px !important;
+  box-shadow: 3px 3px 0 #000 !important;
+}
+body.theme-seinen .logo-icon {
+  background: #111 !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+}
+body.theme-seinen .btn-ghost {
+  border-color: rgba(0,0,0,.3) !important;
+  color: rgba(0,0,0,.6) !important;
+  background: rgba(0,0,0,.05) !important;
+}
+body.theme-seinen .sidebar {
+  background: rgba(240,235,224,.97) !important;
+  border-right: 2px solid #111 !important;
+}
+body.theme-seinen .sb-cat-item { color: rgba(0,0,0,.5) !important; }
+body.theme-seinen .sb-cat-item.active { background: rgba(0,0,0,.08) !important; color: #111 !important; }
+body.theme-seinen .learn-indicator {
+  background: rgba(0,0,0,.06) !important;
+  border: 2px solid #111 !important;
+  color: #111 !important;
+  border-radius: 4px !important;
+}
+body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow: none !important; }
+
+/* ─── TEMAS ANIME: Logo icon container ─── */
+[data-theme-id="anime-vegito-ssj"] .logo-icon,
+[data-theme-id="anime-vegito-blue"] .logo-icon {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+/* Vegito SSJ — glow dourado */
+[data-theme-id="anime-vegito-ssj"] .logo-icon {
+  filter: drop-shadow(0 0 6px #f5a62399);
+}
+[data-theme-id="anime-vegito-ssj"] .run-btn {
+  background: linear-gradient(135deg, #cc6600, #f5a623) !important;
+  box-shadow: 0 0 28px #f5a62344, 0 4px 20px rgba(0,0,0,.4) !important;
+}
+
+/* Vegito Blue — glow azul elétrico */
+[data-theme-id="anime-vegito-blue"] .logo-icon {
+  filter: drop-shadow(0 0 8px #00bfff88);
+}
+[data-theme-id="anime-vegito-blue"] .run-btn {
+  background: linear-gradient(135deg, #0044aa, #00bfff) !important;
+  box-shadow: 0 0 30px #00bfff44, 0 4px 20px rgba(0,0,0,.4) !important;
+}

@@ -191,13 +191,92 @@ const THEMES = [
     bg: '#000000', surface: 'rgba(255,255,255,.03)',
     border: 'rgba(255,255,255,.07)',
   },
+
+  // ── Anime ─────────────────────────────────────────────────
+  {
+    id: 'anime-vegito-ssj',
+    group: 'Anime',
+    name: 'Vegito SSJ',
+    desc: 'Dourado explosivo · aura flamejante',
+    preview: ['#07040a', '#f5a623', '#ffe066'],
+    accent: '#f5a623',
+    orb1: '#cc6600',
+    orb2: '#ff4400',
+    bg: '#07040a',
+    surface: 'rgba(245,166,35,.06)',
+    border: 'rgba(245,166,35,.18)',
+    logoIcon: `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="14" cy="14" r="13" fill="#1a0e00" stroke="#cc6600" stroke-width="1"/>
+      <path d="M14 4 C14 4 10 7 9 11 C8 13 9 15 11 15 C10 17 11 19 14 20 C17 19 18 17 17 15 C19 15 20 13 19 11 C18 7 14 4 14 4Z" fill="#f5a623" stroke="#cc6600" stroke-width=".5"/>
+      <path d="M11 10 C11 10 9 11 10 13 C10.5 14 11 14 11 14" stroke="#ffe066" stroke-width=".8" stroke-linecap="round" fill="none"/>
+      <path d="M17 10 C17 10 19 11 18 13 C17.5 14 17 14 17 14" stroke="#ffe066" stroke-width=".8" stroke-linecap="round" fill="none"/>
+      <ellipse cx="14" cy="13" rx="2" ry="2.5" fill="#ffcc44" stroke="#cc6600" stroke-width=".5"/>
+      <path d="M12.5 13 L11 12.5 M15.5 13 L17 12.5" stroke="#fff8cc" stroke-width=".6" stroke-linecap="round"/>
+      <path d="M13 14.5 L13.5 15.5 L14 14.5 L14.5 15.5 L15 14.5" stroke="#cc6600" stroke-width=".5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <circle cx="12.2" cy="17.5" r=".8" fill="#ffcc00" stroke="#cc6600" stroke-width=".4"/>
+      <circle cx="15.8" cy="17.5" r=".8" fill="#ffcc00" stroke="#cc6600" stroke-width=".4"/>
+      <path d="M8 18 Q14 22 20 18" stroke="#f5a623" stroke-width=".6" fill="none" stroke-linecap="round"/>
+    </svg>`,
+    runIcon: `<svg style="width:16px;height:16px" viewBox="0 0 16 16" fill="none">
+      <path d="M8 1 L6 6 L2 6 L5.5 9.5 L4 14 L8 11 L12 14 L10.5 9.5 L14 6 L10 6 Z" fill="#ffe066" stroke="#f5a623" stroke-width=".5"/>
+      <path d="M6.5 5 L5 3 M9.5 5 L11 3 M8 4 L8 1.5" stroke="#fff8cc" stroke-width=".7" stroke-linecap="round"/>
+    </svg>`,
+  },
+  {
+    id: 'anime-vegito-blue',
+    group: 'Anime',
+    name: 'Vegito Blue',
+    desc: 'SSJ Blue · ki elétrico · Potara',
+    preview: ['#03080f', '#00bfff', '#60e0ff'],
+    accent: '#00bfff',
+    orb1: '#0055aa',
+    orb2: '#003380',
+    bg: '#03080f',
+    surface: 'rgba(0,191,255,.05)',
+    border: 'rgba(0,191,255,.2)',
+    logoIcon: `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="14" cy="14" r="13" fill="#020810" stroke="#0066cc" stroke-width="1"/>
+      <path d="M14 3 C14 3 10 6 9 10 C8 12 9 14 11 14 C10 16 11 18 14 19.5 C17 18 18 16 17 14 C19 14 20 12 19 10 C18 6 14 3 14 3Z" fill="#00bfff" stroke="#0044aa" stroke-width=".5" opacity=".9"/>
+      <path d="M11 9 C11 9 8.5 10 9.5 12.5" stroke="#60e0ff" stroke-width=".8" stroke-linecap="round" fill="none"/>
+      <path d="M17 9 C17 9 19.5 10 18.5 12.5" stroke="#60e0ff" stroke-width=".8" stroke-linecap="round" fill="none"/>
+      <ellipse cx="14" cy="12.5" rx="2" ry="2.2" fill="#e8f8ff" stroke="#00bfff" stroke-width=".5"/>
+      <path d="M12.5 12.5 L11 12 M15.5 12.5 L17 12" stroke="#00bfff" stroke-width=".6" stroke-linecap="round"/>
+      <path d="M13 14 L13.5 15 L14 14 L14.5 15 L15 14" stroke="#0066cc" stroke-width=".5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <circle cx="12" cy="17" r=".9" fill="#e0e0e0" stroke="#aaa" stroke-width=".4"/>
+      <circle cx="12" cy="18.2" r=".6" fill="#ffcc00" stroke="#cc9900" stroke-width=".3"/>
+      <circle cx="16" cy="17" r=".9" fill="#e0e0e0" stroke="#aaa" stroke-width=".4"/>
+      <circle cx="16" cy="18.2" r=".6" fill="#ffcc00" stroke="#cc9900" stroke-width=".3"/>
+      <path d="M6 20 Q10 23 14 21 Q18 23 22 20" stroke="#00bfff" stroke-width=".5" fill="none" stroke-linecap="round" opacity=".6"/>
+      <path d="M5 16 L4 15 M5 18 L3.5 17.5 M23 16 L24 15 M23 18 L24.5 17.5" stroke="#60e0ff" stroke-width=".6" stroke-linecap="round" opacity=".7"/>
+    </svg>`,
+    runIcon: `<svg style="width:16px;height:16px" viewBox="0 0 16 16" fill="none">
+      <path d="M8 1 L9.5 6 L14 6 L10 9 L11.5 14 L8 11 L4.5 14 L6 9 L2 6 L6.5 6 Z" fill="#60e0ff" stroke="#00bfff" stroke-width=".5" opacity=".9"/>
+      <path d="M5 4 L4 2 M8 3 L8 1 M11 4 L12 2" stroke="#fff" stroke-width=".6" stroke-linecap="round" opacity=".7"/>
+    </svg>`,
+  },
+  {
+    id: 'anime-seinen',
+    group: 'Anime',
+    name: 'Seinen',
+    desc: 'Manga · hachuras · papel envelhecido',
+    preview: ['#f0ebe0', '#111111', '#555555'],
+    accent: '#111111',
+    orb1: 'transparent',
+    orb2: 'transparent',
+    bg: '#f0ebe0',
+    surface: 'rgba(0,0,0,.04)',
+    border: 'rgba(0,0,0,.25)',
+    isLight: true,
+    logoIcon: null,
+    runIcon: null,
+  },
 ];
 
 const LS_THEME = 'fastseo_theme';
 
 function applyTheme(t) {
   const root = document.documentElement;
-  root.setAttribute('data-theme', 'dark');
+  root.setAttribute('data-theme', t.isLight ? 'light' : 'dark');
   root.setAttribute('data-theme-id', t.id);
 
   // Accent
@@ -210,21 +289,63 @@ function applyTheme(t) {
   root.style.setProperty('--orb1-color', t.orb1 || 'transparent');
   root.style.setProperty('--orb2-color', t.orb2 || 'transparent');
 
-  // Fundo e superfície (temas sólidos)
-  if (t.bg)      root.style.setProperty('--color-bg-page',  t.bg);
-  else           root.style.setProperty('--color-bg-page',  '#07080f');
+  // Fundo e superfície
+  root.style.setProperty('--color-bg-page',  t.bg      || '#07080f');
+  root.style.setProperty('--color-surface',  t.surface || 'rgba(255,255,255,.04)');
+  root.style.setProperty('--color-border',   t.border  || 'rgba(255,255,255,.08)');
 
-  if (t.surface) root.style.setProperty('--color-surface',  t.surface);
-  else           root.style.setProperty('--color-surface',  'rgba(255,255,255,.04)');
+  // Temas claros (Seinen) — ajusta texto e sidebar
+  if (t.isLight) {
+    root.style.setProperty('--color-text-primary',   '#111111');
+    root.style.setProperty('--color-text-secondary', '#444444');
+    root.style.setProperty('--color-text-muted',     'rgba(0,0,0,.4)');
+    root.style.setProperty('--color-sidebar-bg',     'rgba(240,235,224,.95)');
+    root.style.setProperty('--color-header-bg',      'rgba(17,17,17,.97)');
+    root.style.setProperty('--color-log-bg',         '#111111');
+    root.style.setProperty('--color-success',        '#166534');
+    root.style.setProperty('--color-danger',         '#991b1b');
+    root.style.setProperty('--color-warn',           '#92400e');
+    root.style.setProperty('--seinen-hatching', '1');
+  } else {
+    root.style.setProperty('--color-text-primary',   '#e2e8f0');
+    root.style.setProperty('--color-text-secondary', '#94a3b8');
+    root.style.setProperty('--color-text-muted',     'rgba(255,255,255,.3)');
+    root.style.setProperty('--color-sidebar-bg',     'rgba(5,6,12,.7)');
+    root.style.setProperty('--color-header-bg',      'rgba(7,8,15,.85)');
+    root.style.setProperty('--color-log-bg',         'rgba(0,0,0,.5)');
+    root.style.setProperty('--color-success',        '#4ade80');
+    root.style.setProperty('--color-danger',         '#f87171');
+    root.style.setProperty('--color-warn',           '#fbbf24');
+    root.style.setProperty('--seinen-hatching', '0');
+  }
 
-  if (t.border)  root.style.setProperty('--color-border',   t.border);
-  else           root.style.setProperty('--color-border',   'rgba(255,255,255,.08)');
-
-  // Logo glow — apaga em temas neutros
+  // Logo glow
   const hasOrbs = t.orb1 && t.orb1 !== 'transparent';
   root.style.setProperty('--logo-glow', hasOrbs
-    ? `0 0 16px ${t.accent}70`
+    ? `0 0 20px ${t.accent}80`
     : 'none');
+
+  // Ícone customizado do logo (temas anime)
+  if (t.logoIcon) {
+    const logoEl = document.querySelector('.logo-icon');
+    if (logoEl) logoEl.innerHTML = t.logoIcon;
+  } else {
+    const logoEl = document.querySelector('.logo-icon');
+    if (logoEl) logoEl.textContent = 'F';
+  }
+
+  // Ícone customizado do botão run
+  const runIconEl = document.querySelector('.run-icon');
+  if (runIconEl) {
+    if (t.runIcon) {
+      runIconEl.innerHTML = t.runIcon + ' Processar Ficha';
+    } else {
+      runIconEl.textContent = '⚡ Processar Ficha';
+    }
+  }
+
+  // Hachuras Seinen no body
+  document.body.classList.toggle('theme-seinen', !!t.isLight);
 
   try { localStorage.setItem(LS_THEME, t.id); } catch {}
 }
@@ -272,14 +393,22 @@ export const ThemeModal = {
         card.className = 'theme-card' + (t.id === savedId ? ' theme-card--active' : '');
         card.dataset.id = t.id;
         const hasOrbs = t.orb1 && t.orb1 !== 'transparent';
+        const btnColor = t.isLight ? t.preview[0] : t.accent;
+        const bgPattern = t.isLight
+          ? `background:${t.preview[0]};background-image:repeating-linear-gradient(45deg,rgba(0,0,0,.06) 0px,rgba(0,0,0,.06) 1px,transparent 1px,transparent 5px)`
+          : `background:${t.preview[0]}`;
+
         card.innerHTML = `
           <div class="theme-preview">
-            <div class="theme-preview-bg" style="background:${t.preview[0]}">
+            <div class="theme-preview-bg" style="${bgPattern}">
               ${hasOrbs ? `<div class="theme-preview-orb" style="background:${t.orb1}"></div>` : ''}
-              <div class="theme-preview-card">
-                <div class="theme-preview-bar" style="background:${t.accent}99"></div>
-                <div class="theme-preview-bar short" style="background:${t.preview[2]}66"></div>
-                <div class="theme-preview-btn" style="background:${t.accent}"></div>
+              <div class="theme-preview-logo" style="background:${t.isLight ? '#111' : t.accent + '25'};border:1px solid ${t.isLight ? '#333' : t.accent + '55'};border-radius:6px;width:14px;height:14px;display:flex;align-items:center;justify-content:center;position:absolute;top:6px;left:6px">
+                <span style="font-size:7px;font-weight:900;color:${t.isLight ? '#f0ebe0' : t.accent}">F</span>
+              </div>
+              <div class="theme-preview-card" style="border-color:${t.isLight ? '#111' : 'rgba(255,255,255,.12)'};${t.isLight ? 'box-shadow:2px 2px 0 #111' : ''}">
+                <div class="theme-preview-bar" style="background:${t.accent}${t.isLight ? '' : '99'}"></div>
+                <div class="theme-preview-bar short" style="background:${t.preview[2]}${t.isLight ? 'cc' : '66'}"></div>
+                <div class="theme-preview-btn" style="background:${t.isLight ? '#111' : t.accent}"></div>
               </div>
             </div>
           </div>
