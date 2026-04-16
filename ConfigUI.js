@@ -79,31 +79,145 @@ export const ConfigUI = {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * components/ThemeUI.js + SidebarToggle
+ * ThemeModal — seletor de temas visuais
  * ───────────────────────────────────────
  */
 import { AppState } from './state.js';
 
-export const ThemeUI = {
-  toggle() {
-    const html = document.documentElement;
-    const dark = html.getAttribute('data-theme') === 'dark';
-    html.setAttribute('data-theme', dark ? 'light' : 'dark');
-    const btn = $('themeBtn');
-    if (btn) btn.textContent = dark ? '🌙' : '☀️';
-    try { localStorage.setItem('tema', dark ? 'light' : 'dark'); } catch {}
+const THEMES = [
+  {
+    id: 'dark-glass',
+    name: 'Dark Glass',
+    desc: 'Glassmorphism com orbs roxos',
+    preview: ['#07080f', '#6366f1', '#4ade80'],
+    accent: '#6366f1', orb1: '#4f46e5', orb2: '#7c3aed',
   },
+  {
+    id: 'dark-cyan',
+    name: 'Dark Cyan',
+    desc: 'Escuro com acento ciano',
+    preview: ['#060d12', '#06b6d4', '#34d399'],
+    accent: '#06b6d4', orb1: '#0e7490', orb2: '#065f46',
+  },
+  {
+    id: 'dark-rose',
+    name: 'Dark Rose',
+    desc: 'Escuro com acento rosa',
+    preview: ['#0d0709', '#f43f5e', '#c084fc'],
+    accent: '#f43f5e', orb1: '#9f1239', orb2: '#7e22ce',
+  },
+  {
+    id: 'dark-amber',
+    name: 'Dark Amber',
+    desc: 'Escuro com acento dourado',
+    preview: ['#0c0a03', '#f59e0b', '#fb923c'],
+    accent: '#f59e0b', orb1: '#92400e', orb2: '#7c2d12',
+  },
+  {
+    id: 'dark-slate',
+    name: 'Dark Slate',
+    desc: 'Minimalista sem orbs',
+    preview: ['#0f1117', '#64748b', '#94a3b8'],
+    accent: '#64748b', orb1: 'transparent', orb2: 'transparent',
+  },
+];
+
+const LS_THEME = 'fastseo_theme';
+
+function applyTheme(t) {
+  const root = document.documentElement;
+  root.setAttribute('data-theme', 'dark');
+  root.setAttribute('data-theme-id', t.id);
+  root.style.setProperty('--color-accent',        t.accent);
+  root.style.setProperty('--color-accent-hover',   t.accent + 'cc');
+  root.style.setProperty('--color-accent-bg',      t.accent + '1f');
+  root.style.setProperty('--color-accent-glow',    t.accent + '40');
+  root.style.setProperty('--orb1-color', t.orb1);
+  root.style.setProperty('--orb2-color', t.orb2);
+  try { localStorage.setItem(LS_THEME, t.id); } catch {}
+}
+
+export const ThemeModal = {
+  open() {
+    if ($('themeModalOverlay')) return;
+    const savedId  = (() => { try { return localStorage.getItem(LS_THEME); } catch { return null; } })() || 'dark-glass';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'themeModalOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal modal--theme">
+        <div class="modal-hdr">
+          <span class="modal-title">🎨 Aparência do site</span>
+          <button class="modal-close" id="themeModalClose">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:12px;color:var(--color-text-muted);margin-top:-4px">Escolha o tema visual. A mudança é aplicada imediatamente.</p>
+          <div class="theme-grid" id="themeGrid"></div>
+        </div>
+        <div class="modal-ftr" style="justify-content:flex-end">
+          <button class="btn btn-primary" id="themeModalConfirm">Fechar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const grid = overlay.querySelector('#themeGrid');
+
+    THEMES.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'theme-card' + (t.id === savedId ? ' theme-card--active' : '');
+      card.dataset.id = t.id;
+      card.innerHTML = `
+        <div class="theme-preview">
+          <div class="theme-preview-bg" style="background:${t.preview[0]}">
+            <div class="theme-preview-orb" style="background:${t.preview[1]}"></div>
+            <div class="theme-preview-card">
+              <div class="theme-preview-bar" style="background:${t.preview[1]}88"></div>
+              <div class="theme-preview-bar short" style="background:${t.preview[2]}66"></div>
+              <div class="theme-preview-btn" style="background:${t.preview[1]}"></div>
+            </div>
+          </div>
+        </div>
+        <div class="theme-card-info">
+          <span class="theme-card-name">${t.name}</span>
+          <span class="theme-card-desc">${t.desc}</span>
+        </div>
+        <div class="theme-check">✓</div>`;
+      card.addEventListener('click', () => {
+        grid.querySelectorAll('.theme-card').forEach(c => c.classList.remove('theme-card--active'));
+        card.classList.add('theme-card--active');
+        applyTheme(t);
+      });
+      grid.appendChild(card);
+    });
+
+    const close = () => this.close();
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    $('themeModalClose')?.addEventListener('click', close);
+    $('themeModalConfirm')?.addEventListener('click', close);
+    document.addEventListener('keydown', this._esc);
+  },
+
+  close() {
+    $('themeModalOverlay')?.remove();
+    document.removeEventListener('keydown', this._esc);
+  },
+
+  _esc(e) { if (e.key === 'Escape') ThemeModal.close(); },
 
   restore() {
     try {
-      const tema = localStorage.getItem('tema');
-      if (tema) {
-        document.documentElement.setAttribute('data-theme', tema);
-        const btn = $('themeBtn');
-        if (btn) btn.textContent = tema === 'dark' ? '☀️' : '🌙';
-      }
+      const id = localStorage.getItem(LS_THEME) || 'dark-glass';
+      const t  = THEMES.find(t => t.id === id) || THEMES[0];
+      applyTheme(t);
     } catch {}
   },
+};
+
+// Compatibilidade com imports que usam ThemeUI
+export const ThemeUI = {
+  toggle()  { ThemeModal.open(); },
+  restore() { ThemeModal.restore(); },
 };
 
 export const SidebarToggle = {

@@ -14,7 +14,7 @@ import { HistoryUI }      from './HistoryUI.js';
 import { PromptModal }    from './PromptModal.js';
 import { AnalyticsModal } from './AnalyticsModal.js';
 import { SubcatModal }    from './SubcatModal.js';
-import { ConfigUI, ThemeUI, SidebarToggle, ConfigModal } from './ConfigUI.js';
+import { ConfigUI, ThemeUI, ThemeModal, SidebarToggle, ConfigModal } from './ConfigUI.js';
 import { HistoryModal }     from './HistoryModal.js';
 import { ExemplosModal }    from './ExemplosModal.js';
 import { CategoriasModal }  from './CategoriasModal.js';
@@ -154,7 +154,7 @@ _loginBtn?.addEventListener('click', async () => {
 document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
 
 // ── Eventos do app ────────────────────────────────────────────
-document.getElementById('themeBtn')?.addEventListener('click',       () => ThemeUI.toggle());
+document.getElementById('themeBtn')?.addEventListener('click',       () => ThemeModal.open());
 document.getElementById('openPromptsBtn')?.addEventListener('click',  () => PromptModal.open());
 document.getElementById('openAnalyticsBtn')?.addEventListener('click',() => AnalyticsModal.open());
 document.getElementById('openSubcatBtn')?.addEventListener('click',   () => SubcatModal.open());
