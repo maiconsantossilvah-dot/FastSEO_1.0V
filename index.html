@@ -176,19 +176,19 @@
   </aside>
 
   <main class="main" id="mainContent">
-    <div class="page">
+    <div class="page page--wide">
 
-
-
-      <div class="learn-indicator empty" id="learnIndicator">
+      <div class="learn-indicator empty" id="learnIndicator" style="grid-column:1/-1">
         <div class="learn-indicator-dot"></div>
         <span id="learnIndicatorText">Nenhum exemplo configurado — abra o painel lateral para adicionar referências</span>
       </div>
 
-      <div class="card">
-        <div class="card-hdr"><span class="card-title">Dados do Produto</span><span class="char-count" id="charCount">0 caracteres</span></div>
-        <div class="card-body">
-          <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor...
+      <!-- ── COLUNA ESQUERDA: input + pipeline ── -->
+      <div class="col-input">
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">Dados do Produto</span><span class="char-count" id="charCount">0 caracteres</span></div>
+          <div class="card-body">
+            <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor...
 
 Ex:
 4203900 – EAN: 7893401194859
@@ -197,61 +197,80 @@ DISJUNTOR STECK DIN 3P 63A CURVA C 3KA SDD63C63 BRANCO
 
 Marca: Steck
 Corrente nominal: 63A ..."></textarea>
+          </div>
         </div>
-      </div>
 
-      <div class="steps">
-        <div class="step" id="ps1"><div class="step-num">01</div><div class="step-name">Formatador</div></div>
-        <div class="step" id="ps2"><div class="step-num">02</div><div class="step-name">Conferente</div></div>
-        <div class="step" id="ps3"><div class="step-num">03</div><div class="step-name">Copywriter</div></div>
-      </div>
-
-      <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
-        <span class="run-icon">⚡ Processar Ficha</span>
-        <div class="spinner"></div>
-      </button>
-
-      <div class="log-box" id="logBox"></div>
-
-      <div class="results" id="results">
-        <div class="card">
-          <div class="result-hdr">
-            <span class="result-label">Ficha Técnica Formatada</span>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <span id="bivoltBadge" class="badge badge-bivolt" style="display:none;">⚡ BIVOLT</span>
-              <button class="copy-btn" id="exportTxtBtn" style="background:var(--color-bg-subtle);color:var(--color-text-secondary);">⬇ .txt</button>
-              <button class="copy-btn" id="copyFichaBtn">Copiar</button>
+        <div class="steps">
+          <div class="step" id="ps1">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-name">Formatador</div>
+              <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time" id="ps1Time"></span></div>
             </div>
           </div>
-          <div class="result-content" id="fichaOut"></div>
-        </div>
-        <div class="card">
-          <div class="result-hdr"><span class="result-label">Conferência de Qualidade</span><span id="statusBadge" class="badge"></span></div>
-          <div class="result-content" id="validacaoOut"></div>
-        </div>
-
-        <!-- ── Bloco: Conteúdo Comercial ── -->
-        <div class="card" id="copyBlock" style="display:none">
-          <div class="result-hdr">
-            <span class="result-label">Conteúdo Comercial</span>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <!-- NOVO: botão Regenerar — chama só o A3 sem reprocessar A1 e A2 -->
-              <button
-                class="copy-btn"
-                id="regenConteudoBtn"
-                title="Gerar novamente sem reprocessar os outros agentes"
-                style="background:var(--color-bg-subtle);color:var(--color-text-secondary);">
-                ↺ Regenerar
-              </button>
-              <button class="copy-btn" id="copyConteudoBtn">Copiar</button>
+          <div class="step" id="ps2">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-name">Conferente</div>
+              <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time" id="ps2Time"></span></div>
             </div>
           </div>
-          <div class="result-content" id="conteudoOut"></div>
+          <div class="step" id="ps3">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-name">Copywriter</div>
+              <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time" id="ps3Time"></span></div>
+            </div>
+          </div>
         </div>
 
+        <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
+          <span class="run-icon">⚡ Processar Ficha</span>
+          <div class="spinner"></div>
+        </button>
+
+        <div class="log-box" id="logBox"></div>
       </div>
 
-      <div id="historicoPanel" class="card">
+      <!-- ── COLUNA DIREITA: resultados ── -->
+      <div class="col-results">
+        <div class="results-placeholder" id="resultsPlaceholder">
+          <div class="results-placeholder-icon">⚡</div>
+          <p>Os resultados aparecerão aqui após processar a ficha</p>
+        </div>
+
+        <div class="results" id="results">
+          <div class="card">
+            <div class="result-hdr">
+              <span class="result-label">Ficha Técnica Formatada</span>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span id="bivoltBadge" class="badge badge-bivolt" style="display:none;">⚡ BIVOLT</span>
+                <button class="copy-btn" id="exportTxtBtn" style="background:var(--color-bg-subtle);color:var(--color-text-secondary);">⬇ .txt</button>
+                <button class="copy-btn" id="copyFichaBtn">Copiar</button>
+              </div>
+            </div>
+            <div class="result-content" id="fichaOut"></div>
+          </div>
+          <div class="card">
+            <div class="result-hdr"><span class="result-label">Conferência de Qualidade</span><span id="statusBadge" class="badge"></span></div>
+            <div class="result-content" id="validacaoOut"></div>
+          </div>
+
+          <!-- ── Bloco: Conteúdo Comercial ── -->
+          <div class="card" id="copyBlock" style="display:none">
+            <div class="result-hdr">
+              <span class="result-label">Conteúdo Comercial</span>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <button class="copy-btn" id="regenConteudoBtn" title="Gerar novamente sem reprocessar os outros agentes" style="background:var(--color-bg-subtle);color:var(--color-text-secondary);">↺ Regenerar</button>
+                <button class="copy-btn" id="copyConteudoBtn">Copiar</button>
+              </div>
+            </div>
+            <div class="result-content" id="conteudoOut"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="historicoPanel" class="card" style="grid-column:1/-1">
 
         <!-- Cabeçalho clicável — abre/fecha o painel -->
         <div class="card-hdr hist-toggle-hdr" id="historicoToggleBtn"

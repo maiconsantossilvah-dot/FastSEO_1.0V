@@ -347,3 +347,92 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
 }
 .config-status-dot.warn { background: var(--color-warn); box-shadow: 0 0 6px rgba(251,191,36,.4); }
 .config-status-dot.error { background: var(--color-danger); box-shadow: 0 0 6px rgba(248,113,113,.4); }
+
+/* ─── LAYOUT DUAS COLUNAS ─── */
+.page--wide {
+  max-width: 1400px;
+  display: grid;
+  grid-template-columns: minmax(340px, 420px) 1fr;
+  grid-template-rows: auto;
+  gap: 14px;
+  align-items: start;
+  padding: 24px 24px 72px;
+}
+
+/* Coluna esquerda: input + pipeline */
+.col-input {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 76px; /* altura do header + margem */
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.col-input::-webkit-scrollbar { display: none; }
+
+/* Textarea bem maior na coluna esquerda */
+.col-input textarea#inputText {
+  min-height: 320px;
+  resize: vertical;
+}
+
+/* Coluna direita: resultados */
+.col-results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 400px;
+}
+
+/* Placeholder quando não há resultados */
+.results-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 360px;
+  border: 1px dashed rgba(255,255,255,.1);
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,.02);
+  backdrop-filter: blur(8px);
+  color: rgba(255,255,255,.2);
+  font-size: 13px;
+  text-align: center;
+  padding: 40px;
+  transition: opacity .3s;
+}
+.results-placeholder-icon {
+  font-size: 32px;
+  opacity: .3;
+}
+/* Esconde placeholder quando results estiver visível */
+.col-results:has(.results.vis) .results-placeholder {
+  display: none;
+}
+
+/* Results ocupa toda a altura disponível */
+.col-results .results {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+}
+.col-results .results.vis {
+  display: flex;
+}
+
+/* Responsivo: volta pra coluna única em telas menores */
+@media (max-width: 900px) {
+  .page--wide {
+    grid-template-columns: 1fr;
+  }
+  .col-input {
+    position: static;
+    max-height: none;
+  }
+  .col-input textarea#inputText {
+    min-height: 180px;
+  }
+}
