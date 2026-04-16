@@ -14,10 +14,10 @@ import { HistoryUI }      from './HistoryUI.js';
 import { PromptModal }    from './PromptModal.js';
 import { AnalyticsModal } from './AnalyticsModal.js';
 import { SubcatModal }    from './SubcatModal.js';
-import { ConfigUI, ThemeModal, SidebarToggle } from './ConfigUI.js';
+import { ConfigUI, ThemeUI, SidebarToggle, ConfigModal } from './ConfigUI.js';
 
-// ── Restaura tema salvo ──
-// ThemeModal.restore() é chamado via import abaixo
+// ── Restaura tema imediatamente (evita flash de tema errado) ──
+ThemeUI.restore();
 
 // ── Export — copia e baixa os resultados gerados ──────────────
 // CORREÇÃO: Export não estava definido em nenhum lugar do código,
@@ -94,7 +94,6 @@ function showApp(user) {
 
 // ── Inicialização do app (só roda uma vez após login) ─────────
 async function init() {
-  ThemeModal.restore();
   SidebarToggle.restore();
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateQuotaInfo();
@@ -149,10 +148,11 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logou
 
 // ── Eventos do app ────────────────────────────────────────────
 document.getElementById('sidebarToggle')?.addEventListener('click', () => SidebarToggle.toggle());
-document.getElementById('themeBtn')?.addEventListener('click',       () => ThemeModal.open());
+document.getElementById('themeBtn')?.addEventListener('click',       () => ThemeUI.toggle());
 document.getElementById('openPromptsBtn')?.addEventListener('click',  () => PromptModal.open());
 document.getElementById('openAnalyticsBtn')?.addEventListener('click',() => AnalyticsModal.open());
 document.getElementById('openSubcatBtn')?.addEventListener('click',   () => SubcatModal.open());
+document.getElementById('openConfigBtn')?.addEventListener('click',    () => ConfigModal.open());
 document.getElementById('resetCotaBtn')?.addEventListener('click', () => {
   Quota.reset();
   PipelineUI.log('Contador local zerado.', 'o');
@@ -169,9 +169,7 @@ document.getElementById('sbContent')?.addEventListener('click', e => {
   const btn = e.target.closest('[data-catid]');
   if (btn) SidebarUI.select(btn.dataset.catid);
 });
-document.getElementById('apiKey')?.addEventListener('input',    () => ConfigUI.validateGeminiKey());
-document.getElementById('mistralKey')?.addEventListener('input', () => ConfigUI.validateMistralKey());
-document.getElementById('modelSel')?.addEventListener('change',  () => ConfigUI.updateQuotaInfo());
+// apiKey, mistralKey e modelSel agora vivem dentro do ConfigModal
 document.getElementById('inputText')?.addEventListener('input',  () => ConfigUI.updateCharCount());
 document.getElementById('runBtn')?.addEventListener('click', () => Pipeline.run());
 

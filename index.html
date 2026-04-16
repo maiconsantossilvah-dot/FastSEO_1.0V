@@ -151,6 +151,7 @@
     <button id="openPromptsBtn"   class="btn btn-ghost">✏️ Prompts</button>
     <button id="openAnalyticsBtn" class="btn btn-ghost">📊 Analytics</button>
     <button id="openSubcatBtn"    class="btn btn-ghost">📐 Títulos</button>
+    <button id="openConfigBtn"    class="btn btn-ghost" title="Configuração de APIs e modelo">⚙️ Config</button>
     <button class="btn btn-ghost" id="themeBtn" title="Aparência do site" aria-label="Escolher tema">🎨 Tema</button>
     <!-- Usuário logado -->
     <div class="user-info">
@@ -177,70 +178,7 @@
   <main class="main" id="mainContent">
     <div class="page">
 
-      <div class="card">
-        <div class="card-hdr">
-          <span class="card-title">Configuração de APIs</span>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span class="hint">Google Gemini · Mistral</span>
-            <button id="toggleFallbackBtn" class="fallback-toggle-btn"
-              title="Exibir chaves de fallback (sobrecarga / 503)">
-              🔀 Fallback
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
 
-          <div class="setup-grid">
-            <div class="field">
-              <label>API Key do Gemini <span style="color:var(--color-success);font-weight:400">· A2 e A3</span></label>
-              <div class="key-wrap"><input type="password" id="apiKey" placeholder="AIza..."/><span class="key-status" id="keyStatus"></span></div>
-              <div class="hint">Obtenha grátis em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
-            </div>
-            <div class="field">
-              <label>API Key da Mistral <span style="color:var(--color-success);font-weight:400">· A1</span></label>
-              <div class="key-wrap"><input type="password" id="mistralKey" placeholder="..."/><span class="key-status" id="mistralKeyStatus"></span></div>
-              <div class="hint">Grátis em <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> — sem cartão · usado no A1 (Formatador)</div>
-            </div>
-            <div class="field">
-              <label>Modelo Gemini</label>
-              <select id="modelSel">
-                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite — 1.000 req/dia ⭐</option>
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash — 250 req/dia</option>
-                <option value="gemini-2.5-pro">Gemini 2.5 Pro — 100 req/dia</option>
-              </select>
-              <div class="hint" id="modelHint"></div>
-            </div>
-          </div>
-
-          <!-- ── Painel de chaves de fallback (oculto por padrão) ── -->
-          <div id="fallbackKeysPanel" class="fallback-panel" style="display:none">
-            <div class="fallback-panel-info">
-              <span class="fallback-panel-icon">🔀</span>
-              <div>
-                <strong class="fallback-panel-title">Chaves de Fallback</strong>
-                <p class="fallback-panel-desc">
-                  Acionadas automaticamente quando a chave primária retornar <strong>503</strong>, <strong>529</strong> ou <strong>sobrecarga</strong>. Cota diária esgotada também aciona a troca.
-                </p>
-              </div>
-            </div>
-            <div class="setup-grid">
-              <div class="field">
-                <label>Gemini — Chave 2 <span class="fallback-badge">fallback</span></label>
-                <div class="key-wrap"><input type="password" id="apiKey2" placeholder="AIza... (secundária)"/><span class="key-status" id="keyStatus2"></span></div>
-              </div>
-              <div class="field">
-                <label>Mistral — Chave 2 <span class="fallback-badge">fallback</span></label>
-                <div class="key-wrap"><input type="password" id="mistralKey2" placeholder="... (secundária)"/><span class="key-status" id="mistralKeyStatus2"></span></div>
-              </div>
-              <div class="field">
-                <label>Gemini — Chave 3 <span class="fallback-badge">fallback</span></label>
-                <div class="key-wrap"><input type="password" id="apiKey3" placeholder="AIza... (terciária)"/><span class="key-status" id="keyStatus3"></span></div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
 
       <div class="learn-indicator empty" id="learnIndicator">
         <div class="learn-indicator-dot"></div>
@@ -379,62 +317,7 @@ Corrente nominal: 63A ..."></textarea>
 </div>
 
 <script type="module" src="main.js"></script>
-<script>
-/* ── Fallback keys: toggle do painel + persistência no localStorage ── */
-(function () {
-  const LS_OPEN = 'fastseo_fallback_open';
-  const FALLBACK_KEYS = [
-    { id: 'apiKey2',     statusId: 'keyStatus2',      isGemini: true  },
-    { id: 'apiKey3',     statusId: 'keyStatus3',      isGemini: true  },
-    { id: 'mistralKey2', statusId: 'mistralKeyStatus2', isGemini: false },
-  ];
 
-  function validateStatus(el, statusEl, isGemini) {
-    if (!statusEl) return;
-    const v = el.value.trim();
-    const ok = isGemini ? (v.startsWith('AIza') && v.length > 20) : v.length > 20;
-    statusEl.textContent = v ? (ok ? '✓' : '✗') : '';
-    statusEl.style.color = ok ? 'var(--color-success)' : 'var(--color-danger)';
-  }
-
-  function init() {
-    const btn   = document.getElementById('toggleFallbackBtn');
-    const panel = document.getElementById('fallbackKeysPanel');
-    if (!btn || !panel) return;
-
-    // Restaura estado aberto/fechado
-    if (localStorage.getItem(LS_OPEN) === '1') {
-      panel.style.display = '';
-      btn.classList.add('active');
-    }
-
-    FALLBACK_KEYS.forEach(({ id, statusId, isGemini }) => {
-      const el = document.getElementById(id);
-      const st = document.getElementById(statusId);
-      if (!el) return;
-      const saved = localStorage.getItem('fastseo_' + id);
-      if (saved) el.value = saved;
-      validateStatus(el, st, isGemini);
-      el.addEventListener('input', () => {
-        localStorage.setItem('fastseo_' + id, el.value.trim());
-        validateStatus(el, st, isGemini);
-      });
-    });
-
-    // Toggle
-    btn.addEventListener('click', () => {
-      const show = panel.style.display === 'none';
-      panel.style.display = show ? '' : 'none';
-      btn.classList.toggle('active', show);
-      localStorage.setItem(LS_OPEN, show ? '1' : '0');
-    });
-  }
-
-  document.readyState === 'loading'
-    ? document.addEventListener('DOMContentLoaded', init)
-    : init();
-})();
-</script>
 
 </body>
 </html>

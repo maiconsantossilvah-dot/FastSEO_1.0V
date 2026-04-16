@@ -331,50 +331,19 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
 .fallback-panel-desc { margin: 2px 0 0; font-size: 11px; color: var(--color-text-muted); line-height: 1.5; }
 .fallback-badge { display: inline-block; font-size: 9px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; background: var(--color-accent-bg); color: #a5b4fc; border: 1px solid rgba(99,102,241,.25); border-radius: 4px; padding: 1px 5px; margin-left: 4px; vertical-align: middle; }
 
-/* ─── ORBS DINÂMICOS (controlados por ThemeModal) ─── */
-body::before { background: var(--orb1-color, #4f46e5); }
-body::after  { background: var(--orb2-color, #7c3aed); }
+/* ─── CONFIG MODAL ─── */
+.config-section-divider {
+  padding: 10px 0 4px;
+  border-top: 1px solid rgba(255,255,255,.07);
+  font-size: 12px; font-weight: 600; color: rgba(255,255,255,.5);
+}
 
-/* ─── THEME MODAL ─── */
-.modal--theme { max-width: 580px; }
-.theme-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px; margin-top: 4px;
+/* Indicador de status das keys no header (opcional — mostra se config está ok) */
+.config-status-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  background: var(--color-success);
+  box-shadow: 0 0 6px rgba(74,222,128,.5);
+  display: inline-block; margin-left: 4px; vertical-align: middle;
 }
-.theme-card {
-  border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius);
-  overflow: hidden; cursor: pointer; transition: all .18s;
-  background: rgba(255,255,255,.03); position: relative;
-}
-.theme-card:hover { border-color: rgba(255,255,255,.18); transform: translateY(-2px); }
-.theme-card--active { border-color: var(--color-accent); box-shadow: 0 0 0 1px var(--color-accent), 0 0 20px var(--color-accent-glow); }
-.theme-check {
-  position: absolute; top: 8px; right: 8px;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: var(--color-accent); color: #fff; font-size: 10px; font-weight: 700;
-  display: none; align-items: center; justify-content: center;
-  box-shadow: 0 0 10px var(--color-accent-glow);
-}
-.theme-card--active .theme-check { display: flex; }
-
-/* Preview miniatura */
-.theme-preview { height: 90px; overflow: hidden; position: relative; }
-.theme-preview-bg { width: 100%; height: 100%; position: relative; overflow: hidden; }
-.theme-preview-orb {
-  position: absolute; width: 70px; height: 70px; border-radius: 50%;
-  top: -20px; left: -20px; filter: blur(24px); opacity: .55;
-}
-.theme-preview-card {
-  position: absolute; bottom: 8px; right: 8px; left: 8px;
-  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1);
-  border-radius: 6px; padding: 7px 8px; backdrop-filter: blur(4px);
-  display: flex; flex-direction: column; gap: 4px;
-}
-.theme-preview-bar { height: 4px; border-radius: 2px; width: 80%; }
-.theme-preview-bar.short { width: 50%; }
-.theme-preview-btn { height: 12px; border-radius: 4px; width: 50%; margin-top: 2px; opacity: .9; }
-
-/* Info do card */
-.theme-card-info { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 2px; }
-.theme-card-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.8); }
-.theme-card-desc { font-size: 10px; color: rgba(255,255,255,.3); line-height: 1.4; }
+.config-status-dot.warn { background: var(--color-warn); box-shadow: 0 0 6px rgba(251,191,36,.4); }
+.config-status-dot.error { background: var(--color-danger); box-shadow: 0 0 6px rgba(248,113,113,.4); }

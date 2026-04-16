@@ -84,178 +84,26 @@ export const ConfigUI = {
  */
 import { AppState } from './state.js';
 
-// Temas disponíveis
-const THEMES = [
-  {
-    id: 'dark-glass',
-    name: 'Dark Glass',
-    desc: 'Glassmorphism escuro com orbs de luz',
-    preview: ['#07080f', '#6366f1', '#4ade80'],
-    vars: {
-      '--color-bg-page': '#07080f',
-      '--color-accent':  '#6366f1',
-      '--orb1': '#4f46e5',
-      '--orb2': '#7c3aed',
-    }
+export const ThemeUI = {
+  toggle() {
+    const html = document.documentElement;
+    const dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    const btn = $('themeBtn');
+    if (btn) btn.textContent = dark ? '🌙' : '☀️';
+    try { localStorage.setItem('tema', dark ? 'light' : 'dark'); } catch {}
   },
-  {
-    id: 'dark-cyan',
-    name: 'Dark Cyan',
-    desc: 'Escuro com acento em ciano e verde-água',
-    preview: ['#060d12', '#06b6d4', '#34d399'],
-    vars: {
-      '--color-bg-page': '#060d12',
-      '--color-accent':  '#06b6d4',
-      '--orb1': '#0e7490',
-      '--orb2': '#065f46',
-    }
-  },
-  {
-    id: 'dark-rose',
-    name: 'Dark Rose',
-    desc: 'Escuro com acento em rosa e violeta',
-    preview: ['#0d0709', '#f43f5e', '#c084fc'],
-    vars: {
-      '--color-bg-page': '#0d0709',
-      '--color-accent':  '#f43f5e',
-      '--orb1': '#9f1239',
-      '--orb2': '#7e22ce',
-    }
-  },
-  {
-    id: 'dark-amber',
-    name: 'Dark Amber',
-    desc: 'Escuro com acento dourado e laranja',
-    preview: ['#0c0a03', '#f59e0b', '#fb923c'],
-    vars: {
-      '--color-bg-page': '#0c0a03',
-      '--color-accent':  '#f59e0b',
-      '--orb1': '#92400e',
-      '--orb2': '#7c2d12',
-    }
-  },
-  {
-    id: 'dark-slate',
-    name: 'Dark Slate',
-    desc: 'Minimalista sem orbs, apenas cinza frio',
-    preview: ['#0f1117', '#64748b', '#94a3b8'],
-    vars: {
-      '--color-bg-page': '#0f1117',
-      '--color-accent':  '#64748b',
-      '--orb1': 'transparent',
-      '--orb2': 'transparent',
-    }
-  },
-];
-
-const LS_THEME = 'fastseo_theme';
-
-function applyTheme(theme) {
-  const root = document.documentElement;
-  root.setAttribute('data-theme', 'dark');
-  root.setAttribute('data-theme-id', theme.id);
-  // Aplica accent
-  root.style.setProperty('--color-accent',       theme.vars['--color-accent']);
-  root.style.setProperty('--color-accent-hover',  theme.vars['--color-accent'] + 'cc');
-  root.style.setProperty('--color-accent-bg',     theme.vars['--color-accent'] + '1f');
-  root.style.setProperty('--color-accent-glow',   theme.vars['--color-accent'] + '40');
-  // Aplica fundo
-  root.style.setProperty('--color-bg-page',       theme.vars['--color-bg-page']);
-  // Injeta orbs via CSS custom props usados no ::before/::after do body
-  root.style.setProperty('--orb1-color', theme.vars['--orb1']);
-  root.style.setProperty('--orb2-color', theme.vars['--orb2']);
-  try { localStorage.setItem(LS_THEME, theme.id); } catch {}
-}
-
-export const ThemeModal = {
-  open() {
-    if ($('themeModalOverlay')) return;
-    const saved = (() => { try { return localStorage.getItem(LS_THEME); } catch { return null; }})();
-    const activeId = saved || 'dark-glass';
-
-    const overlay = document.createElement('div');
-    overlay.id = 'themeModalOverlay';
-    overlay.className = 'modal-overlay';
-    overlay.innerHTML = `
-      <div class="modal modal--theme">
-        <div class="modal-hdr">
-          <span class="modal-title">🎨 Aparência do site</span>
-          <button class="modal-close" id="themeModalClose">✕</button>
-        </div>
-        <div class="modal-body">
-          <p style="font-size:12px;color:var(--color-text-muted);margin-top:-4px">Escolha o tema visual. A mudança é aplicada imediatamente.</p>
-          <div class="theme-grid" id="themeGrid"></div>
-        </div>
-        <div class="modal-ftr" style="justify-content:flex-end">
-          <button class="btn btn-primary" id="themeModalConfirm">Aplicar</button>
-        </div>
-      </div>`;
-    document.body.appendChild(overlay);
-
-    // Renderiza cards
-    const grid = overlay.querySelector('#themeGrid');
-    let selectedId = activeId;
-
-    THEMES.forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'theme-card' + (t.id === activeId ? ' theme-card--active' : '');
-      card.dataset.id = t.id;
-      card.innerHTML = `
-        <div class="theme-preview">
-          <div class="theme-preview-bg" style="background:${t.preview[0]}">
-            <div class="theme-preview-orb" style="background:${t.preview[1]}"></div>
-            <div class="theme-preview-card">
-              <div class="theme-preview-bar" style="background:${t.preview[1]}88"></div>
-              <div class="theme-preview-bar short" style="background:${t.preview[2]}66"></div>
-              <div class="theme-preview-btn" style="background:${t.preview[1]}"></div>
-            </div>
-          </div>
-        </div>
-        <div class="theme-card-info">
-          <span class="theme-card-name">${t.name}</span>
-          <span class="theme-card-desc">${t.desc}</span>
-        </div>
-        <div class="theme-check">✓</div>`;
-      card.addEventListener('click', () => {
-        grid.querySelectorAll('.theme-card').forEach(c => c.classList.remove('theme-card--active'));
-        card.classList.add('theme-card--active');
-        selectedId = t.id;
-        // Preview ao vivo
-        applyTheme(t);
-      });
-      grid.appendChild(card);
-    });
-
-    overlay.addEventListener('click', e => { if (e.target === overlay) this.close(); });
-    overlay.querySelector('#themeModalClose').addEventListener('click', () => this.close());
-    overlay.querySelector('#themeModalConfirm').addEventListener('click', () => {
-      const t = THEMES.find(t => t.id === selectedId);
-      if (t) applyTheme(t);
-      this.close();
-    });
-    document.addEventListener('keydown', this._esc);
-  },
-
-  close() {
-    $('themeModalOverlay')?.remove();
-    document.removeEventListener('keydown', this._esc);
-  },
-
-  _esc(e) { if (e.key === 'Escape') ThemeModal.close(); },
 
   restore() {
     try {
-      const id = localStorage.getItem(LS_THEME) || 'dark-glass';
-      const t  = THEMES.find(t => t.id === id) || THEMES[0];
-      applyTheme(t);
+      const tema = localStorage.getItem('tema');
+      if (tema) {
+        document.documentElement.setAttribute('data-theme', tema);
+        const btn = $('themeBtn');
+        if (btn) btn.textContent = tema === 'dark' ? '☀️' : '🌙';
+      }
     } catch {}
   },
-};
-
-// Compatibilidade: ThemeUI ainda exportado para não quebrar imports antigos
-export const ThemeUI = {
-  toggle() { ThemeModal.open(); },
-  restore() { ThemeModal.restore(); },
 };
 
 export const SidebarToggle = {
@@ -283,6 +131,185 @@ export const SidebarToggle = {
         $('appHeader')?.classList.remove('sidebar-collapsed');
         const btn = $('sidebarToggle');
         if (btn) { btn.textContent = '◀'; btn.title = 'Fechar painel de categorias'; }
+      }
+    } catch {}
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * ConfigModal — modal de configuração de APIs e modelo
+ */
+export const ConfigModal = {
+  open() {
+    if (document.getElementById('configModalOverlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'configModalOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal modal--lg">
+        <div class="modal-hdr">
+          <span class="modal-title">⚙️ Configuração de APIs</span>
+          <button class="modal-close" id="configModalClose">✕</button>
+        </div>
+        <div class="modal-body" style="gap:20px">
+
+          <div class="setup-grid">
+            <div class="field">
+              <label>API Key do Gemini <span style="color:var(--color-success);font-weight:400">· A2 e A3</span></label>
+              <div class="key-wrap"><input type="password" id="apiKey" placeholder="AIza..."/><span class="key-status" id="keyStatus"></span></div>
+              <div class="hint">Obtenha grátis em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
+            </div>
+            <div class="field">
+              <label>API Key da Mistral <span style="color:var(--color-success);font-weight:400">· A1</span></label>
+              <div class="key-wrap"><input type="password" id="mistralKey" placeholder="..."/><span class="key-status" id="mistralKeyStatus"></span></div>
+              <div class="hint">Grátis em <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> — sem cartão · usado no A1 (Formatador)</div>
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Modelo Gemini</label>
+              <select id="modelSel">
+                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite — 1.000 req/dia ⭐</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash — 250 req/dia</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro — 100 req/dia</option>
+              </select>
+              <div class="hint" id="modelHint"></div>
+            </div>
+          </div>
+
+          <div class="config-section-divider">
+            <span>Chaves de Fallback</span>
+            <div class="hint" style="margin-top:4px">Acionadas automaticamente quando a chave primária retornar 503, 529 ou sobrecarga.</div>
+          </div>
+
+          <div class="setup-grid">
+            <div class="field">
+              <label>Gemini — Chave 2 <span class="fallback-badge">fallback</span></label>
+              <div class="key-wrap"><input type="password" id="apiKey2" placeholder="AIza... (secundária)"/><span class="key-status" id="keyStatus2"></span></div>
+            </div>
+            <div class="field">
+              <label>Mistral — Chave 2 <span class="fallback-badge">fallback</span></label>
+              <div class="key-wrap"><input type="password" id="mistralKey2" placeholder="... (secundária)"/><span class="key-status" id="mistralKeyStatus2"></span></div>
+            </div>
+            <div class="field">
+              <label>Gemini — Chave 3 <span class="fallback-badge">fallback</span></label>
+              <div class="key-wrap"><input type="password" id="apiKey3" placeholder="AIza... (terciária)"/><span class="key-status" id="keyStatus3"></span></div>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-ftr">
+          <span class="modal-saved" id="configSavedMsg">✓ Salvo</span>
+          <button class="btn btn-primary" id="configModalClose2">Fechar</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(overlay);
+
+    // Restaurar keys salvas nos inputs recém-criados
+    const LS_get = k => { try { return localStorage.getItem(k); } catch { return null; }};
+    const LS_set = (k,v) => { try { localStorage.setItem(k, v); } catch {} };
+    const LS_del = k => { try { localStorage.removeItem(k); } catch {} };
+
+    const restoreAndBind = (id, statusId, lsKey, validator) => {
+      const el = document.getElementById(id);
+      const st = document.getElementById(statusId);
+      if (!el) return;
+      const saved = LS_get(lsKey);
+      if (saved) el.value = saved;
+      validator(el, st, LS_set, LS_del);
+      el.addEventListener('input', () => {
+        validator(el, st, LS_set, LS_del);
+        ConfigModal._showSaved();
+      });
+    };
+
+    const validateGemini = (el, st, set, del) => {
+      const v = el.value.trim();
+      if (!v) { el.className = ''; if (st) st.textContent = ''; del('gemini_key'); return; }
+      if (v.startsWith('AIza') && v.length > 20) { el.className = 'valid'; if (st) st.textContent = '✓'; set('gemini_key', v); }
+      else { el.className = 'invalid'; if (st) st.textContent = '✗'; }
+    };
+    const validateMistral = (el, st, set, del) => {
+      const v = el.value.trim();
+      if (!v) { el.className = ''; if (st) st.textContent = ''; del('mistral_key'); return; }
+      if (v.length > 20) { el.className = 'valid'; if (st) st.textContent = '✓'; set('mistral_key', v); }
+      else { el.className = 'invalid'; if (st) st.textContent = '✗'; }
+    };
+    const validateGeminiFallback = (el, st, set, del) => {
+      const v = el.value.trim();
+      if (!v) { el.className = ''; if (st) st.textContent = ''; del('fastseo_' + el.id); return; }
+      if (v.startsWith('AIza') && v.length > 20) { el.className = 'valid'; if (st) st.textContent = '✓'; set('fastseo_' + el.id, v); }
+      else { el.className = 'invalid'; if (st) st.textContent = '✗'; }
+    };
+
+    restoreAndBind('apiKey',    'keyStatus',        'gemini_key',  validateGemini);
+    restoreAndBind('mistralKey','mistralKeyStatus',  'mistral_key', validateMistral);
+    restoreAndBind('apiKey2',   'keyStatus2',        'fastseo_apiKey2',   validateGeminiFallback);
+    restoreAndBind('apiKey3',   'keyStatus3',        'fastseo_apiKey3',   validateGeminiFallback);
+    restoreAndBind('mistralKey2','mistralKeyStatus2','fastseo_mistralKey2', validateMistral);
+
+    // Restaurar modelo selecionado
+    const modelEl = document.getElementById('modelSel');
+    const savedModel = LS_get('fastseo_model') || 'gemini-2.5-flash-lite';
+    if (modelEl) {
+      modelEl.value = savedModel;
+      modelEl.addEventListener('change', () => {
+        LS_set('fastseo_model', modelEl.value);
+        ConfigModal._showSaved();
+        // Atualiza hint
+        const hints = {
+          'gemini-2.5-flash-lite': '✓ recomendado — maior cota diária gratuita',
+          'gemini-2.5-flash':      '✓ boa qualidade, cota intermediária',
+          'gemini-2.5-pro':        '⚠ apenas 100 req/dia — use para tarefas que exigem mais raciocínio',
+        };
+        const h = document.getElementById('modelHint');
+        if (h) h.textContent = hints[modelEl.value] || '';
+        // Atualiza quota
+        import('./quota.js').then(({ Quota }) => Quota.updateUI());
+      });
+      // hint inicial
+      const hints = {
+        'gemini-2.5-flash-lite': '✓ recomendado — maior cota diária gratuita',
+        'gemini-2.5-flash':      '✓ boa qualidade, cota intermediária',
+        'gemini-2.5-pro':        '⚠ apenas 100 req/dia — use para tarefas que exigem mais raciocínio',
+      };
+      const h = document.getElementById('modelHint');
+      if (h) h.textContent = hints[modelEl.value] || '';
+    }
+
+    const close = () => this.close();
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    document.getElementById('configModalClose')?.addEventListener('click', close);
+    document.getElementById('configModalClose2')?.addEventListener('click', close);
+    document.addEventListener('keydown', this._esc);
+  },
+
+  _showSaved() {
+    const msg = document.getElementById('configSavedMsg');
+    if (!msg) return;
+    msg.classList.add('show');
+    clearTimeout(this._savedTimer);
+    this._savedTimer = setTimeout(() => msg.classList.remove('show'), 1800);
+  },
+
+  close() {
+    document.getElementById('configModalOverlay')?.remove();
+    document.removeEventListener('keydown', this._esc);
+    // Ressincroniza ConfigUI com os valores salvos
+    import('./quota.js').then(({ Quota }) => Quota.updateUI());
+  },
+
+  _esc(e) { if (e.key === 'Escape') ConfigModal.close(); },
+
+  /** Restaura modelo salvo no select (chamado no init antes do modal abrir) */
+  restoreModel() {
+    try {
+      const saved = localStorage.getItem('fastseo_model');
+      if (saved) {
+        const el = document.getElementById('modelSel');
+        if (el) el.value = saved;
       }
     } catch {}
   },
