@@ -15,8 +15,9 @@ import { PromptModal }    from './PromptModal.js';
 import { AnalyticsModal } from './AnalyticsModal.js';
 import { SubcatModal }    from './SubcatModal.js';
 import { ConfigUI, ThemeUI, SidebarToggle, ConfigModal } from './ConfigUI.js';
-import { HistoryModal }  from './HistoryModal.js';
-import { ExemplosModal } from './ExemplosModal.js';
+import { HistoryModal }     from './HistoryModal.js';
+import { ExemplosModal }    from './ExemplosModal.js';
+import { CategoriasModal }  from './CategoriasModal.js';
 
 // ── Restaura tema imediatamente (evita flash de tema errado) ──
 ThemeUI.restore();
@@ -97,6 +98,7 @@ function showApp(user) {
 // ── Inicialização do app (só roda uma vez após login) ─────────
 // Ponte: HistoryModal dispara evento, HistoryUI escuta
 document.addEventListener('fastseo:historyRender', () => { HistoryUI.resetPage(); HistoryUI.render(); });
+document.addEventListener('fastseo:catsChanged',    () => { CategoriasModal.onCatsChanged(); });
 
 async function init() {
   SidebarToggle.restore();
@@ -152,29 +154,18 @@ _loginBtn?.addEventListener('click', async () => {
 document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
 
 // ── Eventos do app ────────────────────────────────────────────
-document.getElementById('sidebarToggle')?.addEventListener('click', () => SidebarToggle.toggle());
 document.getElementById('themeBtn')?.addEventListener('click',       () => ThemeUI.toggle());
 document.getElementById('openPromptsBtn')?.addEventListener('click',  () => PromptModal.open());
 document.getElementById('openAnalyticsBtn')?.addEventListener('click',() => AnalyticsModal.open());
 document.getElementById('openSubcatBtn')?.addEventListener('click',   () => SubcatModal.open());
 document.getElementById('openConfigBtn')?.addEventListener('click',    () => ConfigModal.open());
-document.getElementById('openExemplosBtn')?.addEventListener('click',   () => ExemplosModal.open());
+document.getElementById('openCategoriasBtn')?.addEventListener('click', () => CategoriasModal.open());
 document.getElementById('resetCotaBtn')?.addEventListener('click', () => {
   Quota.reset();
   PipelineUI.log('Contador local zerado.', 'o');
 });
-document.getElementById('addCatBtn')?.addEventListener('click', async () => {
-  const nova = await Categories.create();
-  AppState.categories.active     = nova.id;
-  AppState.categories.editorOpen = true;
-  if (!AppState.sidebar.open) SidebarToggle.toggle();
-  SidebarUI.render();
-  CategoryModal.open(nova.id);
-});
-document.getElementById('sbContent')?.addEventListener('click', e => {
-  const btn = e.target.closest('[data-catid]');
-  if (btn) SidebarUI.select(btn.dataset.catid);
-});
+// addCatBtn agora vive dentro do CategoriasModal
+// sbContent agora é oculto — seleção via CategoriasModal
 // apiKey, mistralKey e modelSel agora vivem dentro do ConfigModal
 document.getElementById('inputText')?.addEventListener('input',  () => ConfigUI.updateCharCount());
 document.getElementById('runBtn')?.addEventListener('click', () => Pipeline.run());
@@ -213,3 +204,17 @@ document.addEventListener('click', async e => {
   }
 });
 // focus/blur do historicoBusca agora geridos dentro do HistoryModal
+
+// ── Menu "Mais" (botões secundários do header) ────────────────
+const _moreBtn  = document.getElementById('hdrMoreBtn');
+const _moreMenu = document.getElementById('hdrMoreMenu');
+
+_moreBtn?.addEventListener('click', e => {
+  e.stopPropagation();
+  const open = _moreMenu.style.display === 'none';
+  _moreMenu.style.display = open ? '' : 'none';
+});
+
+document.addEventListener('click', () => {
+  if (_moreMenu) _moreMenu.style.display = 'none';
+});

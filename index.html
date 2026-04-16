@@ -140,7 +140,6 @@
       <div><div class="logo-text">Fast<span>SEO</span></div><span class="logo-sub">Pipeline de Fichas</span></div>
     </div>
   </div>
-  <button class="btn btn-icon btn-icon--lg" id="sidebarToggle" title="Abrir painel de categorias" aria-label="Abrir painel de categorias" style="flex-shrink:0;margin-left:14px;">🧠</button>
   <div class="header-right">
     <div class="quota-bar">
       <span id="quotaLabel">0 / 1000 hoje</span>
@@ -148,13 +147,19 @@
       <button id="resetCotaBtn" title="Zerar contador" class="btn" style="background:none;border:none;color:var(--color-text-muted);font-size:11px;padding:0 2px;">↺</button>
     </div>
     <div class="free-pill">✓ gratuito</div>
-    <button id="openPromptsBtn"   class="btn btn-ghost">✏️ Prompts</button>
-    <button id="openAnalyticsBtn" class="btn btn-ghost">📊 Analytics</button>
-    <button id="openSubcatBtn"    class="btn btn-ghost">📐 Títulos</button>
-    <button id="openConfigBtn"      class="btn btn-ghost" title="Configuração de APIs e modelo">⚙️ Config</button>
+    <button id="openCategoriasBtn"  class="btn btn-ghost" title="Gerenciar categorias">🧠 Categorias</button>
     <button id="openHistoricoBtn"   class="btn btn-ghost" title="Histórico de fichas geradas">📂 Histórico <span id="historicoCount" style="font-size:9px;padding:1px 5px;border-radius:99px;background:rgba(99,102,241,.2);color:#a5b4fc;margin-left:2px;display:none"></span></button>
-    <button id="openExemplosBtn"    class="btn btn-ghost" title="Painel de exemplos por categoria">📚 Exemplos</button>
+    <button id="openConfigBtn"      class="btn btn-ghost" title="Configuração de APIs e modelo">⚙️ Config</button>
     <button class="btn btn-ghost" id="themeBtn" title="Aparência do site" aria-label="Escolher tema">🎨 Tema</button>
+    <!-- Menu "Mais" para botões secundários -->
+    <div class="hdr-more-wrap" id="hdrMoreWrap">
+      <button class="btn btn-ghost" id="hdrMoreBtn" title="Mais opções">⋯</button>
+      <div class="hdr-more-menu" id="hdrMoreMenu" style="display:none">
+        <button id="openPromptsBtn"   class="hdr-menu-item">✏️ Prompts</button>
+        <button id="openAnalyticsBtn" class="hdr-menu-item">📊 Analytics</button>
+        <button id="openSubcatBtn"    class="hdr-menu-item">📐 Títulos</button>
+      </div>
+    </div>
     <!-- Usuário logado -->
     <div class="user-info">
       <span id="userDisplayName"></span>
@@ -165,17 +170,7 @@
 
 <div class="layout" id="appLayout" style="display:none">
 
-  <aside class="sidebar" id="sidebar">
-    <div class="sb-header"><span>🧠</span><span class="sb-title">Categorias</span></div>
-    <div class="sb-content" id="sbContent"></div>
-    <div style="padding:8px 8px 0;">
-      <button class="sb-add-btn" id="addCatBtn">
-        <span style="font-size:15px;line-height:1;">＋</span>
-        <span>Nova Categoria</span>
-      </button>
-    </div>
-    <div class="sb-footer" id="sbFooter"></div>
-  </aside>
+
 
   <main class="main" id="mainContent">
     <div class="page page--wide">
@@ -291,6 +286,13 @@ Corrente nominal: 63A ..."></textarea>
   </select>
 </div>
 
+
+<!-- Elementos ocultos mantidos para compatibilidade com SidebarUI.js e CategoryModal.js -->
+<div style="display:none;position:absolute;left:-9999px">
+  <div id="sbContent"></div>
+  <div id="sbFooter"></div>
+  <button id="addCatBtn"></button>
+</div>
 <script type="module" src="main.js"></script>
 
 

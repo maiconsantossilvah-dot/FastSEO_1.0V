@@ -6,8 +6,6 @@
  */
 
 import { CategoriesDB }  from './firestore.js';
-import { SidebarUI }     from './SidebarUI.js';
-
 const LS_CATS = 'ficha_categorias'; // chave de cache local
 
 // Cache em memória (atualizado pelo listener em tempo real)
@@ -58,7 +56,8 @@ export const Categories = {
 
     return CategoriesDB.listen(cats => {
       this._writeCache(cats);
-      SidebarUI.render(); // re-render automático quando dados mudam
+      // Notifica módulos interessados via evento (sem acoplamento direto)
+      document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
     });
   },
 };
