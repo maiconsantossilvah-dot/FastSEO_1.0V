@@ -710,3 +710,10 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
 .side-drawer-item-desc {
   font-size: 10px; color: rgba(255,255,255,.3); margin-top: 2px;
 }
+
+/* ─── DIVISOR NA GAVETA ─── */
+.side-drawer-divider {
+  height: 1px;
+  background: rgba(255,255,255,.07);
+  margin: 6px 4px;
+}
