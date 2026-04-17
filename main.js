@@ -18,6 +18,7 @@ import { ConfigUI, ThemeUI, ThemeModal, SidebarToggle, ConfigModal } from './Con
 import { HistoryModal }     from './HistoryModal.js';
 import { ExemplosModal }    from './ExemplosModal.js';
 import { CategoriasModal }  from './CategoriasModal.js';
+import { PDFReader }        from './PDFReader.js';
 
 // ── Restaura tema imediatamente (evita flash de tema errado) ──
 ThemeUI.restore();
@@ -169,7 +170,24 @@ document.getElementById('resetCotaBtn')?.addEventListener('click', () => {
 // sbContent agora é oculto — seleção via CategoriasModal
 // apiKey, mistralKey e modelSel agora vivem dentro do ConfigModal
 document.getElementById('inputText')?.addEventListener('input',  () => ConfigUI.updateCharCount());
+
+// ── Drag & drop de PDF no textarea ────────────────────────────
+const _ta = document.getElementById('inputText');
+_ta?.addEventListener('dragover', e => {
+  e.preventDefault();
+  _ta.style.borderColor = 'var(--color-accent)';
+});
+_ta?.addEventListener('dragleave', () => {
+  _ta.style.borderColor = '';
+});
+_ta?.addEventListener('drop', async e => {
+  e.preventDefault();
+  _ta.style.borderColor = '';
+  const file = e.dataTransfer?.files?.[0];
+  if (file) await PDFReader.drop(file);
+});
 document.getElementById('runBtn')?.addEventListener('click', () => Pipeline.run());
+document.getElementById('pdfBtn')?.addEventListener('click',  () => PDFReader.open());
 
 // ── Botões de exportação (CORRIGIDOS: Export agora está definido) ──
 document.getElementById('copyFichaBtn')?.addEventListener('click',    () => Export.copy('ficha'));

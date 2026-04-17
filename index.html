@@ -174,9 +174,15 @@
       <!-- ── COLUNA ESQUERDA: input + pipeline ── -->
       <div class="col-input">
         <div class="card">
-          <div class="card-hdr"><span class="card-title">Dados do Produto</span><span class="char-count" id="charCount">0 caracteres</span></div>
+          <div class="card-hdr">
+          <span class="card-title">Dados do Produto</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button id="pdfBtn" class="btn btn-ghost" title="Importar dados de um PDF de ficha técnica" style="font-size:11px;padding:4px 10px">📄 PDF</button>
+            <span class="char-count" id="charCount">0 caracteres</span>
+          </div>
+        </div>
           <div class="card-body">
-            <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor...
+            <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor... ou arraste um PDF para cá"
 
 Ex:
 4203900 – EAN: 7893401194859
