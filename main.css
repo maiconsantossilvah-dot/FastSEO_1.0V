@@ -960,3 +960,30 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   color: #c9a0dc !important;
   border-color: rgba(201,160,220,.25) !important;
 }
+
+/* ─── VEGITO SSJ — fundo com imagem ─── */
+[data-theme-id="anime-vegito-ssj"] body::before,
+[data-theme-id="anime-vegito-ssj"] body::after {
+  display: none;
+}
+[data-theme-id="anime-vegito-ssj"] .header {
+  background: rgba(15,8,0,.88) !important;
+  border-bottom-color: rgba(245,166,35,.18) !important;
+}
+[data-theme-id="anime-vegito-ssj"] .sidebar {
+  background: rgba(15,8,0,.85) !important;
+}
+[data-theme-id="anime-vegito-ssj"] .card {
+  background: rgba(20,10,0,.6) !important;
+  border-color: rgba(245,166,35,.22) !important;
+  backdrop-filter: blur(20px) !important;
+}
+[data-theme-id="anime-vegito-ssj"] .log-box {
+  background: rgba(0,0,0,.7) !important;
+  backdrop-filter: blur(16px) !important;
+}
+[data-theme-id="anime-vegito-ssj"] .results-placeholder {
+  background: rgba(20,10,0,.5) !important;
+  border-color: rgba(245,166,35,.18) !important;
+  backdrop-filter: blur(12px) !important;
+}
