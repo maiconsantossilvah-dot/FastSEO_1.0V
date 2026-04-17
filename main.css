@@ -920,3 +920,43 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   border-color: rgba(0,191,255,.15) !important;
   backdrop-filter: blur(12px) !important;
 }
+
+/* ─── TEMA SERENITY (Sailor Moon) ─── */
+[data-theme-id="anime-serenity"] .logo-icon {
+  background: linear-gradient(135deg, #7b5ea7, #c9a0dc) !important;
+  box-shadow: 0 0 16px rgba(201,160,220,.4) !important;
+}
+[data-theme-id="anime-serenity"] .run-btn {
+  background: linear-gradient(135deg, #7b5ea7, #c9a0dc) !important;
+  box-shadow: 0 0 28px rgba(201,160,220,.3), 0 4px 20px rgba(0,0,0,.4) !important;
+}
+[data-theme-id="anime-serenity"] .step.active {
+  background: rgba(201,160,220,.1) !important;
+  border-color: rgba(201,160,220,.3) !important;
+  color: #c9a0dc !important;
+  box-shadow: 0 0 16px rgba(201,160,220,.1) !important;
+}
+[data-theme-id="anime-serenity"] .step.done {
+  background: rgba(201,160,220,.07) !important;
+  border-color: rgba(201,160,220,.2) !important;
+  color: #d4b0e8 !important;
+}
+[data-theme-id="anime-serenity"] .learn-indicator {
+  background: rgba(201,160,220,.07) !important;
+  border-color: rgba(201,160,220,.18) !important;
+  color: rgba(212,176,232,.85) !important;
+}
+[data-theme-id="anime-serenity"] .learn-indicator-dot {
+  background: #c9a0dc !important;
+  box-shadow: 0 0 10px rgba(201,160,220,.6), 0 0 20px rgba(201,160,220,.3) !important;
+}
+[data-theme-id="anime-serenity"] .free-pill {
+  background: rgba(201,160,220,.1) !important;
+  border-color: rgba(201,160,220,.2) !important;
+  color: #d4b0e8 !important;
+}
+[data-theme-id="anime-serenity"] .badge-ok {
+  background: rgba(201,160,220,.1) !important;
+  color: #c9a0dc !important;
+  border-color: rgba(201,160,220,.25) !important;
+}

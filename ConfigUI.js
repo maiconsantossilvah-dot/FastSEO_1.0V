@@ -114,15 +114,7 @@ const THEMES = [
     accent: '#06b6d4', orb1: '#0e7490', orb2: '#065f46',
     bg: '#050e12',
   },
-  {
-    id: 'glass-rose',
-    group: 'Glassmorphism',
-    name: 'Rose Glass',
-    desc: 'Orbs em rosa e violeta',
-    preview: ['#0d0709', '#e879a0', '#c084fc'],
-    accent: '#e879a0', orb1: '#9f1239', orb2: '#7e22ce',
-    bg: '#0d0709',
-  },
+
 
   // ── Sólido escuro (sem orbs, cores suaves) ────────────────
   {
@@ -235,6 +227,21 @@ const THEMES = [
       <path d="M8 1 L9.5 6 L14 6 L10 9 L11.5 14 L8 11 L4.5 14 L6 9 L2 6 L6.5 6 Z" fill="#60e0ff" stroke="#00bfff" stroke-width=".5" opacity=".9"/>
       <path d="M5 4 L4 2 M8 3 L8 1 M11 4 L12 2" stroke="#fff" stroke-width=".6" stroke-linecap="round" opacity=".7"/>
     </svg>`,
+  },
+  {
+    id: 'anime-serenity',
+    group: 'Anime',
+    name: 'Serenity',
+    desc: 'Sailor Moon · lavanda · azul noite',
+    preview: ['#07071a', '#c9a0dc', '#ffd6f0'],
+    accent: '#c9a0dc',
+    orb1: '#7b5ea7',
+    orb2: '#1a0a3d',
+    bg: '#06060f',
+    surface: 'rgba(201,160,220,.06)',
+    border: 'rgba(201,160,220,.18)',
+    logoIcon: null,
+    runIcon: null,
   },
   {
     id: 'anime-seinen',
