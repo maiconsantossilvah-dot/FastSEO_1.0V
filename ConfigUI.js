@@ -240,8 +240,16 @@ const THEMES = [
     bg: '#06060f',
     surface: 'rgba(201,160,220,.06)',
     border: 'rgba(201,160,220,.18)',
-    logoIcon: null,
-    runIcon: null,
+    logoIcon: `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2 L16.5 9.5 L24.5 9.5 L18.2 14.5 L20.5 22 L14 17.5 L7.5 22 L9.8 14.5 L3.5 9.5 L11.5 9.5 Z"
+        fill="#c9a0dc" stroke="#7b5ea7" stroke-width=".8" stroke-linejoin="round"/>
+      <path d="M14 4.5 L15.8 10 L21.5 10 L17 13.2 L18.8 19 L14 15.8 L9.2 19 L11 13.2 L6.5 10 L12.2 10 Z"
+        fill="#e8d0f4" opacity=".5"/>
+    </svg>`,
+    runIcon: `<svg style="width:16px;height:16px" viewBox="0 0 16 16" fill="none">
+      <path d="M8 1 L9.5 5.5 L14.5 5.5 L10.5 8.5 L12 13 L8 10 L4 13 L5.5 8.5 L1.5 5.5 L6.5 5.5 Z"
+        fill="#ffd6f0" stroke="#c9a0dc" stroke-width=".5" stroke-linejoin="round"/>
+    </svg>`,
   },
   {
     id: 'anime-seinen',
@@ -368,19 +376,31 @@ function _applyDomTheme(t) {
   // Placeholder
   const phImg  = document.getElementById('placeholderImg');
   const phIcon = document.getElementById('placeholderIcon');
-  const isAnime = t.group === 'Anime' && t.id !== 'anime-seinen';
+  const isVegitoAnime = (t.id === 'anime-vegito-ssj' || t.id === 'anime-vegito-blue');
+  const isSerenity    = t.id === 'anime-serenity';
+
+  // Placeholder — estrela SVG para Serenity, imagem Vegito para os outros
+  const phStar = document.getElementById('placeholderStar');
+
   if (phImg && phIcon) {
-    if (isAnime) {
+    if (isVegitoAnime) {
       const phFilter = t.id === 'anime-vegito-ssj'
         ? 'sepia(1) saturate(4) hue-rotate(5deg) brightness(1.15)'
         : 'sepia(1) saturate(5) hue-rotate(175deg) brightness(1.1)';
       phImg.style.cssText = 'display:block;width:180px;height:auto;margin:0 auto;opacity:.6;filter:' + phFilter;
       phImg.src = GOKU_PH_IMG;
       phIcon.style.display = 'none';
+      if (phStar) phStar.style.display = 'none';
+    } else if (isSerenity) {
+      phImg.src = '';
+      phImg.style.cssText = 'display:none';
+      phIcon.style.display = 'none';
+      if (phStar) phStar.style.display = '';
     } else {
       phImg.src = '';
       phImg.style.cssText = 'display:none';
       phIcon.style.display = '';
+      if (phStar) phStar.style.display = 'none';
     }
   }
 }
