@@ -1194,3 +1194,152 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 [data-theme-id="anime-last-rite"] .run-btn:disabled::before {
   filter: saturate(0.3) brightness(0.5) !important;
 }
+
+/* ─── LAST RITE — identidade de gelo nos steps e card ─── */
+
+/* Card principal — borda superior com gradiente de gelo */
+[data-theme-id="anime-last-rite"] .card {
+  border-color: rgba(74,166,255,.18) !important;
+  box-shadow: 0 0 0 1px rgba(74,166,255,.08), inset 0 1px 0 rgba(168,216,255,.08) !important;
+}
+
+/* Faixa de gelo no topo do card */
+[data-theme-id="anime-last-rite"] .card::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0; left: 0; right: 0 !important;
+  height: 1px !important;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(74,166,255,.4) 20%,
+    rgba(168,216,255,.8) 50%,
+    rgba(74,166,255,.4) 80%,
+    transparent 100%) !important;
+  pointer-events: none !important;
+}
+
+/* Card header — tom gelado */
+[data-theme-id="anime-last-rite"] .card-hdr {
+  background: rgba(10,30,60,.5) !important;
+  border-bottom-color: rgba(74,166,255,.12) !important;
+}
+[data-theme-id="anime-last-rite"] .card-title {
+  color: rgba(168,216,255,.75) !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+}
+
+/* Steps — base gelada */
+[data-theme-id="anime-last-rite"] .step {
+  background: rgba(5,15,35,.6) !important;
+  border-color: rgba(74,166,255,.14) !important;
+  color: rgba(168,216,255,.45) !important;
+  backdrop-filter: blur(12px) !important;
+  position: relative !important;
+  overflow: visible !important;
+  transition: all .2s !important;
+}
+
+/* Linha de gelo no topo de cada step */
+[data-theme-id="anime-last-rite"] .step::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0; left: 10%; right: 10% !important;
+  height: 1px !important;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(74,166,255,.35) 50%,
+    transparent) !important;
+  pointer-events: none !important;
+}
+
+/* Step número — estilo rúnico/gelado */
+[data-theme-id="anime-last-rite"] .step-num {
+  color: rgba(74,166,255,.45) !important;
+  font-family: Georgia, serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+/* Step nome */
+[data-theme-id="anime-last-rite"] .step-name {
+  color: rgba(168,216,255,.5) !important;
+  font-size: 11px !important;
+}
+
+/* Step DONE — gelo cristalizado */
+[data-theme-id="anime-last-rite"] .step.done {
+  background: rgba(10,40,80,.55) !important;
+  border-color: rgba(74,166,255,.32) !important;
+  box-shadow: 0 0 12px rgba(74,166,255,.1), inset 0 1px 0 rgba(168,216,255,.12) !important;
+}
+[data-theme-id="anime-last-rite"] .step.done .step-num {
+  color: #4da6ff !important;
+}
+[data-theme-id="anime-last-rite"] .step.done .step-name {
+  color: rgba(168,216,255,.85) !important;
+}
+
+/* Step ACTIVE — cristal ativo com glow */
+[data-theme-id="anime-last-rite"] .step.active {
+  background: rgba(15,50,110,.65) !important;
+  border-color: rgba(74,166,255,.55) !important;
+  color: #a8d8ff !important;
+  box-shadow:
+    0 0 20px rgba(74,166,255,.2),
+    0 0 40px rgba(74,166,255,.08),
+    inset 0 1px 0 rgba(168,216,255,.2) !important;
+}
+[data-theme-id="anime-last-rite"] .step.active .step-num {
+  color: #60bfff !important;
+  text-shadow: 0 0 8px rgba(74,166,255,.8) !important;
+}
+[data-theme-id="anime-last-rite"] .step.active .step-name {
+  color: #a8d8ff !important;
+  text-shadow: 0 0 10px rgba(74,166,255,.5) !important;
+}
+[data-theme-id="anime-last-rite"] .step.active::before {
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(168,216,255,.7) 50%,
+    transparent) !important;
+}
+
+/* Step ERROR */
+[data-theme-id="anime-last-rite"] .step.error {
+  background: rgba(80,10,20,.5) !important;
+  border-color: rgba(192,57,77,.4) !important;
+  box-shadow: 0 0 16px rgba(192,57,77,.15) !important;
+}
+
+/* Textarea — bordas de gelo */
+[data-theme-id="anime-last-rite"] #inputText {
+  background: rgba(3,10,24,.7) !important;
+  border-color: rgba(74,166,255,.14) !important;
+  color: rgba(168,216,255,.75) !important;
+  caret-color: #4da6ff !important;
+}
+[data-theme-id="anime-last-rite"] #inputText::placeholder {
+  color: rgba(74,166,255,.3) !important;
+}
+[data-theme-id="anime-last-rite"] #inputText:focus {
+  border-color: rgba(74,166,255,.45) !important;
+  box-shadow: 0 0 0 2px rgba(74,166,255,.1), 0 0 20px rgba(74,166,255,.08) !important;
+}
+
+/* Log box — terminal gelado */
+[data-theme-id="anime-last-rite"] .log-box {
+  background: rgba(2,8,18,.75) !important;
+  border-color: rgba(74,166,255,.1) !important;
+  color: rgba(74,166,255,.5) !important;
+  font-family: 'Courier New', monospace !important;
+}
+
+/* Pills/badges */
+[data-theme-id="anime-last-rite"] .free-pill,
+[data-theme-id="anime-last-rite"] .badge-ok {
+  background: rgba(74,166,255,.1) !important;
+  border-color: rgba(74,166,255,.22) !important;
+  color: #6dbeff !important;
+}
