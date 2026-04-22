@@ -987,3 +987,111 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   border-color: rgba(245,166,35,.18) !important;
   backdrop-filter: blur(12px) !important;
 }
+
+/* ─── TEMA LAST RITE (Arknights Endfield · Cryo) ─── */
+[data-theme-id="anime-last-rite"] body::before {
+  background: #0a4fff !important;
+  opacity: .18 !important;
+}
+[data-theme-id="anime-last-rite"] body::after {
+  background: #8c1a2e !important;
+  opacity: .22 !important;
+}
+[data-theme-id="anime-last-rite"] .header {
+  background: rgba(5,10,18,.85) !important;
+  border-bottom-color: rgba(74,166,255,.1) !important;
+}
+[data-theme-id="anime-last-rite"] .sidebar {
+  background: rgba(5,10,18,.88) !important;
+  border-right-color: rgba(74,166,255,.08) !important;
+}
+[data-theme-id="anime-last-rite"] .card {
+  background: rgba(5,10,20,.6) !important;
+  border-color: rgba(74,166,255,.1) !important;
+  backdrop-filter: blur(20px) !important;
+}
+[data-theme-id="anime-last-rite"] .card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(74,166,255,.04), transparent 60%);
+  pointer-events: none;
+}
+[data-theme-id="anime-last-rite"] .card { position: relative; }
+[data-theme-id="anime-last-rite"] .log-box {
+  background: rgba(0,0,0,.65) !important;
+  border-color: rgba(74,166,255,.08) !important;
+}
+[data-theme-id="anime-last-rite"] .run-btn {
+  background: linear-gradient(135deg,#0a2255,#1a4daa,#0d2d6e) !important;
+  border: 1px solid rgba(74,166,255,.4) !important;
+  color: #a8d8ff !important;
+  box-shadow: 0 0 24px rgba(74,166,255,.2), inset 0 1px 0 rgba(168,216,255,.1) !important;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+[data-theme-id="anime-last-rite"] .step.active {
+  background: rgba(192,57,77,.09) !important;
+  border-color: rgba(192,57,77,.35) !important;
+  box-shadow: 0 0 12px rgba(192,57,77,.15) !important;
+}
+[data-theme-id="anime-last-rite"] .step.done {
+  background: rgba(74,166,255,.09) !important;
+  border-color: rgba(74,166,255,.3) !important;
+}
+[data-theme-id="anime-last-rite"] .learn-indicator {
+  background: rgba(74,166,255,.07) !important;
+  border-color: rgba(74,166,255,.2) !important;
+  color: rgba(168,216,255,.8) !important;
+}
+[data-theme-id="anime-last-rite"] .learn-indicator-dot {
+  background: #4da6ff !important;
+  box-shadow: 0 0 10px rgba(74,166,255,.7) !important;
+}
+[data-theme-id="anime-last-rite"] .logo-icon {
+  background: linear-gradient(135deg,#0a2a6e,#1a4daa) !important;
+  border: 1px solid rgba(74,166,255,.35) !important;
+  box-shadow: 0 0 16px rgba(74,166,255,.3), inset 0 1px 0 rgba(168,216,255,.12) !important;
+}
+[data-theme-id="anime-last-rite"] .free-pill {
+  background: rgba(74,166,255,.1) !important;
+  border-color: rgba(74,166,255,.2) !important;
+  color: #6dbeff !important;
+}
+[data-theme-id="anime-last-rite"] .results-placeholder {
+  background: rgba(5,10,20,.5) !important;
+  border-color: rgba(74,166,255,.12) !important;
+  backdrop-filter: blur(12px) !important;
+}
+/* Trincas de gelo decorativas no canto */
+[data-theme-id="anime-last-rite"] body::before {
+  content: '';
+}
+
+/* ─── LAST RITE — fundo com imagem ─── */
+[data-theme-id="anime-last-rite"] body::before,
+[data-theme-id="anime-last-rite"] body::after {
+  display: none !important;
+}
+[data-theme-id="anime-last-rite"] .header {
+  background: rgba(3,8,18,.88) !important;
+  border-bottom-color: rgba(74,166,255,.12) !important;
+}
+[data-theme-id="anime-last-rite"] .sidebar {
+  background: rgba(3,8,18,.85) !important;
+}
+[data-theme-id="anime-last-rite"] .card {
+  background: rgba(3,8,20,.65) !important;
+  border-color: rgba(74,166,255,.15) !important;
+  backdrop-filter: blur(22px) !important;
+}
+[data-theme-id="anime-last-rite"] .log-box {
+  background: rgba(0,0,0,.72) !important;
+  backdrop-filter: blur(16px) !important;
+}
+[data-theme-id="anime-last-rite"] .results-placeholder {
+  background: rgba(3,8,20,.55) !important;
+  border-color: rgba(74,166,255,.14) !important;
+  backdrop-filter: blur(14px) !important;
+}
