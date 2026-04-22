@@ -327,7 +327,7 @@ function applyTheme(t) {
   const _bgPositionMap = {
     ssj:      'center top',
     blue:     'center top',
-    lastrite: '68% center',   // desloca para direita: rosto da Last Rite aparece
+    lastrite: 'center top',
   };
   if (_bgUrl) {
     document.body.style.backgroundImage    = `url(${_bgUrl})`;

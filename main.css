@@ -1343,3 +1343,14 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   border-color: rgba(74,166,255,.22) !important;
   color: #6dbeff !important;
 }
+
+/* ─── LAST RITE — gap entre colunas para o rosto aparecer ─── */
+[data-theme-id="anime-last-rite"] .page--wide {
+  gap: 80px !important;
+}
+/* Coluna de resultados com fundo mais transparente para o personagem aparecer */
+[data-theme-id="anime-last-rite"] .col-results > .card,
+[data-theme-id="anime-last-rite"] .results-placeholder {
+  background: rgba(3, 8, 18, 0.72) !important;
+  backdrop-filter: blur(14px) !important;
+}
