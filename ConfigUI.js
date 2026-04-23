@@ -408,9 +408,6 @@ function applyTheme(t) {
     _iceEl.style.display = 'none';
   }
 
-  // Elementos DOM — seguros mesmo se ainda não existirem
-  _applyDomTheme(t);
-
   try { localStorage.setItem(LS_THEME, t.id); } catch {}
 }
 
@@ -550,6 +547,7 @@ export const ThemeModal = {
           overlay.querySelectorAll('.theme-card').forEach(c => c.classList.remove('theme-card--active'));
           card.classList.add('theme-card--active');
           applyTheme(t);
+          _applyDomTheme(t);
         });
         grid.appendChild(card);
       });
