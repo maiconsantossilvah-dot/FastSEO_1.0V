@@ -331,7 +331,9 @@ function applyTheme(t) {
     lastrite: 'center top',
   };
   if (_bgUrl) {
-    document.body.style.backgroundImage    = `url(${_bgUrl})`;
+    const _isLastRite = t.bgImage === 'lastrite';
+    const _overlay = _isLastRite ? 'linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)), ' : '';
+    document.body.style.backgroundImage    = `${_overlay}url(${_bgUrl})`;
     document.body.style.backgroundSize     = 'cover';
     document.body.style.backgroundPosition = _bgPositionMap[t.bgImage] || 'center top';
     document.body.style.backgroundAttachment = 'fixed';
