@@ -1076,7 +1076,7 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 /* ─── LAST RITE — fundo com imagem ─── */
 [data-theme-id="anime-last-rite"] body::before,
 [data-theme-id="anime-last-rite"] body::after {
-  display: none !important;
+  display: block !important;
 }
 [data-theme-id="anime-last-rite"] .header {
   background: rgba(3,8,18,.88) !important;
