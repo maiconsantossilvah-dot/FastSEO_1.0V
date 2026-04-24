@@ -989,13 +989,17 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 }
 
 /* ─── TEMA LAST RITE (Arknights Endfield · Cryo) ─── */
+[data-theme-id="anime-last-rite"] body {
+  background-color: #000 !important;
+}
 [data-theme-id="anime-last-rite"] body::before {
-  background: #0a4fff !important;
-  opacity: .18 !important;
+  background: rgba(0,0,0,0.55) !important;
+  opacity: 1 !important;
+  z-index: 0 !important;
 }
 [data-theme-id="anime-last-rite"] body::after {
-  background: #8c1a2e !important;
-  opacity: .22 !important;
+  background: rgba(5,15,40,0.42) !important;
+  opacity: 1 !important;
 }
 [data-theme-id="anime-last-rite"] .header {
   background: rgba(5,10,18,.85) !important;
