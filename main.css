@@ -1355,3 +1355,276 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   background: rgba(3, 8, 18, 0.72) !important;
   backdrop-filter: blur(14px) !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   TEMA: Zhuang Fangyi — Arknights Endfield
+   Verde elétrico · vermelho sangue · esmeralda sombrio
+   ══════════════════════════════════════════════════════════════════ */
+
+[data-theme-id="anime-zhuang"] body::before {
+  background: #003d20 !important;
+  opacity: .30 !important;
+  width: 520px !important;
+  height: 520px !important;
+  top: -140px !important;
+  left: -80px !important;
+  animation: orbPulseZhuang 6s ease-in-out infinite alternate !important;
+}
+[data-theme-id="anime-zhuang"] body::after {
+  background: #6b1a1a !important;
+  opacity: .26 !important;
+  width: 380px !important;
+  height: 380px !important;
+  bottom: -100px !important;
+  right: -80px !important;
+}
+[data-theme-id="anime-zhuang"] .header::after {
+  background: #00cc55 !important;
+  opacity: .06 !important;
+}
+@keyframes orbPulseZhuang {
+  0%   { transform: translate(0,0) scale(1); opacity: .30; }
+  50%  { transform: translate(20px,15px) scale(1.06); opacity: .22; }
+  100% { transform: translate(-10px,8px) scale(.97); opacity: .28; }
+}
+
+/* Header */
+[data-theme-id="anime-zhuang"] .header {
+  background: rgba(4,10,6,.93) !important;
+  border-bottom-color: rgba(0,204,85,.16) !important;
+}
+/* Linha de energia no topo do header */
+[data-theme-id="anime-zhuang"] .header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(139,26,26,.0) 15%,
+    rgba(139,26,26,.7) 40%,
+    rgba(0,204,85,.5) 60%,
+    rgba(0,204,85,.0) 85%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Logo */
+[data-theme-id="anime-zhuang"] .logo-icon {
+  background: linear-gradient(135deg, #041a0c, #082a16) !important;
+  box-shadow: 0 0 20px rgba(0,204,85,.3) !important;
+}
+[data-theme-id="anime-zhuang"] .logo-text span { color: #00cc55 !important; }
+
+/* Botão Processar */
+[data-theme-id="anime-zhuang"] .run-btn {
+  background: linear-gradient(135deg, #041a0c 0%, #082a16 50%, #041a0c 100%) !important;
+  border: 1px solid rgba(0,204,85,.38) !important;
+  box-shadow: 0 0 30px rgba(0,204,85,.18), inset 0 1px 0 rgba(0,204,85,.12), 0 4px 20px rgba(0,0,0,.55) !important;
+  color: #a0ffb8 !important;
+}
+[data-theme-id="anime-zhuang"] .run-btn:hover:not(:disabled) {
+  box-shadow: 0 0 50px rgba(0,204,85,.32), inset 0 1px 0 rgba(0,204,85,.22), 0 4px 28px rgba(0,0,0,.65) !important;
+  border-color: rgba(0,204,85,.58) !important;
+}
+
+/* Cards */
+[data-theme-id="anime-zhuang"] .card {
+  background: rgba(4,10,6,.78) !important;
+  border-color: rgba(0,204,85,.13) !important;
+  box-shadow: 0 2px 18px rgba(0,0,0,.45), inset 0 1px 0 rgba(0,204,85,.05) !important;
+}
+[data-theme-id="anime-zhuang"] .card:hover {
+  border-color: rgba(0,204,85,.25) !important;
+  box-shadow: 0 2px 24px rgba(0,0,0,.5), 0 0 20px rgba(0,204,85,.07), inset 0 1px 0 rgba(0,204,85,.08) !important;
+}
+[data-theme-id="anime-zhuang"] .card-hdr {
+  background: rgba(0,204,85,.04) !important;
+  border-bottom-color: rgba(0,204,85,.1) !important;
+}
+[data-theme-id="anime-zhuang"] .card-title { color: rgba(160,255,184,.75) !important; }
+
+/* Steps */
+[data-theme-id="anime-zhuang"] .step {
+  background: rgba(4,14,8,.65) !important;
+  border-color: rgba(0,204,85,.12) !important;
+}
+[data-theme-id="anime-zhuang"] .step.active {
+  background: rgba(0,204,85,.1) !important;
+  border-color: rgba(0,204,85,.38) !important;
+  color: #a0ffb8 !important;
+  box-shadow: 0 0 18px rgba(0,204,85,.14), inset 0 0 12px rgba(0,204,85,.05) !important;
+}
+[data-theme-id="anime-zhuang"] .step.active .step-name {
+  color: #a0ffb8 !important;
+  text-shadow: 0 0 10px rgba(0,204,85,.55) !important;
+}
+[data-theme-id="anime-zhuang"] .step.done {
+  background: rgba(74,255,140,.06) !important;
+  border-color: rgba(74,255,140,.22) !important;
+  color: #4aff8c !important;
+}
+[data-theme-id="anime-zhuang"] .step.error {
+  background: rgba(139,26,26,.4) !important;
+  border-color: rgba(180,40,40,.38) !important;
+}
+
+/* Learn indicator */
+[data-theme-id="anime-zhuang"] .learn-indicator:not(.empty) {
+  background: rgba(0,204,85,.07) !important;
+  border-color: rgba(0,204,85,.22) !important;
+  color: rgba(160,255,184,.85) !important;
+}
+[data-theme-id="anime-zhuang"] .learn-indicator-dot {
+  background: #00cc55 !important;
+  box-shadow: 0 0 10px rgba(0,204,85,.8), 0 0 22px rgba(0,204,85,.35) !important;
+  animation: crystalPulseZhuang 2.5s ease-in-out infinite !important;
+}
+@keyframes crystalPulseZhuang {
+  0%, 100% { box-shadow: 0 0 10px rgba(0,204,85,.8),  0 0 22px rgba(0,204,85,.35); }
+  50%       { box-shadow: 0 0 16px rgba(0,204,85,1),   0 0 36px rgba(0,204,85,.55); }
+}
+
+/* Textarea */
+[data-theme-id="anime-zhuang"] #inputText {
+  background: rgba(2,8,4,.72) !important;
+  border-color: rgba(0,204,85,.14) !important;
+  color: rgba(160,255,184,.75) !important;
+  caret-color: #00cc55 !important;
+}
+[data-theme-id="anime-zhuang"] #inputText::placeholder { color: rgba(0,204,85,.28) !important; }
+[data-theme-id="anime-zhuang"] #inputText:focus {
+  border-color: rgba(0,204,85,.45) !important;
+  box-shadow: 0 0 0 2px rgba(0,204,85,.1), 0 0 20px rgba(0,204,85,.08) !important;
+}
+
+/* Log box */
+[data-theme-id="anime-zhuang"] .log-box {
+  background: rgba(1,6,3,.82) !important;
+  border-color: rgba(0,204,85,.1) !important;
+  color: rgba(0,204,85,.5) !important;
+}
+[data-theme-id="anime-zhuang"] .log-o .log-msg {
+  color: #00cc55 !important;
+  text-shadow: 0 0 10px rgba(0,204,85,.4) !important;
+}
+[data-theme-id="anime-zhuang"] .log-e .log-msg {
+  color: #c04040 !important;
+  text-shadow: 0 0 8px rgba(139,26,26,.4) !important;
+}
+
+/* Quota bar */
+[data-theme-id="anime-zhuang"] .quota-fill {
+  background: linear-gradient(90deg, #003d20, #00cc55) !important;
+  box-shadow: 0 0 10px rgba(0,204,85,.45) !important;
+}
+
+/* Free pill / badge-ok */
+[data-theme-id="anime-zhuang"] .free-pill,
+[data-theme-id="anime-zhuang"] .badge-ok {
+  background: rgba(0,204,85,.1) !important;
+  border-color: rgba(0,204,85,.26) !important;
+  color: #00cc55 !important;
+}
+
+/* Badge bivolt — acento vermelho */
+[data-theme-id="anime-zhuang"] .badge-bivolt {
+  background: rgba(139,26,26,.15) !important;
+  border-color: rgba(139,26,26,.35) !important;
+  color: #ff7070 !important;
+}
+
+/* Botões ghost / copy */
+[data-theme-id="anime-zhuang"] .btn-ghost {
+  border-color: rgba(0,204,85,.17) !important;
+  color: rgba(160,255,184,.58) !important;
+}
+[data-theme-id="anime-zhuang"] .btn-ghost:hover:not(:disabled) {
+  background: rgba(0,204,85,.08) !important;
+  border-color: rgba(0,204,85,.35) !important;
+  color: #a0ffb8 !important;
+}
+[data-theme-id="anime-zhuang"] .copy-btn {
+  border-color: rgba(0,204,85,.17) !important;
+  color: rgba(0,204,85,.55) !important;
+}
+[data-theme-id="anime-zhuang"] .copy-btn:hover {
+  border-color: rgba(0,204,85,.38) !important;
+  color: #a0ffb8 !important;
+  background: rgba(0,204,85,.08) !important;
+}
+
+/* Result labels */
+[data-theme-id="anime-zhuang"] .result-label {
+  color: rgba(0,204,85,.45) !important;
+  letter-spacing: 1px !important;
+}
+[data-theme-id="anime-zhuang"] .result-hdr {
+  background: rgba(0,204,85,.04) !important;
+  border-bottom-color: rgba(0,204,85,.1) !important;
+}
+
+/* Coluna de resultados */
+[data-theme-id="anime-zhuang"] .col-results > .card,
+[data-theme-id="anime-zhuang"] .results-placeholder {
+  background: rgba(3,8,5,.72) !important;
+  backdrop-filter: blur(14px) !important;
+}
+
+/* Sidebar */
+[data-theme-id="anime-zhuang"] .sidebar {
+  background: rgba(3,8,5,.80) !important;
+  border-right-color: rgba(0,204,85,.1) !important;
+}
+[data-theme-id="anime-zhuang"] .sb-cat-item.active {
+  background: rgba(0,204,85,.12) !important;
+  border-color: rgba(0,204,85,.28) !important;
+  color: #a0ffb8 !important;
+}
+[data-theme-id="anime-zhuang"] .sb-cat-item.active .sb-cat-dot {
+  background: #00cc55 !important;
+  box-shadow: 0 0 8px rgba(0,204,85,.6) !important;
+}
+
+/* Grade de cristal no fundo */
+[data-theme-id="anime-zhuang"] .layout::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,204,85,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,204,85,.022) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+}
+
+/* Modal */
+[data-theme-id="anime-zhuang"] .modal {
+  background: rgba(4,10,6,.97) !important;
+  border-color: rgba(0,204,85,.2) !important;
+}
+[data-theme-id="anime-zhuang"] .modal-hdr {
+  background: rgba(0,204,85,.05) !important;
+  border-bottom-color: rgba(0,204,85,.14) !important;
+}
+[data-theme-id="anime-zhuang"] input[type="password"]:focus,
+[data-theme-id="anime-zhuang"] select:focus,
+[data-theme-id="anime-zhuang"] textarea:focus {
+  border-color: rgba(0,204,85,.5) !important;
+  box-shadow: 0 0 0 3px rgba(0,204,85,.12) !important;
+}
+
+/* Side drawer */
+[data-theme-id="anime-zhuang"] .side-drawer {
+  background: rgba(3,9,5,.97) !important;
+  border-left-color: rgba(0,204,85,.15) !important;
+}
+[data-theme-id="anime-zhuang"] .side-drawer-item:hover {
+  background: rgba(0,204,85,.07) !important;
+  border-color: rgba(0,204,85,.18) !important;
+}
+[data-theme-id="anime-zhuang"] .side-drawer-item-name { color: rgba(160,255,184,.85) !important; }

@@ -283,6 +283,43 @@ const THEMES = [
     </svg>`,
   },
   {
+    id: 'anime-zhuang',
+    group: 'Anime',
+    name: 'Zhuang Fangyi',
+    desc: 'Endfield · élite · verde elétrico · vermelho sangue',
+    preview: ['#060f08', '#00cc55', '#4aff8c'],
+    accent: '#00cc55',
+    orb1: '#003d20',
+    orb2: '#6b1a1a',
+    bg: '#060f08',
+    bgImage: false,
+    surface: 'rgba(0,0,0,.62)',
+    border: 'rgba(0,204,85,.16)',
+    logoIcon: `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="14" cy="14" r="13" fill="#040e06" stroke="#1a6640" stroke-width=".7"/>
+      <path d="M11 6 C10 3 8 2 9 1" stroke="#8b1a1a" stroke-width="1.1" stroke-linecap="round"/>
+      <path d="M17 6 C18 3 20 2 19 1" stroke="#8b1a1a" stroke-width="1.1" stroke-linecap="round"/>
+      <path d="M10 8 C9 10 8 13 9 17 L14 20 L19 17 C20 13 19 10 18 8 C17 7 15 6.5 14 6.5 C13 6.5 11 7 10 8 Z"
+        fill="#082a14" stroke="#1a6640" stroke-width=".5"/>
+      <path d="M11 10 L14 11.5 L17 10" stroke="#8b1a1a" stroke-width=".8" stroke-linecap="round"/>
+      <path d="M7 14 C5 12 4 14 6 15 C4 16 5 18 7 16" stroke="#00e066" stroke-width=".7" stroke-linecap="round" opacity=".8"/>
+      <path d="M21 14 C23 12 24 14 22 15 C24 16 23 18 21 16" stroke="#00e066" stroke-width=".7" stroke-linecap="round" opacity=".8"/>
+      <circle cx="12" cy="12" r=".9" fill="#c8735a"/>
+      <circle cx="16" cy="12" r=".9" fill="#c8735a"/>
+      <circle cx="12.3" cy="11.7" r=".3" fill="#ff9999" opacity=".7"/>
+      <circle cx="16.3" cy="11.7" r=".3" fill="#ff9999" opacity=".7"/>
+    </svg>`,
+    runIcon: `<svg style="width:16px;height:16px" viewBox="0 0 16 16" fill="none">
+      <polygon points="8,1 13.2,4 13.2,10 8,13 2.8,10 2.8,4"
+        fill="#00cc55" stroke="#a0ffb8" stroke-width=".5" opacity=".95"/>
+      <line x1="8" y1="3.5" x2="8" y2="10.5" stroke="#040e06" stroke-width=".9" stroke-linecap="round"/>
+      <line x1="4.5" y1="7" x2="11.5" y2="7" stroke="#040e06" stroke-width=".9" stroke-linecap="round"/>
+      <circle cx="3"  cy="5"  r=".7" fill="#00cc55" opacity=".6"/>
+      <circle cx="13" cy="4"  r=".6" fill="#00cc55" opacity=".5"/>
+      <circle cx="12" cy="10" r=".7" fill="#4aff8c" opacity=".5"/>
+    </svg>`,
+  },
+  {
     id: 'anime-seinen',
     group: 'Anime',
     name: 'Seinen',
@@ -329,6 +366,7 @@ function applyTheme(t) {
     ssj:      'center top',
     blue:     'center top',
     lastrite: 'center top',
+    zhuang:   'center top',
   };
   if (_bgUrl) {
     const _isLastRite = t.bgImage === 'lastrite';
@@ -410,6 +448,32 @@ function applyTheme(t) {
     _iceEl.style.display = 'none';
   }
 
+  // Fragmentos de cristal verde — Zhuang Fangyi
+  document.body.classList.toggle('theme-zhuang', t.id === 'anime-zhuang');
+  let _zhuangCrystal = document.getElementById('_zhuangCrystal');
+  if (t.id === 'anime-zhuang') {
+    if (!_zhuangCrystal) {
+      _zhuangCrystal = document.createElement('div');
+      _zhuangCrystal.id = '_zhuangCrystal';
+      _zhuangCrystal.style.cssText = 'position:fixed;bottom:0;right:0;width:220px;height:220px;pointer-events:none;z-index:0;opacity:.09';
+      _zhuangCrystal.innerHTML = `<svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M220 220 L160 140 L200 120 L140 60 L180 40 L110 0" stroke="#00cc55" stroke-width="1.4"/>
+        <path d="M210 220 L165 155 L195 138 L148 88" stroke="#00cc55" stroke-width=".9" opacity=".6"/>
+        <path d="M155 145 L175 135 M138 100 L158 90" stroke="#4aff8c" stroke-width=".7" opacity=".55"/>
+        <polygon points="170,170 185,155 195,175 180,185" fill="#00cc55" opacity=".25"/>
+        <polygon points="140,120 150,105 162,122 150,135" fill="#00cc55" opacity=".2"/>
+        <polygon points="195,100 205,88 215,103 205,115" fill="#4aff8c" opacity=".18"/>
+        <circle cx="170" cy="170" r="3" fill="#00e066" opacity=".5"/>
+        <circle cx="148" cy="90"  r="2" fill="#4aff8c" opacity=".45"/>
+        <circle cx="200" cy="125" r="1.5" fill="#00cc55" opacity=".4"/>
+      </svg>`;
+      document.body.appendChild(_zhuangCrystal);
+    }
+    _zhuangCrystal.style.display = '';
+  } else if (_zhuangCrystal) {
+    _zhuangCrystal.style.display = 'none';
+  }
+
   try { localStorage.setItem(LS_THEME, t.id); } catch {}
 }
 
@@ -446,6 +510,7 @@ function _applyDomTheme(t) {
   const isVegitoAnime = (t.id === 'anime-vegito-ssj' || t.id === 'anime-vegito-blue');
   const isSerenity    = t.id === 'anime-serenity';
   const isLastRite    = t.id === 'anime-last-rite';
+  const isZhuang      = t.id === 'anime-zhuang';
 
   // Placeholder — estrela SVG para Serenity, chibi Last Rite, imagem Vegito para os outros
   const phStar = document.getElementById('placeholderStar');
@@ -463,6 +528,14 @@ function _applyDomTheme(t) {
       phImg.style.cssText = 'display:block;width:200px;height:auto;margin:0 auto;opacity:.75;filter:drop-shadow(0 0 12px rgba(74,166,255,.5))';
       phImg.src = LAST_RITE_PH;
       phIcon.style.display = 'none';
+      if (phStar) phStar.style.display = 'none';
+    } else if (isZhuang) {
+      phImg.src = '';
+      phImg.style.cssText = 'display:none';
+      phIcon.style.display = '';
+      phIcon.textContent = '⚡';
+      phIcon.style.color = '#00cc55';
+      phIcon.style.textShadow = '0 0 20px rgba(0,204,85,.7), 0 0 40px rgba(0,204,85,.3)';
       if (phStar) phStar.style.display = 'none';
     } else if (isSerenity) {
       phImg.src = '';
