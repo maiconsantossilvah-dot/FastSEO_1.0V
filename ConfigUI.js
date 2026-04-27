@@ -362,7 +362,7 @@ function applyTheme(t) {
   root.style.setProperty('--color-border',   t.border  || 'rgba(255,255,255,.08)');
 
   // Imagem de fundo
-  const _bgMap = { ssj: VEGITO_SSJ_BG, blue: VEGITO_BLUE_BG, lastrite: LAST_RITE_BG, true: VEGITO_BLUE_BG, zhuang: ZHUANG_BG };
+  const _bgMap = { ssj: VEGITO_SSJ_BG, blue: VEGITO_BLUE_BG, lastrite: LAST_RITE_BG, zhuang: ZHUANG_BG, true: VEGITO_BLUE_BG };
   const _bgUrl = _bgMap[t.bgImage] || null;
   const _bgPositionMap = {
     ssj:      'center top',
