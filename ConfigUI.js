@@ -294,7 +294,7 @@ const THEMES = [
     orb1: '#003d20',
     orb2: '#6b1a1a',
     bg: '#060f08',
-    bgImage: ZHUANG_BG,
+    bgImage: zhuang,
     surface: 'rgba(0,0,0,.62)',
     border: 'rgba(0,204,85,.16)',
     logoIcon: `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
