@@ -1628,3 +1628,69 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   border-color: rgba(0,204,85,.18) !important;
 }
 [data-theme-id="anime-zhuang"] .side-drawer-item-name { color: rgba(160,255,184,.85) !important; }
+
+/* ─── SerpAPI — painel de configuração no ConfigModal ─────────────────────── */
+
+/* Linha do input: campo + botão olho + botão salvar lado a lado */
+.serp-key-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.serp-key-row input {
+  flex: 1;
+  background: rgba(0,0,0,.3);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.serp-key-row input:focus {
+  border-color: rgba(99,102,241,.5);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+
+/* Botão olho — mesmo tamanho dos outros btn-ghost do modal */
+.serp-eye-btn {
+  flex-shrink: 0;
+  font-size: 14px;
+  padding: 0 8px;
+}
+
+/* Texto de status abaixo do input ("✓ Chave configurada" ou erro) */
+.serp-status {
+  font-size: 11px;
+  margin-top: 4px;
+  display: block;
+  font-family: var(--font-mono);
+}
+.serp-status--ok   { color: var(--color-success); }
+.serp-status--erro { color: var(--color-danger, #f87171); }
+
+/* Barra de progresso da cota mensal */
+.serp-quota-bar {
+  height: 5px;
+  background: rgba(255,255,255,.07);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 6px 0 4px;
+}
+.serp-quota-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: var(--color-success);
+  transition: width .3s ease, background .3s;
+}
+
+/* Botão limpar cache — menor, discreto */
+.serp-cache-btn {
+  font-size: 11px;
+  padding: 3px 10px;
+  margin-top: 6px;
+  height: auto;
+}

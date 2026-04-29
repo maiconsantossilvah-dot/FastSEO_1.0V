@@ -5,14 +5,15 @@
  */
 
 import { Quota } from './quota.js';
-
+import { getSerpApiKey, setSerpApiKey, hasSerpApiKey } from './serp.js';
+import { trackSerpApiConfigurada } from './analytics.js';
 const $ = id => document.getElementById(id);
 
 // Cache de keys no localStorage (sem enviar ao servidor)
 const LS = {
-  get: k  => { try { return localStorage.getItem(k); }    catch { return null; }},
-  set: (k,v)=>{ try { localStorage.setItem(k, v); }       catch {} },
-  del: k  => { try { localStorage.removeItem(k); }        catch {} },
+  get: k    => { try { return localStorage.getItem(k); }  catch { return null; }},
+  set: (k,v)=> { try { localStorage.setItem(k, v); }      catch {} },
+  del: k    => { try { localStorage.removeItem(k); }      catch {} },
 };
 
 export const ConfigUI = {
@@ -65,7 +66,6 @@ export const ConfigUI = {
     el.className   = `char-count${v.length > 10000 ? ' warn' : ''}`;
   },
 
-  /** Restaura as keys salvas no localStorage */
   restoreSavedKeys() {
     const geminiKey  = LS.get('gemini_key');
     const mistralKey = LS.get('mistral_key');
@@ -74,7 +74,76 @@ export const ConfigUI = {
     if (geminiKey  && apiKeyEl)  { apiKeyEl.value  = geminiKey;  this.validateGeminiKey(); }
     if (mistralKey && mistralEl) { mistralEl.value = mistralKey; this.validateMistralKey(); }
   },
+  
 };
+
+// ─────────────────────────────────────────────────────────────
+// initSerpConfig — ativa os eventos da seção SerpAPI que está no Index.html
+// Chamada dentro de ConfigModal.open(), após appendChild(overlay).
+// ─────────────────────────────────────────────────────────────
+export function initSerpConfig() {
+  const input         = document.getElementById('serp-api-key-input');
+  const toggleBtn     = document.getElementById('serp-api-key-toggle');
+  const saveBtn       = document.getElementById('serp-api-key-save');
+  const status        = document.getElementById('serp-api-status');
+  const quotaLabel    = document.getElementById('serp-quota-label');
+  const quotaFill     = document.getElementById('serp-quota-fill');
+  const clearCacheBtn = document.getElementById('serp-cache-clear');
+
+  if (!input) return; // seção ainda não foi renderizada no modal
+
+  // Preenche com chave já salva (se existir)
+  const chaveSalva = getSerpApiKey();
+  if (chaveSalva) {
+    input.value = chaveSalva;
+    _serpStatus(status, true);
+  }
+  _serpQuota(quotaLabel, quotaFill);
+
+  // Toggle mostrar/ocultar chave
+  toggleBtn?.addEventListener('click', () => {
+    const visivel = input.type === 'text';
+    input.type = visivel ? 'password' : 'text';
+    toggleBtn.textContent = visivel ? '👁' : '🙈';
+  });
+
+  // Salvar chave
+  saveBtn?.addEventListener('click', () => {
+    const chave = input.value.trim();
+    if (!chave) { _serpStatus(status, false, 'Cole sua chave antes de salvar.'); return; }
+    setSerpApiKey(chave);
+    trackSerpApiConfigurada();
+    _serpStatus(status, true, '✓ Chave salva com sucesso!');
+    setTimeout(() => _serpStatus(status, true), 3000);
+  });
+
+  // Limpar cache
+  clearCacheBtn?.addEventListener('click', () => {
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('fastseo_serp_cache_'))
+      .forEach(k => localStorage.removeItem(k));
+    _serpQuota(quotaLabel, quotaFill);
+    clearCacheBtn.textContent = '✓ Cache limpo!';
+    setTimeout(() => { clearCacheBtn.textContent = '🗑 Limpar cache'; }, 2000);
+  });
+}
+
+function _serpStatus(el, ok, mensagem) {
+  if (!el) return;
+  el.textContent = mensagem ?? (ok ? '✓ Chave configurada' : '');
+  el.className   = `serp-status ${ok ? 'serp-status--ok' : mensagem ? 'serp-status--erro' : ''}`;
+}
+
+function _serpQuota(labelEl, fillEl) {
+  const mes   = new Date().toISOString().slice(0, 7);
+  const count = parseInt(localStorage.getItem(`fastseo_serp_count_${mes}`) || '0');
+  const pct   = Math.min((count / 100) * 100, 100);
+  if (labelEl) labelEl.textContent = `${count} / 100 buscas este mês`;
+  if (fillEl) {
+    fillEl.style.width      = `${pct}%`;
+    fillEl.style.background = pct > 80 ? 'var(--color-warn)' : 'var(--color-success)';
+  }
+}
 
 // ─────────────────────────────────────────────────────────────
 
@@ -758,6 +827,42 @@ export const ConfigModal = {
             </div>
           </div>
 
+          <div class="config-section-divider">
+            <span>🔍 SerpAPI — Keywords do Google</span>
+            <div class="hint" style="margin-top:4px">
+              Cada usuário usa sua própria chave. Keywords buscadas automaticamente antes de processar cada ficha.
+              Cache de 24h para economizar cota.
+              <a href="https://serpapi.com/manage-api-key" target="_blank" rel="noopener">Obter chave grátis →</a>
+            </div>
+          </div>
+
+          <div class="setup-grid">
+            <div class="field" style="grid-column:1/-1">
+              <label for="serp-api-key-input">Sua chave SerpAPI</label>
+              <div class="key-wrap serp-key-row">
+                <input
+                  type="password"
+                  id="serp-api-key-input"
+                  placeholder="Cole sua chave aqui..."
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <button id="serp-api-key-toggle" class="btn btn-ghost serp-eye-btn" title="Mostrar/ocultar">👁</button>
+                <button id="serp-api-key-save"   class="btn btn-primary">Salvar</button>
+              </div>
+              <span id="serp-api-status" class="serp-status"></span>
+            </div>
+
+            <div class="field" style="grid-column:1/-1">
+              <label>Uso mensal estimado</label>
+              <div class="serp-quota-bar">
+                <div id="serp-quota-fill" class="serp-quota-fill"></div>
+              </div>
+              <span id="serp-quota-label" class="hint">0 / 100 buscas este mês</span>
+              <button id="serp-cache-clear" class="btn btn-ghost serp-cache-btn">🗑 Limpar cache</button>
+            </div>
+          </div>
+
         </div>
         <div class="modal-ftr" style="justify-content:flex-end">
           <span class="modal-saved" id="configSavedMsg">✓ Salvo</span>
@@ -766,6 +871,9 @@ export const ConfigModal = {
       </div>`;
 
     document.body.appendChild(overlay);
+
+    // Ativa os eventos do painel SerpAPI (os elementos já existem no HTML do modal)
+    initSerpConfig();
 
     // Mover inputs principais para dentro dos slots do modal
     const moveToSlot = (inputId, slotId) => {

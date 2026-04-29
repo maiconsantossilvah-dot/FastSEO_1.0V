@@ -12,9 +12,11 @@
  *   module./categories.js   → Categories.getAll()
  *   module./quota.js        → Quota
  *   module./history.js      → History.save()
- *   module./quota.js         → Logs.save()
+ *   module./quota.js        → Logs.save()
  *   utils/index.js          → sanitize, detectBivolt, …
  *   components/PipelineUI.js
+ *   services/serp.js        → buscarKeywords, montarContextoSEO, hasSerpApiKey
+ *   services/analytics.js   → track*
  */
 
 import { callAgent }    from './api.js';
@@ -26,6 +28,35 @@ import { Logs }         from './quota.js';
 import { Utils }        from './index.js';
 import { PipelineUI }   from './PipelineUI.js';
 import { AppState }     from './state.js';
+
+// ── Imports adicionados: SerpAPI + Analytics ──────────────────────────────────
+import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from './serp.js';
+import {
+  trackPipelineIniciado,
+  trackPipelineConcluido,
+  trackPipelineErro,
+  trackCotaAtingida,
+  trackRegeneracao,
+} from './analytics.js';
+
+// ─── Helper: busca keywords SEO antes de chamar os agentes ───────────────────
+// Retorna uma string de contexto para injetar nos prompts,
+// ou '' se a chave SerpAPI não estiver configurada / ocorrer erro.
+async function obterContextoSEO(inputUsuario, categoriaAtual) {
+  if (!hasSerpApiKey()) return '';
+
+  try {
+    // Usa o nome da categoria como query; fallback: primeiras 60 chars do input
+    const query = categoriaAtual
+      ? categoriaAtual
+      : inputUsuario.trim().split('\n')[0].substring(0, 60);
+
+    const resultado = await buscarKeywords(query);
+    return montarContextoSEO(resultado);
+  } catch {
+    return ''; // falha silenciosa — não bloqueia o pipeline
+  }
+}
 
 export const Pipeline = {
   /**
@@ -42,7 +73,7 @@ export const Pipeline = {
     await this._execute(inputRaw);
   },
 
-  // ─── NOVO: Reexecuta só o Agente 3 (Copywriter) ─────────────
+  // ─── Reexecuta só o Agente 3 (Copywriter) ────────────────────────────────
   // Reutiliza ficha e validação já geradas (AppState.pipeline.result),
   // sem chamar A1 (Formatador) nem A2 (Conferente).
   // Consome apenas 1 requisição de cota.
@@ -67,19 +98,21 @@ export const Pipeline = {
     const uso = Quota.getUsage(), lim = Quota.getLimit();
     if (uso.count + 1 > lim) {
       alert(`Cota diária esgotada (${uso.count}/${lim}). A cota renova à meia-noite.`);
+      trackCotaAtingida(); // Analytics: registra cota atingida
       return;
     }
+
+    // Analytics: registra intenção de regeneração
+    trackRegeneracao();
 
     // Abort controller próprio para não cancelar um pipeline em andamento
     const abort  = new AbortController();
     const signal = abort.signal;
 
-    // Feedback de progresso no step 3
     PipelineUI.setStep(3, 'active');
     PipelineUI.log('[A3] Regenerando conteúdo comercial...', 'i');
 
     try {
-      // Monta o prompt exatamente igual ao fluxo principal
       const input      = document.getElementById('inputText')?.value || fichaText;
       const allCats    = Categories.getAll().filter(c => c.ficha || c.campos || c.copy);
       const matched    = Utils.matchCategories(input, Categories.getAll());
@@ -115,7 +148,7 @@ export const Pipeline = {
     }
   },
 
-  // ─── Execução principal ─────────────────────────────────────
+  // ─── Execução principal ──────────────────────────────────────────────────
   async _execute(inputRaw) {
     const t0 = Date.now();
 
@@ -136,11 +169,25 @@ export const Pipeline = {
     const uso = Quota.getUsage(), lim = Quota.getLimit();
     if (uso.count + 2 > lim) {
       alert(`Cota diária esgotada (${uso.count}/${lim}). A cota renova à meia-noite.`);
+      trackCotaAtingida(); // Analytics: registra cota atingida
       return;
     }
     if (uso.count + 3 > lim) {
       PipelineUI.log(`⚠ Atenção: cota baixa (${uso.count}/${lim}) — A3 pode não ter cota suficiente.`, 'w');
     }
+
+    // ── Metadados para Analytics ─────────────────────────────────────────────
+    const modeloAtual    = document.getElementById('modelSel')?.value || 'gemini-2.5-flash-lite';
+    const mistralOk      = mistralKey.length > 20;
+    const categoriaAtual = AppState.categoriaAtiva?.nome || '';
+
+    // Analytics: pipeline iniciado
+    trackPipelineIniciado({
+      modelo:   modeloAtual,
+      temPDF:   !!AppState.pdfTexto,
+      temSEO:   hasSerpApiKey(),
+      categoria: categoriaAtual,
+    });
 
     PipelineUI.clearResults();
     AppState.pipeline.result = {};
@@ -161,8 +208,7 @@ export const Pipeline = {
       const matched   = Utils.matchCategories(input, Categories.getAll());
       const unmatched = allCats.filter(c => !matched.includes(c));
 
-      const mistralOk = mistralKey.length > 20;
-      PipelineUI.log(`Modelo Gemini: ${document.getElementById('modelSel')?.value}${mistralOk ? ' · Mistral (A1)' : ''}`, 'i');
+      PipelineUI.log(`Modelo Gemini: ${modeloAtual}${mistralOk ? ' · Mistral (A1)' : ''}`, 'i');
       if (mistralOk) PipelineUI.log('🔀 Modo mesclado: A1=Mistral · A2=Gemini · A3=Gemini', 'o');
       if (bivolt)    PipelineUI.log('⚡ Modo bivolt detectado (110V + 220V)', 'o');
 
@@ -184,11 +230,20 @@ export const Pipeline = {
       const subcatSnippet = AppState.subcatRules.buildSnippet(subcatRule);
       if (subcatRule) PipelineUI.log(`📐 Padrão de título aplicado: ${subcatRule.nome}`, 'o');
 
-      const sys1 = Prompts.get(bivolt ? 'P1B' : 'P1') + fewShot + subcatSnippet;
-      const sys2 = Prompts.get(bivolt ? 'P2B' : 'P2');
-      const sys3 = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
+      // ── Busca keywords SEO (invisível ao usuário, ~1-2s) ─────────────────
+      const contextoSEO = await obterContextoSEO(input, categoriaAtual);
+      if (contextoSEO) PipelineUI.log('🔍 Contexto SEO carregado.', 'o');
 
-      // ── AGENTE 1 — Formatador ────────────────────────────────
+      // Monta prompts base + contexto SEO quando disponível
+      const sys1Base = Prompts.get(bivolt ? 'P1B' : 'P1') + fewShot + subcatSnippet;
+      const sys2Base = Prompts.get(bivolt ? 'P2B' : 'P2');
+      const sys3Base = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
+
+      const sys1 = contextoSEO ? `${sys1Base}\n\n${contextoSEO}` : sys1Base;
+      const sys2 = contextoSEO ? `${sys2Base}\n\n${contextoSEO}` : sys2Base;
+      const sys3 = contextoSEO ? `${sys3Base}\n\n${contextoSEO}` : sys3Base;
+
+      // ── AGENTE 1 — Formatador ────────────────────────────────────────────
       PipelineUI.setStep(1, 'active');
       PipelineUI.log(`[A1] Formatando ficha${bivolt ? ' bivolt' : ''}...`, 'i');
       const ficha = await callAgent(sys1, `Dados do produto:\n${input}`, tok1, signal, 1);
@@ -196,10 +251,10 @@ export const Pipeline = {
       PipelineUI.setStep(1, 'done');
       PipelineUI.log('[A1] Ficha formatada.', 'o');
 
-      // ── AGENTE 2 — Conferente/QA ─────────────────────────────
+      // ── AGENTE 2 — Conferente/QA ─────────────────────────────────────────
       PipelineUI.setStep(2, 'active');
       PipelineUI.log('[A2] Conferindo dados...', 'i');
-      const validacao  = await callAgent(
+      const validacao = await callAgent(
         sys2,
         `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}`,
         400, signal, 2
@@ -209,11 +264,13 @@ export const Pipeline = {
       PipelineUI.setStep(2, reprovado ? 'error' : 'done');
       PipelineUI.log(`[A2] ${reprovado ? 'REPROVADO' : 'APROVADO'}`, reprovado ? 'w' : 'o');
 
-      // ── AGENTE 3 — Copywriter ────────────────────────────────
+      // ── AGENTE 3 — Copywriter ────────────────────────────────────────────
       let conteudo = '';
+      let etapaErro = '';
       if (!reprovado) {
         PipelineUI.setStep(3, 'active');
         PipelineUI.log('[A3] Gerando conteúdo comercial...', 'i');
+        etapaErro = 'A3-copywriter';
         conteudo = await callAgent(sys3, ficha, 800, signal, 3);
         Quota.add(1);
         PipelineUI.setStep(3, 'done');
@@ -228,15 +285,25 @@ export const Pipeline = {
       PipelineUI.showResults(ficha, validacao, conteudo, bivolt, reprovado);
       PipelineUI.log('Pipeline concluído.', 'o');
 
+      // Analytics: pipeline concluído com sucesso
+      trackPipelineConcluido({
+        modelo:    modeloAtual,
+        duracaoMs: Date.now() - t0,
+        temSEO:    !!contextoSEO,
+        bivolt:    !!bivolt,
+        reprovado: !!reprovado,
+      });
+
       // Persistência (Firestore + localStorage como cache local)
       const preview = (document.getElementById('inputText')?.value || '').slice(0, 100).trim();
       await History.save({ preview, ficha, conteudo, bivolt });
       await Logs.save({
-        status:      reprovado ? 'reprovado' : 'aprovado',
-        duracao_ms:  Date.now() - t0,
-        modelo:      document.getElementById('modelSel')?.value,
-        bivolt:      !!bivolt,
+        status:       reprovado ? 'reprovado' : 'aprovado',
+        duracao_ms:   Date.now() - t0,
+        modelo:       modeloAtual,
+        bivolt:       !!bivolt,
         usou_mistral: mistralOk,
+        usou_seo:     !!contextoSEO,
       });
 
       Quota.updateUI();
@@ -248,6 +315,14 @@ export const Pipeline = {
         });
         return;
       }
+
+      // Analytics: erro no pipeline
+      trackPipelineErro({
+        etapa: 'pipeline',
+        erro:  err.message,
+        modelo: document.getElementById('modelSel')?.value || '',
+      });
+
       PipelineUI.log(`ERRO: ${err.message}`, 'e');
       await Logs.save({ status: 'erro', duracao_ms: Date.now() - t0, erro: err.message });
       [1, 2, 3].forEach(n => {
@@ -259,7 +334,7 @@ export const Pipeline = {
     }
   },
 
-  // ─── Flush do editor aberto antes de processar ───────────────
+  // ─── Flush do editor aberto antes de processar ───────────────────────────
   _flushOpenEditor() {
     const { active, editorOpen, saveTimer } = AppState.categories;
     if (saveTimer) { clearTimeout(saveTimer); AppState.categories.saveTimer = null; }
@@ -280,7 +355,7 @@ export const Pipeline = {
     }
   },
 
-  // ─── UI helpers ─────────────────────────────────────────────
+  // ─── UI helpers ──────────────────────────────────────────────────────────
   _showInputAlerts(alerts) {
     document.getElementById('inputAlertBox')?.remove();
     const box = document.createElement('div');
