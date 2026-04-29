@@ -532,7 +532,7 @@ function _applyDomTheme(t) {
       phIcon.style.display = 'none';
       if (phStar) phStar.style.display = 'none';
     } else if (isZhuang) {
-       phImg.src = './Img/zhuang_fangyi_Chibi.webp'; // imagem que quiser
+       phImg.src = './Img/zhuang_fangyi_Chibi.jpg'; // imagem que quiser
   phImg.style.cssText = 'display:block;width:220px;height:auto;margin:0 auto;opacity:.85;filter:drop-shadow(0 0 16px rgba(0,204,85,.6))';
   phIcon.style.display = 'none';
       if (phStar) phStar.style.display = 'none';
