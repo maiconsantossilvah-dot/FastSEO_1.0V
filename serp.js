@@ -1,22 +1,34 @@
-// serp.js — Integração SerpAPI com cache por usuário
-// Coloque este arquivo na raiz do projeto (junto com pipeline.js, config.js etc.)
+// serp.js — Integração Google Custom Search API com cache por usuário
+// Chaves ficam no localStorage — nada hardcoded no código
 
 const SERP_CACHE_PREFIX = 'fastseo_serp_cache_';
 const SERP_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
 
-// ─── Chave API por usuário ────────────────────────────────────────────────────
+// ─── Chaves por usuário (localStorage) ───────────────────────────────────────
 
-export function getSerpApiKey() {
-  return localStorage.getItem('fastseo_serp_api_key') || '';
+export function getGoogleApiKey() {
+  return localStorage.getItem('fastseo_google_api_key') || '';
 }
 
-export function setSerpApiKey(key) {
-  localStorage.setItem('fastseo_serp_api_key', key.trim());
+export function setGoogleApiKey(key) {
+  localStorage.setItem('fastseo_google_api_key', key.trim());
+}
+
+export function getGoogleCx() {
+  return localStorage.getItem('fastseo_google_cx') || '';
+}
+
+export function setGoogleCx(cx) {
+  localStorage.setItem('fastseo_google_cx', cx.trim());
 }
 
 export function hasSerpApiKey() {
-  return !!getSerpApiKey();
+  return !!getGoogleApiKey() && !!getGoogleCx();
 }
+
+// ─── Mantém compatibilidade com código legado que usava SerpAPI ──────────────
+export function getSerpApiKey() { return getGoogleApiKey(); }
+export function setSerpApiKey(key) { setGoogleApiKey(key); }
 
 // ─── Cache ────────────────────────────────────────────────────────────────────
 
@@ -45,8 +57,7 @@ function saveToCache(query, data) {
       data,
       timestamp: Date.now()
     }));
-  } catch (e) {
-    // localStorage cheio — limpa caches antigos
+  } catch {
     clearOldSerpCaches();
   }
 }
@@ -66,97 +77,106 @@ export function clearOldSerpCaches() {
 // ─── Busca de keywords ────────────────────────────────────────────────────────
 
 /**
- * Busca as top keywords relacionadas a uma categoria/produto via SerpAPI.
- * Retorna objeto com keywords estruturadas para injetar nos prompts.
- *
- * @param {string} query - Nome do produto ou categoria (ex: "air fryer 12 litros")
+ * Busca keywords via Google Custom Search API (sem CORS, gratuito).
+ * @param {string} query - Nome do produto ou categoria
  * @returns {Promise<SerpResult|null>}
  */
 export async function buscarKeywords(query) {
   if (!query || !hasSerpApiKey()) return null;
 
-  // Verifica cache primeiro
   const cached = getFromCache(query);
   if (cached) {
-    console.log(`[SerpAPI] Cache hit para: "${query}"`);
+    console.log(`[Google CSE] Cache hit para: "${query}"`);
     return cached;
   }
 
   try {
-    const apiKey = getSerpApiKey();
+    const apiKey = getGoogleApiKey();
+    const cx     = getGoogleCx();
+
     const params = new URLSearchParams({
-      api_key: apiKey,
-      engine: 'google',
-      q: query,
-      gl: 'br',
-      hl: 'pt',
+      key: apiKey,
+      cx:  cx,
+      q:   query,
+      gl:  'br',
+      lr:  'lang_pt',
       num: '10'
     });
 
-    const response = await fetch(`https://serpapi.com/search.json?${params}`);
+    const response = await fetch(
+      `https://www.googleapis.com/customsearch/v1?${params}`
+    );
 
     if (!response.ok) {
-      if (response.status === 401) throw new Error('Chave SerpAPI inválida ou expirada.');
-      if (response.status === 429) throw new Error('Limite de buscas SerpAPI atingido.');
-      throw new Error(`Erro SerpAPI: ${response.status}`);
+      if (response.status === 403) throw new Error('Chave Google inválida, expirada ou cota atingida.');
+      if (response.status === 429) throw new Error('Limite de buscas Google atingido (100/dia).');
+      throw new Error(`Erro Google CSE: ${response.status}`);
     }
 
     const data = await response.json();
-    const resultado = processarResultadoSerp(query, data);
+    const resultado = processarResultadoGoogle(query, data);
 
     saveToCache(query, resultado);
-    console.log(`[SerpAPI] Keywords obtidas para: "${query}"`);
+    console.log(`[Google CSE] Keywords obtidas para: "${query}"`);
     return resultado;
 
   } catch (err) {
-    console.warn('[SerpAPI] Erro na busca:', err.message);
-    return null; // Falha silenciosa — pipeline continua sem SEO
+    console.warn('[Google CSE] Erro na busca:', err.message);
+    return null; // falha silenciosa — pipeline continua sem SEO
   }
 }
 
 /**
- * Processa o resultado bruto da SerpAPI e extrai o que é útil para os prompts.
+ * Processa o resultado da Google Custom Search API.
  */
-function processarResultadoSerp(query, data) {
+function processarResultadoGoogle(query, data) {
+  const items = data.items || [];
+
+  // Extrai palavras frequentes dos títulos e snippets
+  const palavrasFrequentes = extrairPalavrasFrequentes(items);
+
+  // Termos relacionados via queries sugeridas pelo Google
   const termosRelacionados = [];
+  const queries = data.queries?.nextPage || data.queries?.request || [];
+  queries.forEach(q => {
+    if (q.searchTerms && q.searchTerms !== query) {
+      termosRelacionados.push(q.searchTerms);
+    }
+  });
 
-  // Extrai "related searches" do Google
-  if (data.related_searches) {
-    data.related_searches.slice(0, 8).forEach(item => {
-      if (item.query) termosRelacionados.push(item.query);
-    });
-  }
-
-  // Extrai termos dos títulos orgânicos (palavras que aparecem com frequência)
-  const palavrasFrequentes = extrairPalavrasFrequentes(data.organic_results || []);
-
-  // Extrai "people also ask"
-  const perguntasFrequentes = (data.related_questions || [])
-    .slice(0, 4)
-    .map(q => q.question)
-    .filter(Boolean);
+  // Perguntas frequentes extraídas dos snippets
+  const perguntasFrequentes = items
+    .map(item => item.snippet || '')
+    .filter(s => s.includes('?'))
+    .map(s => {
+      const match = s.match(/[^.!?]*\?/);
+      return match ? match[0].trim() : null;
+    })
+    .filter(Boolean)
+    .slice(0, 4);
 
   return {
     queryOriginal: query,
     termosRelacionados,
     palavrasChave: palavrasFrequentes,
     perguntasFrequentes,
-    totalResultados: data.search_information?.total_results || null,
+    totalResultados: data.searchInformation?.totalResults || null,
     timestamp: Date.now()
   };
 }
 
-function extrairPalavrasFrequentes(organicResults) {
+function extrairPalavrasFrequentes(items) {
   const stopWords = new Set([
     'de', 'da', 'do', 'das', 'dos', 'em', 'no', 'na', 'nos', 'nas',
     'para', 'por', 'com', 'sem', 'um', 'uma', 'uns', 'umas', 'o', 'a',
     'os', 'as', 'e', 'ou', 'que', 'se', 'ao', 'aos', 'à', 'às', 'the',
-    'and', 'for', 'with', 'in', 'of', 'to', 'a', 'an', 'is', 'are'
+    'and', 'for', 'with', 'in', 'of', 'to', 'an', 'is', 'are', 'sua',
+    'seu', 'mais', 'como', 'este', 'esta', 'isso', 'ser', 'foi', 'has'
   ]);
 
   const contagem = {};
-  organicResults.slice(0, 10).forEach(result => {
-    const texto = `${result.title || ''} ${result.snippet || ''}`.toLowerCase();
+  items.slice(0, 10).forEach(item => {
+    const texto = `${item.title || ''} ${item.snippet || ''}`.toLowerCase();
     texto.split(/\W+/).forEach(palavra => {
       if (palavra.length > 3 && !stopWords.has(palavra)) {
         contagem[palavra] = (contagem[palavra] || 0) + 1;
@@ -174,9 +194,8 @@ function extrairPalavrasFrequentes(organicResults) {
 // ─── Montagem do contexto SEO para injetar nos prompts ────────────────────────
 
 /**
- * Formata o resultado da SerpAPI em texto para injetar no prompt dos agentes.
- *
- * @param {SerpResult} serpResult
+ * Formata o resultado em texto para injetar no prompt dos agentes.
+ * @param {object} serpResult
  * @returns {string}
  */
 export function montarContextoSEO(serpResult) {
@@ -184,13 +203,13 @@ export function montarContextoSEO(serpResult) {
 
   const linhas = [
     '───────────────────────────────────────',
-    '📊 DADOS REAIS DE BUSCA DO GOOGLE (SerpAPI)',
+    '📊 DADOS REAIS DE BUSCA DO GOOGLE',
     `Pesquisa: "${serpResult.queryOriginal}"`,
     ''
   ];
 
   if (serpResult.termosRelacionados.length > 0) {
-    linhas.push('🔍 Termos mais buscados relacionados:');
+    linhas.push('🔍 Termos relacionados:');
     serpResult.termosRelacionados.forEach((t, i) => linhas.push(`  ${i + 1}. ${t}`));
     linhas.push('');
   }

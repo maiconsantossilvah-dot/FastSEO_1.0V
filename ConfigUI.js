@@ -5,7 +5,7 @@
  */
 
 import { Quota } from './quota.js';
-import { getSerpApiKey, setSerpApiKey, hasSerpApiKey } from './serp.js';
+import { getGoogleApiKey, setGoogleApiKey, getGoogleCx, setGoogleCx, hasSerpApiKey } from './serp.js';
 import { trackSerpApiConfigurada } from './analytics.js';
 const $ = id => document.getElementById(id);
 
@@ -82,7 +82,8 @@ export const ConfigUI = {
 // Chamada dentro de ConfigModal.open(), após appendChild(overlay).
 // ─────────────────────────────────────────────────────────────
 export function initSerpConfig() {
-  const input         = document.getElementById('serp-api-key-input');
+  const apiKeyInput   = document.getElementById('serp-api-key-input');
+  const cxInput       = document.getElementById('serp-cx-input');
   const toggleBtn     = document.getElementById('serp-api-key-toggle');
   const saveBtn       = document.getElementById('serp-api-key-save');
   const status        = document.getElementById('serp-api-status');
@@ -90,30 +91,33 @@ export function initSerpConfig() {
   const quotaFill     = document.getElementById('serp-quota-fill');
   const clearCacheBtn = document.getElementById('serp-cache-clear');
 
-  if (!input) return; // seção ainda não foi renderizada no modal
+  if (!apiKeyInput) return; // seção ainda não foi renderizada no modal
 
-  // Preenche com chave já salva (se existir)
-  const chaveSalva = getSerpApiKey();
-  if (chaveSalva) {
-    input.value = chaveSalva;
-    _serpStatus(status, true);
-  }
+  // Preenche com valores já salvos (se existirem)
+  const apiKeySalva = getGoogleApiKey();
+  const cxSalvo     = getGoogleCx();
+  if (apiKeySalva) { apiKeyInput.value = apiKeySalva; }
+  if (cxSalvo)     { if (cxInput) cxInput.value = cxSalvo; }
+  if (apiKeySalva && cxSalvo) _serpStatus(status, true);
   _serpQuota(quotaLabel, quotaFill);
 
-  // Toggle mostrar/ocultar chave
+  // Toggle mostrar/ocultar API key
   toggleBtn?.addEventListener('click', () => {
-    const visivel = input.type === 'text';
-    input.type = visivel ? 'password' : 'text';
+    const visivel = apiKeyInput.type === 'text';
+    apiKeyInput.type = visivel ? 'password' : 'text';
     toggleBtn.textContent = visivel ? '👁' : '🙈';
   });
 
-  // Salvar chave
+  // Salvar chaves
   saveBtn?.addEventListener('click', () => {
-    const chave = input.value.trim();
-    if (!chave) { _serpStatus(status, false, 'Cole sua chave antes de salvar.'); return; }
-    setSerpApiKey(chave);
+    const apiKey = apiKeyInput.value.trim();
+    const cx     = cxInput?.value.trim() || '';
+    if (!apiKey) { _serpStatus(status, false, 'Cole sua API Key do Google antes de salvar.'); return; }
+    if (!cx)     { _serpStatus(status, false, 'Cole o Search Engine ID (cx) antes de salvar.'); return; }
+    setGoogleApiKey(apiKey);
+    setGoogleCx(cx);
     trackSerpApiConfigurada();
-    _serpStatus(status, true, '✓ Chave salva com sucesso!');
+    _serpStatus(status, true, '✓ Chaves salvas com sucesso!');
     setTimeout(() => _serpStatus(status, true), 3000);
   });
 
@@ -828,37 +832,52 @@ export const ConfigModal = {
           </div>
 
           <div class="config-section-divider">
-            <span>🔍 SerpAPI — Keywords do Google</span>
+            <span>🔍 Google Custom Search — Keywords do Google</span>
             <div class="hint" style="margin-top:4px">
-              Cada usuário usa sua própria chave. Keywords buscadas automaticamente antes de processar cada ficha.
-              Cache de 24h para economizar cota.
-              <a href="https://serpapi.com/manage-api-key" target="_blank" rel="noopener">Obter chave grátis →</a>
+              Cada usuário usa suas próprias chaves. Keywords buscadas automaticamente antes de processar cada ficha.
+              Cache de 24h para economizar cota. Gratuito: 100 buscas/dia.
+              <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Criar API Key →</a>
+              &nbsp;|&nbsp;
+              <a href="https://programmablesearchengine.google.com" target="_blank" rel="noopener">Criar Search Engine ID →</a>
             </div>
           </div>
 
           <div class="setup-grid">
             <div class="field" style="grid-column:1/-1">
-              <label for="serp-api-key-input">Sua chave SerpAPI</label>
+              <label for="serp-api-key-input">Google API Key</label>
               <div class="key-wrap serp-key-row">
                 <input
                   type="password"
                   id="serp-api-key-input"
-                  placeholder="Cole sua chave aqui..."
+                  placeholder="AIzaSy..."
                   autocomplete="off"
                   spellcheck="false"
                 />
                 <button id="serp-api-key-toggle" class="btn btn-ghost serp-eye-btn" title="Mostrar/ocultar">👁</button>
-                <button id="serp-api-key-save"   class="btn btn-primary">Salvar</button>
+              </div>
+            </div>
+
+            <div class="field" style="grid-column:1/-1">
+              <label for="serp-cx-input">Search Engine ID (cx)</label>
+              <div class="key-wrap serp-key-row">
+                <input
+                  type="text"
+                  id="serp-cx-input"
+                  placeholder="ex: f11219cd767154cfd"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <button id="serp-api-key-save" class="btn btn-primary">Salvar</button>
               </div>
               <span id="serp-api-status" class="serp-status"></span>
             </div>
 
             <div class="field" style="grid-column:1/-1">
-              <label>Uso mensal estimado</label>
+              <label>Uso diário estimado</label>
               <div class="serp-quota-bar">
                 <div id="serp-quota-fill" class="serp-quota-fill"></div>
               </div>
-              <span id="serp-quota-label" class="hint">0 / 100 buscas este mês</span>
+              <span id="serp-quota-label" class="hint">0 / 100 buscas hoje</span>
               <button id="serp-cache-clear" class="btn btn-ghost serp-cache-btn">🗑 Limpar cache</button>
             </div>
           </div>
