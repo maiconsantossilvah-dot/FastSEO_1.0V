@@ -4,12 +4,12 @@
 // ─── Configuração ─────────────────────────────────────────────────────────────
 // Substitua pelo seu Measurement ID do GA4 (formato: G-XXXXXXXXXX)
 // Você obtém isso em: analytics.google.com → Admin → Streams de dados → Web
-const GA_MEASUREMENT_ID = 'G-4KTSCNT8R1'; // ← SUBSTITUA AQUI
+const GA_MEASUREMENT_ID = 'G-5QMCX3H979'; // ← SUBSTITUA AQUI
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 export function initAnalytics() {
-  if (!GA_MEASUREMENT_ID || GA_MEASUREMENT_ID === 'G-4KTSCNT8R1') {
+  if (!GA_MEASUREMENT_ID || GA_MEASUREMENT_ID === 'G-5QMCX3H979') {
     console.warn('[Analytics] Measurement ID não configurado. Pulando GA4.');
     return;
   }
