@@ -532,12 +532,9 @@ function _applyDomTheme(t) {
       phIcon.style.display = 'none';
       if (phStar) phStar.style.display = 'none';
     } else if (isZhuang) {
-      phImg.src = '';
-      phImg.style.cssText = 'display:none';
-      phIcon.style.display = '';
-      phIcon.textContent = '⚡';
-      phIcon.style.color = '#00cc55';
-      phIcon.style.textShadow = '0 0 20px rgba(0,204,85,.7), 0 0 40px rgba(0,204,85,.3)';
+       phImg.src = './Img/zhuang_fangyi_Chibi.webp'; // imagem que quiser
+  phImg.style.cssText = 'display:block;width:220px;height:auto;margin:0 auto;opacity:.85;filter:drop-shadow(0 0 16px rgba(0,204,85,.6))';
+  phIcon.style.display = 'none';
       if (phStar) phStar.style.display = 'none';
     } else if (isSerenity) {
       phImg.src = '';
