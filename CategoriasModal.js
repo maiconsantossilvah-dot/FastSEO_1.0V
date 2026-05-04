@@ -169,6 +169,12 @@ export const CategoriasModal = {
   async _createNew() {
     const nova = await Categories.create();
     AppState.categories.active = nova.id;
+    // Atualiza o cache local imediatamente com o novo item,
+    // sem esperar o listener do Firestore chegar de forma assíncrona.
+    // Isso garante que _openEditor encontre o objeto via Categories.find().
+    if (!Categories.find(nova.id)) {
+      Categories._writeCache([...Categories.getAll(), nova]);
+    }
     this._render();
     this._openEditor(nova.id);
     // Focar no nome
