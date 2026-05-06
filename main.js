@@ -231,13 +231,13 @@ const _drawerOverlay = document.getElementById('sideDrawerOverlay');
 
 function _openDrawer() {
   if (!_drawer) return;
-  _drawer.style.display        = 'flex';
-  _drawerOverlay.style.display = '';
+  _drawer.classList.add('is-open');
+  _drawerOverlay.classList.add('is-open');
 }
 function _closeDrawer() {
   if (!_drawer) return;
-  _drawer.style.display        = 'none';
-  _drawerOverlay.style.display = 'none';
+  _drawer.classList.remove('is-open');
+  _drawerOverlay.classList.remove('is-open');
 }
 
 _drawerBtn?.addEventListener('click', _openDrawer);

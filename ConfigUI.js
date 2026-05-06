@@ -17,6 +17,9 @@ const LS = {
 };
 
 export const ConfigUI = {
+  // Debounce interno para updateCharCount — evita recalcular a cada tecla
+  _charCountTimer: null,
+
   validateGeminiKey() {
     const v  = $('apiKey')?.value.trim() || '';
     const el = $('apiKey');
@@ -59,11 +62,14 @@ export const ConfigUI = {
   },
 
   updateCharCount() {
-    const v  = $('inputText')?.value || '';
-    const el = $('charCount');
-    if (!el) return;
-    el.textContent = `${v.length.toLocaleString()} caracteres`;
-    el.className   = `char-count${v.length > 10000 ? ' warn' : ''}`;
+    clearTimeout(this._charCountTimer);
+    this._charCountTimer = setTimeout(() => {
+      const v  = $('inputText')?.value || '';
+      const el = $('charCount');
+      if (!el) return;
+      el.textContent = `${v.length.toLocaleString()} caracteres`;
+      el.className   = `char-count${v.length > 10000 ? ' warn' : ''}`;
+    }, 120);
   },
 
   restoreSavedKeys() {
