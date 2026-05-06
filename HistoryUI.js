@@ -164,25 +164,9 @@ function _renderList() {
 
 function _pageBtn(label, disabled) {
   const btn = document.createElement('button');
-  btn.textContent   = label;
-  btn.disabled      = disabled;
-  btn.style.cssText =
-    `height:26px;padding:0 10px;border:1px solid var(--color-border);border-radius:6px;` +
-    `background:transparent;color:${disabled ? 'var(--color-text-muted)' : 'var(--color-text-secondary)'};` +
-    `font-family:var(--font-mono);font-size:10px;font-weight:500;` +
-    `cursor:${disabled ? 'not-allowed' : 'pointer'};opacity:${disabled ? '.4' : '1'};transition:all .12s;`;
-  if (!disabled) {
-    btn.addEventListener('mouseenter', () => {
-      btn.style.background  = 'var(--color-bg-subtle)';
-      btn.style.color       = 'var(--color-text-primary)';
-      btn.style.borderColor = 'var(--color-border-strong)';
-    });
-    btn.addEventListener('mouseleave', () => {
-      btn.style.background  = 'transparent';
-      btn.style.color       = 'var(--color-text-secondary)';
-      btn.style.borderColor = 'var(--color-border)';
-    });
-  }
+  btn.textContent = label;
+  btn.disabled    = disabled;
+  btn.className   = `hist-page-btn${disabled ? ' disabled' : ''}`;
   return btn;
 }
 

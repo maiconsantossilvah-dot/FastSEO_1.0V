@@ -10,6 +10,7 @@ const LS_CATS = 'ficha_categorias'; // chave de cache local
 
 // Cache em memória (atualizado pelo listener em tempo real)
 let _cache = [];
+let _changeTimer = null; // throttle do evento catsChanged
 
 export const Categories = {
   // ─── Cache local ─────────────────────────────────────────
@@ -56,8 +57,12 @@ export const Categories = {
 
     return CategoriesDB.listen(cats => {
       this._writeCache(cats);
-      // Notifica módulos interessados via evento (sem acoplamento direto)
-      document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
+      // Throttle: dispara o evento no máximo 1x a cada 200ms para evitar
+      // múltiplos re-renders em cascata durante sincronizações do Firestore
+      clearTimeout(_changeTimer);
+      _changeTimer = setTimeout(() => {
+        document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
+      }, 200);
     });
   },
 };

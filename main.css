@@ -1704,3 +1704,25 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   margin-top: 6px;
   height: auto;
 }
+
+/* ─── PAGINAÇÃO DO HISTÓRICO ─── */
+.hist-page-btn {
+  height: 26px; padding: 0 10px;
+  border: 1px solid var(--color-border); border-radius: 6px;
+  background: transparent; color: var(--color-text-secondary);
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  cursor: pointer; transition: background .12s, color .12s, border-color .12s;
+}
+.hist-page-btn:hover:not(.disabled) {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+.hist-page-btn.disabled {
+  opacity: .4; cursor: not-allowed;
+  color: var(--color-text-muted);
+}
+
+/* ─── ANALYTICS — botão limpar logs ─── */
+#clearLogsBtn { transition: color .15s; }
+#clearLogsBtn:hover { color: var(--color-danger) !important; }

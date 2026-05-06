@@ -23,7 +23,8 @@ export const PipelineUI = {
     const msgSpan = document.createElement('span'); msgSpan.className = 'log-msg'; msgSpan.textContent = msg;
     el.append(tsSpan, msgSpan);
     box.appendChild(el);
-    box.scrollTop = box.scrollHeight;
+    // rAF evita layout thrashing — lê scrollHeight fora do critical path
+    requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
   },
 
   // Atualiza label de API de um step (chamado pelo pipeline quando faz fallback)

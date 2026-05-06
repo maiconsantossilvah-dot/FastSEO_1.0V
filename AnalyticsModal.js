@@ -42,8 +42,6 @@ export const AnalyticsModal = {
     $('clearLogsBtn')?.addEventListener('click', () => {
       if (confirm('Apagar todos os logs?')) { Logs.clear(); this.close(); }
     });
-    $('clearLogsBtn')?.addEventListener('mouseover', e => e.target.style.color='var(--color-danger)');
-    $('clearLogsBtn')?.addEventListener('mouseout',  e => e.target.style.color='var(--color-text-muted)');
   },
   close() {
     const o = $('analyticsOverlay');

@@ -18,6 +18,9 @@ async function getCategoryModal() {
 }
 
 export const SidebarUI = {
+  // Fingerprint do último render — evita reconstruir o DOM sem necessidade
+  _lastFingerprint: '',
+
   render() {
     const cats      = Categories.getAll();
     const sbContent = $('sbContent');
@@ -27,6 +30,14 @@ export const SidebarUI = {
     if (AppState.categories.active && !cats.find(c => c.id === AppState.categories.active)) {
       AppState.categories.active = cats.length ? cats[0].id : null;
     }
+
+    // Fingerprint: ids + nomes + active + quem tem exemplos — se igual, só atualiza indicator
+    const fp = cats.map(c => `${c.id}:${c.nome}:${!!(c.ficha||c.campos||c.copy)}`).join('|') + '|' + AppState.categories.active;
+    if (fp === this._lastFingerprint) {
+      this.updateIndicator();
+      return;
+    }
+    this._lastFingerprint = fp;
 
     if (cats.length === 0) {
       sbContent.innerHTML = `<div class="sb-empty"><strong>📂</strong>Nenhuma categoria ainda.<br>Clique em <strong>＋ Nova Categoria</strong> para começar.</div>`;
