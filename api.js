@@ -123,9 +123,10 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
   });
 
   if (res.status === 429) {
-    if (attempt < 1) {
+    if (attempt < 3) {
+      const wait = (attempt + 1) * 15;
       PipelineUI.log('⏳ Limite por minuto (Mistral). Aguardando 15s...', 'w');
-      await _sleep(15000, signal);
+      await _sleep(wait * 1000, signal);
       return callMistral(system, userMsg, maxTokens, signal, attempt + 1);
     }
     throw Object.assign(new Error('cota_esgotada'), { cotaEsgotada: true });
