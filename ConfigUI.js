@@ -1,7 +1,6 @@
 ﻿/**
  * components/ConfigUI.js
- * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
- * Gerencia a UI de configuraÃ§Ã£o: API keys, modelo e contador de caracteres.
+ * Gerencia a UI de configuracao: API keys, modelo e contador de caracteres.
  */
 
 import { Quota } from './quota.js';
@@ -17,7 +16,7 @@ const LS = {
 };
 
 export const ConfigUI = {
-  // Debounce interno para updateCharCount â€” evita recalcular a cada tecla
+  // Debounce interno para updateCharCount.
   _charCountTimer: null,
 
   validateGeminiKey() {
@@ -82,11 +81,8 @@ export const ConfigUI = {
   },
   
 };
-
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// initSerpConfig â€” ativa os eventos da seÃ§Ã£o SerpAPI que estÃ¡ no Index.html
-// Chamada dentro de ConfigModal.open(), apÃ³s appendChild(overlay).
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// initSerpConfig - ativa os eventos da secao SerpAPI no modal.
+// Chamada dentro de ConfigModal.open(), apos appendChild(overlay).
 export function initSerpConfig() {
   const apiKeyInput   = document.getElementById('serp-api-key-input');
   const cxInput       = document.getElementById('serp-cx-input');
@@ -97,9 +93,9 @@ export function initSerpConfig() {
   const quotaFill     = document.getElementById('serp-quota-fill');
   const clearCacheBtn = document.getElementById('serp-cache-clear');
 
-  if (!apiKeyInput) return; // seÃ§Ã£o ainda nÃ£o foi renderizada no modal
+  if (!apiKeyInput) return; // secao ainda nao foi renderizada no modal
 
-  // Preenche com valores jÃ¡ salvos (se existirem)
+  // Preenche com valores ja salvos
   const apiKeySalva = getGoogleApiKey();
   const cxSalvo     = getGoogleCx();
   if (apiKeySalva) { apiKeyInput.value = apiKeySalva; }
@@ -155,15 +151,10 @@ function _serpQuota(labelEl, fillEl) {
   }
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 /**
- * ThemeModal â€” seletor de temas visuais
- * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * ThemeModal - seletor de temas visuais
  */
 import { AppState } from './state.js';
-
-// â”€â”€ Imagem de fundo Vegito Blue (escurecida 65%) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ICE_BTN_IMG = './Img/ice-button.webp';
 const LAST_RITE_PH = './Img/last-rite-placeholder.webp';
 const LAST_RITE_BG = './Img/last-rite-bg.webp';
@@ -174,13 +165,9 @@ const GOKU_LOGO_IMG = './Img/goku-logo.png';
 const GOKU_PH_IMG = './Img/goku-placeholder.png';
 
 const ZHUANG_BG ="./Img/zhuang-fangyi.jpg";
-
-// â”€â”€ Grupos de temas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Cada tema pode ter: accent, orb1, orb2, bg, surface, border, text
-// Campos omitidos usam os valores padrÃ£o do CSS.
+// Campos omitidos usam os valores padrao do CSS.
 const THEMES = [
-
-  // â”€â”€ Glassmorphism (com orbs de luz) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     id: 'glass-indigo',
     group: 'Glassmorphism',
@@ -194,19 +181,16 @@ const THEMES = [
     id: 'glass-cyan',
     group: 'Glassmorphism',
     name: 'Cyan Glass',
-    desc: 'Orbs em verde-Ã¡gua',
+    desc: 'Orbs em verde-agua',
     preview: ['#050e12', '#06b6d4', '#34d399'],
     accent: '#06b6d4', orb1: '#0e7490', orb2: '#065f46',
     bg: '#050e12',
   },
-
-
-  // â”€â”€ SÃ³lido escuro (sem orbs, cores suaves) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     id: 'solid-charcoal',
-    group: 'SÃ³lido escuro',
+    group: 'Solido escuro',
     name: 'Charcoal',
-    desc: 'Cinza carvÃ£o, acento azul',
+    desc: 'Cinza carvao, acento azul',
     preview: ['#1a1b1e', '#3b82f6', '#60a5fa'],
     accent: '#3b82f6', orb1: 'transparent', orb2: 'transparent',
     bg: '#141517', surface: 'rgba(255,255,255,.05)',
@@ -214,7 +198,7 @@ const THEMES = [
   },
   {
     id: 'solid-graphite',
-    group: 'SÃ³lido escuro',
+    group: 'Solido escuro',
     name: 'Graphite',
     desc: 'Quase preto, acento verde',
     preview: ['#111111', '#22c55e', '#4ade80'],
@@ -224,7 +208,7 @@ const THEMES = [
   },
   {
     id: 'solid-navy',
-    group: 'SÃ³lido escuro',
+    group: 'Solido escuro',
     name: 'Navy',
     desc: 'Azul marinho profundo',
     preview: ['#0d1117', '#58a6ff', '#79c0ff'],
@@ -234,16 +218,14 @@ const THEMES = [
   },
   {
     id: 'solid-espresso',
-    group: 'SÃ³lido escuro',
+    group: 'Solido escuro',
     name: 'Espresso',
-    desc: 'Marrom escuro, acento Ã¢mbar',
+    desc: 'Marrom escuro, acento ambar',
     preview: ['#1a1208', '#d97706', '#fbbf24'],
     accent: '#d97706', orb1: 'transparent', orb2: 'transparent',
     bg: '#130e06', surface: 'rgba(255,255,255,.05)',
     border: 'rgba(255,255,255,.09)',
   },
-
-  // â”€â”€ Neutro / sem brilho â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     id: 'neutral-zinc',
     group: 'Neutro',
@@ -268,14 +250,12 @@ const THEMES = [
     id: 'neutral-void',
     group: 'Neutro',
     name: 'Void',
-    desc: 'Preto puro, mÃ­nimo absoluto',
+    desc: 'Preto puro, minimo absoluto',
     preview: ['#000000', '#404040', '#737373'],
     accent: '#525252', orb1: 'transparent', orb2: 'transparent',
     bg: '#000000', surface: 'rgba(255,255,255,.03)',
     border: 'rgba(255,255,255,.07)',
   },
-
-  // â”€â”€ Anime â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   {
     id: 'anime-vegito-ssj',
     group: 'Anime',
@@ -435,7 +415,7 @@ function applyTheme(t) {
   root.style.setProperty('--orb1-color', t.orb1 || 'transparent');
   root.style.setProperty('--orb2-color', t.orb2 || 'transparent');
 
-  // Fundo e superfÃ­cie
+  // Fundo e superficie
   root.style.setProperty('--color-bg-page',  t.bg      || '#07080f');
   root.style.setProperty('--color-surface',  t.surface || 'rgba(255,255,255,.04)');
   root.style.setProperty('--color-border',   t.border  || 'rgba(255,255,255,.08)');
@@ -464,7 +444,7 @@ function applyTheme(t) {
     document.body.style.backgroundRepeat   = '';
   }
 
-  // Temas claros (Seinen) â€” ajusta texto e sidebar
+  // Temas claros (Seinen) - ajusta texto e sidebar
   if (t.isLight) {
     root.style.setProperty('--color-text-primary',   '#111111');
     root.style.setProperty('--color-text-secondary', '#444444');
@@ -498,7 +478,7 @@ function applyTheme(t) {
   // Hachuras Seinen no body
   document.body.classList.toggle('theme-seinen', !!t.isLight);
 
-  // BotÃ£o de gelo â€” Last Rite
+  // Botao de gelo - Last Rite
   const runBtn = document.querySelector('.run-btn');
   if (t.id === 'anime-last-rite' && runBtn) {
     runBtn.dataset.iceActive = '1';
@@ -506,7 +486,7 @@ function applyTheme(t) {
     delete runBtn.dataset.iceActive;
   }
 
-  // Trincas de gelo â€” Last Rite
+  // Trincas de gelo - Last Rite
   document.body.classList.toggle('theme-last-rite', t.id === 'anime-last-rite');
   let _iceEl = document.getElementById('_iceCrack');
   if (t.id === 'anime-last-rite') {
@@ -528,7 +508,7 @@ function applyTheme(t) {
     _iceEl.style.display = 'none';
   }
 
-  // Fragmentos de cristal verde â€” Zhuang Fangyi
+  // Fragmentos de cristal verde - Zhuang Fangyi
   document.body.classList.toggle('theme-zhuang', t.id === 'anime-zhuang');
   let _zhuangCrystal = document.getElementById('_zhuangCrystal');
   if (t.id === 'anime-zhuang') {
@@ -557,7 +537,7 @@ function applyTheme(t) {
   try { localStorage.setItem(LS_THEME, t.id); } catch {}
 }
 
-// Aplicado separadamente para nÃ£o bloquear o restore() antes do DOM carregar
+// Aplicado separadamente para nao bloquear o restore() antes do DOM carregar
 function _applyDomTheme(t) {
   // Logo icon
   const logoEl = document.querySelector('.logo-icon');
@@ -574,13 +554,13 @@ function _applyDomTheme(t) {
     }
   }
 
-  // BotÃ£o run
+  // Botao run
   const runIconEl = document.querySelector('.run-icon');
   if (runIconEl) {
     if (t.runIcon) {
       runIconEl.innerHTML = t.runIcon + ' Processar Ficha';
     } else {
-      runIconEl.textContent = 'âš¡ Processar Ficha';
+      runIconEl.textContent = 'Processar Ficha';
     }
   }
 
@@ -592,7 +572,7 @@ function _applyDomTheme(t) {
   const isLastRite    = t.id === 'anime-last-rite';
   const isZhuang      = t.id === 'anime-zhuang';
 
-  // Placeholder â€” estrela SVG para Serenity, chibi Last Rite, imagem Vegito para os outros
+  // Placeholder - estrela SVG para Serenity, chibi Last Rite, imagem Vegito para os outros
   const phStar = document.getElementById('placeholderStar');
 
   if (phImg && phIcon) {
@@ -639,8 +619,8 @@ export const ThemeModal = {
     overlay.innerHTML = `
       <div class="modal modal--theme">
         <div class="modal-hdr">
-          <span class="modal-title">ðŸŽ¨ AparÃªncia do site</span>
-          <button class="modal-close" id="themeModalClose">âœ•</button>
+          <span class="modal-title">&#127912; Aparencia do site</span>
+          <button class="modal-close" id="themeModalClose">&times;</button>
         </div>
         <div class="modal-body" id="themeModalBody">
         </div>
@@ -694,7 +674,7 @@ export const ThemeModal = {
             <span class="theme-card-name">${t.name}</span>
             <span class="theme-card-desc">${t.desc}</span>
           </div>
-          <div class="theme-check">âœ“</div>`;
+          <div class="theme-check">&#10003;</div>`;
         card.addEventListener('click', () => {
           overlay.querySelectorAll('.theme-card').forEach(c => c.classList.remove('theme-card--active'));
           card.classList.add('theme-card--active');
@@ -727,7 +707,7 @@ export const ThemeModal = {
     } catch {}
   },
 
-  // Chamado apÃ³s o DOM do app estar visÃ­vel (apÃ³s login)
+  // Chamado apos o DOM do app estar visivel (apos login).
   restoreDom() {
     try {
       const id = localStorage.getItem(LS_THEME) || 'dark-glass';
@@ -750,7 +730,7 @@ export const SidebarToggle = {
     $('appHeader')?.classList.toggle('sidebar-collapsed', !open);
     const btn = $('sidebarToggle');
     if (btn) {
-      btn.textContent = open ? 'â—€' : 'ðŸ§ ';
+      btn.textContent = open ? '<' : 'Cat';
       btn.title       = open ? 'Fechar painel de categorias' : 'Abrir painel de categorias';
     }
     try { localStorage.setItem('sb_open', open ? '1' : '0'); } catch {}
@@ -760,28 +740,26 @@ export const SidebarToggle = {
     try {
       const saved = localStorage.getItem('sb_open');
       if (saved === '0') {
-        // ComeÃ§a aberto por padrÃ£o; fechar se salvo como '0'
+        // Comeca aberto por padrao; fechar se salvo como '0'
         this.toggle();
       } else {
         AppState.sidebar.open = true;
         $('appLayout')?.classList.remove('sidebar-collapsed');
         $('appHeader')?.classList.remove('sidebar-collapsed');
         const btn = $('sidebarToggle');
-        if (btn) { btn.textContent = 'â—€'; btn.title = 'Fechar painel de categorias'; }
+        if (btn) { btn.textContent = '<'; btn.title = 'Fechar painel de categorias'; }
       }
     } catch {}
   },
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 /**
- * ConfigModal â€” modal de configuraÃ§Ã£o de APIs e modelo
+ * ConfigModal - modal de configuracao de APIs e modelo
  *
- * EstratÃ©gia: os inputs #apiKey, #mistralKey e #modelSel vivem em
+ * Estrategia: os inputs #apiKey, #mistralKey e #modelSel vivem em
  * #hiddenApiInputs (fora da tela) para que api.js sempre os encontre.
- * Ao abrir o modal, os inputs sÃ£o MOVIDOS para dentro dele.
- * Ao fechar, sÃ£o DEVOLVIDOS ao container oculto.
+ * Ao abrir o modal, os inputs sao MOVIDOS para dentro dele.
+ * Ao fechar, sao DEVOLVIDOS ao container oculto.
  */
 export const ConfigModal = {
   open() {
@@ -924,7 +902,7 @@ export const ConfigModal = {
     moveToSlot('mistralKey', 'mistralKeySlot');
     moveToSlot('modelSel',   'modelSelSlot');
 
-    // Criar e mover inputs de fallback (esses ficam sÃ³ no modal)
+    // Criar e mover inputs de fallback (esses ficam so no modal)
     this._ensureFallbackInputs();
     moveToSlot('apiKey2',    'apiKey2Slot');
     moveToSlot('apiKey3',    'apiKey3Slot');
@@ -1030,3 +1008,4 @@ export const ConfigModal = {
 
   _esc(e) { if (e.key === 'Escape') ConfigModal.close(); },
 };
+
