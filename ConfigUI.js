@@ -27,11 +27,11 @@ export const ConfigUI = {
     if (!v) { if (el) el.className = ''; if (st) st.textContent = ''; LS.del('gemini_key'); return; }
     if (v.startsWith('AIza') && v.length > 20) {
       if (el) el.className = 'valid';
-      if (st) st.textContent = 'âœ“';
+      if (st) st.textContent = 'OK';
       LS.set('gemini_key', v);
     } else {
       if (el) el.className = 'invalid';
-      if (st) st.textContent = 'âœ—';
+      if (st) st.textContent = 'X';
     }
   },
 
@@ -42,22 +42,22 @@ export const ConfigUI = {
     if (!v) { if (el) el.className = ''; if (st) st.textContent = ''; LS.del('mistral_key'); return; }
     if (v.length > 20) {
       if (el) el.className = 'valid';
-      if (st) st.textContent = 'âœ“';
+      if (st) st.textContent = 'OK';
       LS.set('mistral_key', v);
     } else {
       if (el) el.className = 'invalid';
-      if (st) st.textContent = 'âœ—';
+      if (st) st.textContent = 'X';
     }
   },
 
   updateQuotaInfo() {
     const hints = {
-      'gemini-2.5-flash-lite': 'âœ“ recomendado â€” maior cota diÃ¡ria gratuita',
-      'gemini-2.5-flash':      'âœ“ boa qualidade, cota intermediÃ¡ria',
-      'gemini-2.5-pro':        'âš  apenas 100 req/dia â€” use para tarefas que exigem mais raciocÃ­nio',
+      'gemini-2.5-flash-lite': 'Recomendado - maior cota diaria gratuita',
+      'gemini-2.5-flash':      'Boa qualidade, cota intermediaria',
+      'gemini-2.5-pro':        'Apenas 100 req/dia - use para tarefas que exigem mais raciocinio',
     };
     const hint = $('modelHint');
-    if (hint) hint.textContent = hints[$('modelSel')?.value] || 'âœ“ modelo gratuito';
+    if (hint) hint.textContent = hints[$('modelSel')?.value] || 'Modelo gratuito';
     Quota.updateUI();
   },
 
@@ -111,7 +111,7 @@ export function initSerpConfig() {
   toggleBtn?.addEventListener('click', () => {
     const visivel = apiKeyInput.type === 'text';
     apiKeyInput.type = visivel ? 'password' : 'text';
-    toggleBtn.textContent = visivel ? 'ðŸ‘' : 'ðŸ™ˆ';
+    toggleBtn.textContent = visivel ? 'Mostrar' : 'Ocultar';
   });
 
   // Salvar chaves
@@ -123,7 +123,7 @@ export function initSerpConfig() {
     setGoogleApiKey(apiKey);
     setGoogleCx(cx);
     trackSerpApiConfigurada();
-    _serpStatus(status, true, 'âœ“ Chaves salvas com sucesso!');
+    _serpStatus(status, true, 'Chaves salvas com sucesso!');
     setTimeout(() => _serpStatus(status, true), 3000);
   });
 
@@ -133,14 +133,14 @@ export function initSerpConfig() {
       .filter(k => k.startsWith('fastseo_serp_cache_'))
       .forEach(k => localStorage.removeItem(k));
     _serpQuota(quotaLabel, quotaFill);
-    clearCacheBtn.textContent = 'âœ“ Cache limpo!';
-    setTimeout(() => { clearCacheBtn.textContent = 'ðŸ—‘ Limpar cache'; }, 2000);
+    clearCacheBtn.textContent = 'Cache limpo!';
+    setTimeout(() => { clearCacheBtn.textContent = 'Limpar cache'; }, 2000);
   });
 }
 
 function _serpStatus(el, ok, mensagem) {
   if (!el) return;
-  el.textContent = mensagem ?? (ok ? 'âœ“ Chave configurada' : '');
+  el.textContent = mensagem ?? (ok ? 'Chave configurada' : '');
   el.className   = `serp-status ${ok ? 'serp-status--ok' : mensagem ? 'serp-status--erro' : ''}`;
 }
 
@@ -148,7 +148,7 @@ function _serpQuota(labelEl, fillEl) {
   const mes   = new Date().toISOString().slice(0, 7);
   const count = parseInt(localStorage.getItem(`fastseo_serp_count_${mes}`) || '0');
   const pct   = Math.min((count / 100) * 100, 100);
-  if (labelEl) labelEl.textContent = `${count} / 100 buscas este mÃªs`;
+  if (labelEl) labelEl.textContent = `${count} / 100 buscas este mes`;
   if (fillEl) {
     fillEl.style.width      = `${pct}%`;
     fillEl.style.background = pct > 80 ? 'var(--color-warn)' : 'var(--color-success)';
@@ -280,15 +280,15 @@ const THEMES = [
     id: 'anime-vegito-ssj',
     group: 'Anime',
     name: 'Vegito SSJ',
-    desc: 'Dourado explosivo Â· aura flamejante',
-    preview: ['#07040a', '#f5a623', '#ffe066'],
-    accent: '#f5a623',
-    orb1: '#cc6600',
-    orb2: '#ff4400',
-    bg: '#07040a',
+    desc: 'Dourado refinado - aura quente',
+    preview: ['#070507', '#d99a2b', '#f1cf76'],
+    accent: '#d99a2b',
+    orb1: 'rgba(217,154,43,.28)',
+    orb2: 'rgba(160,75,28,.22)',
+    bg: '#070507',
     bgImage: 'ssj',
-    surface: 'rgba(245,166,35,.06)',
-    border: 'rgba(245,166,35,.18)',
+    surface: 'rgba(12,8,5,.78)',
+    border: 'rgba(217,154,43,.18)',
     logoIcon: `<img src='${GOKU_LOGO_IMG}' style='width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;filter:sepia(1) saturate(4) hue-rotate(5deg) brightness(1.2)'/>`,
     runIcon: `<svg style="width:16px;height:16px" viewBox="0 0 16 16" fill="none">
       <path d="M8 1 L6 6 L2 6 L5.5 9.5 L4 14 L8 11 L12 14 L10.5 9.5 L14 6 L10 6 Z" fill="#ffe066" stroke="#f5a623" stroke-width=".5"/>
@@ -299,15 +299,15 @@ const THEMES = [
     id: 'anime-vegito-blue',
     group: 'Anime',
     name: 'Vegito Blue',
-    desc: 'SSJ Blue Â· ki elÃ©trico Â· Potara',
-    preview: ['#03080f', '#00bfff', '#60e0ff'],
-    accent: '#00bfff',
+    desc: 'SSJ Blue - azul limpo - Potara',
+    preview: ['#03080d', '#3fb6d9', '#8bd7ee'],
+    accent: '#3fb6d9',
     orb1: 'transparent',
     orb2: 'transparent',
-    bg: '#03080f',
+    bg: '#03080d',
     bgImage: true,
-    surface: 'rgba(0,0,0,.55)',
-    border: 'rgba(0,191,255,.25)',
+    surface: 'rgba(3,10,16,.78)',
+    border: 'rgba(63,182,217,.2)',
     logoIcon: `<img src='${GOKU_LOGO_IMG}' style='width:100%;height:100%;object-fit:cover;object-position:center top;border-radius:50%;filter:sepia(1) saturate(5) hue-rotate(175deg) brightness(1.1)'/>`,  
     runIcon: `<svg style="width:16px;height:16px" viewBox="0 0 16 16" fill="none">
       <path d="M8 1 L9.5 6 L14 6 L10 9 L11.5 14 L8 11 L4.5 14 L6 9 L2 6 L6.5 6 Z" fill="#60e0ff" stroke="#00bfff" stroke-width=".5" opacity=".9"/>
@@ -318,14 +318,14 @@ const THEMES = [
     id: 'anime-serenity',
     group: 'Anime',
     name: 'Serenity',
-    desc: 'Sailor Moon Â· lavanda Â· azul noite',
-    preview: ['#07071a', '#c9a0dc', '#ffd6f0'],
-    accent: '#c9a0dc',
-    orb1: '#7b5ea7',
-    orb2: '#1a0a3d',
+    desc: 'Lavanda suave - azul noite',
+    preview: ['#07071a', '#c6a6d9', '#f0d8ee'],
+    accent: '#c6a6d9',
+    orb1: 'rgba(126,98,160,.34)',
+    orb2: 'rgba(44,35,82,.28)',
     bg: '#06060f',
-    surface: 'rgba(201,160,220,.06)',
-    border: 'rgba(201,160,220,.18)',
+    surface: 'rgba(16,12,28,.72)',
+    border: 'rgba(198,166,217,.18)',
     logoIcon: `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M14 2 L16.5 9.5 L24.5 9.5 L18.2 14.5 L20.5 22 L14 17.5 L7.5 22 L9.8 14.5 L3.5 9.5 L11.5 9.5 Z"
         fill="#c9a0dc" stroke="#7b5ea7" stroke-width=".8" stroke-linejoin="round"/>
@@ -341,15 +341,15 @@ const THEMES = [
     id: 'anime-last-rite',
     group: 'Anime',
     name: 'Last Rite',
-    desc: 'Arknights Endfield Â· Cryo Â· gelo e bordeaux',
-    preview: ['#050a12', '#4da6ff', '#c0394d'],
-    accent: '#4da6ff',
-    orb1: '#0a4fff',
-    orb2: '#8c1a2e',
-    bg: '#050a12',
+    desc: 'Cryo - gelo suave - bordeaux',
+    preview: ['#040810', '#74b7e6', '#9e3f55'],
+    accent: '#74b7e6',
+    orb1: 'rgba(56,111,166,.24)',
+    orb2: 'rgba(108,37,54,.18)',
+    bg: '#040810',
     bgImage: 'lastrite',
-    surface: 'rgba(0,0,0,.58)',
-    border: 'rgba(74,166,255,.18)',
+    surface: 'rgba(4,10,18,.78)',
+    border: 'rgba(116,183,230,.18)',
     logoIcon: `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="14" cy="14" r="13" fill="#03080f" stroke="#1a4daa" stroke-width=".8"/>
       <path d="M14 3 L16 9.5 L22.5 9.5 L17.5 13.5 L19.5 20 L14 16.5 L8.5 20 L10.5 13.5 L5.5 9.5 L12 9.5 Z"
@@ -367,15 +367,15 @@ const THEMES = [
     id: 'anime-zhuang',
     group: 'Anime',
     name: 'Zhuang Fangyi',
-    desc: 'Endfield Â· Ã©lite Â· verde elÃ©trico Â· vermelho sangue',
-    preview: ['#060f08', '#00cc55', '#4aff8c'],
-    accent: '#00cc55',
-    orb1: '#003d20',
-    orb2: '#6b1a1a',
-    bg: '#060f08',
+    desc: 'Endfield - verde profundo - vermelho seco',
+    preview: ['#050c07', '#54c77a', '#9a3d3d'],
+    accent: '#54c77a',
+    orb1: 'rgba(22,82,48,.28)',
+    orb2: 'rgba(94,31,31,.20)',
+    bg: '#050c07',
     bgImage: 'zhuang',
-    surface: 'rgba(0,0,0,.62)',
-    border: 'rgba(0,204,85,.16)',
+    surface: 'rgba(4,12,7,.78)',
+    border: 'rgba(84,199,122,.16)',
     logoIcon: `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="14" cy="14" r="13" fill="#040e06" stroke="#1a6640" stroke-width=".7"/>
       <path d="M11 6 C10 3 8 2 9 1" stroke="#8b1a1a" stroke-width="1.1" stroke-linecap="round"/>
@@ -404,14 +404,14 @@ const THEMES = [
     id: 'anime-seinen',
     group: 'Anime',
     name: 'Seinen',
-    desc: 'Manga Â· hachuras Â· papel envelhecido',
-    preview: ['#f0ebe0', '#111111', '#555555'],
+    desc: 'Manga - hachuras - papel editorial',
+    preview: ['#f2ecdf', '#161616', '#6b6257'],
     accent: '#111111',
     orb1: 'transparent',
     orb2: 'transparent',
-    bg: '#f0ebe0',
-    surface: 'rgba(0,0,0,.04)',
-    border: 'rgba(0,0,0,.25)',
+    bg: '#f2ecdf',
+    surface: 'rgba(255,255,255,.68)',
+    border: 'rgba(0,0,0,.18)',
     isLight: true,
     logoIcon: null,
     runIcon: null,
@@ -794,21 +794,21 @@ export const ConfigModal = {
     overlay.innerHTML = `
       <div class="modal modal--lg">
         <div class="modal-hdr">
-          <span class="modal-title">âš™ï¸ ConfiguraÃ§Ã£o de APIs</span>
-          <button class="modal-close" id="configModalClose">âœ•</button>
+          <span class="modal-title">&#9881; Configuração de APIs</span>
+          <button class="modal-close" id="configModalClose">&times;</button>
         </div>
         <div class="modal-body" style="gap:20px">
 
           <div class="setup-grid">
             <div class="field">
-              <label>API Key do Gemini <span style="color:var(--color-success);font-weight:400">Â· A2 e A3</span></label>
+              <label>API Key do Gemini <span style="color:var(--color-success);font-weight:400">&middot; A2 e A3</span></label>
               <div class="key-wrap" id="apiKeySlot"><span class="key-status" id="keyStatus"></span></div>
-              <div class="hint">Obtenha grÃ¡tis em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
+              <div class="hint">Obtenha grátis em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
             </div>
             <div class="field">
-              <label>API Key da Mistral <span style="color:var(--color-success);font-weight:400">Â· A1</span></label>
+              <label>API Key da Mistral <span style="color:var(--color-success);font-weight:400">&middot; A1</span></label>
               <div class="key-wrap" id="mistralKeySlot"><span class="key-status" id="mistralKeyStatus"></span></div>
-              <div class="hint">GrÃ¡tis em <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> â€” sem cartÃ£o Â· usado no A1 (Formatador)</div>
+              <div class="hint">Grátis em <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> &mdash; sem cartão &middot; usado no A1 (Formatador)</div>
             </div>
             <div class="field" style="grid-column:1/-1">
               <label>Modelo Gemini</label>
@@ -820,46 +820,46 @@ export const ConfigModal = {
               <select id="pipelineModeSel">
                 <option value="quality">Qualidade (A1 + A2 + A3 opcional)</option>
               </select>
-              <div class="hint">Mantem conferÃƒÂªncia separada para preservar qualidade.</div>
+              <div class="hint">Mantém conferência separada para preservar qualidade.</div>
             </div>
             <div class="field">
-              <label>ConteÃƒÂºdo comercial</label>
+              <label>Conteúdo comercial</label>
               <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-text-secondary);font-weight:500">
                 <input type="checkbox" id="autoA3Check" style="width:auto">
                 Gerar A3 automaticamente
               </label>
-              <div class="hint">Desative para economizar 1 chamada por ficha e gerar depois pelo botÃƒÂ£o.</div>
+              <div class="hint">Desative para economizar 1 chamada por ficha e gerar depois pelo botão.</div>
             </div>
           </div>
 
           <div class="config-section-divider">
             <span>Chaves de Fallback</span>
-            <div class="hint" style="margin-top:4px">Acionadas automaticamente quando a chave primÃ¡ria retornar 503, 529 ou sobrecarga.</div>
+            <div class="hint" style="margin-top:4px">Acionadas automaticamente quando a chave primária retornar 503, 529 ou sobrecarga.</div>
           </div>
 
           <div class="setup-grid">
             <div class="field">
-              <label>Gemini â€” Chave 2 <span class="fallback-badge">fallback</span></label>
+              <label>Gemini &mdash; Chave 2 <span class="fallback-badge">fallback</span></label>
               <div class="key-wrap" id="apiKey2Slot"><span class="key-status" id="keyStatus2"></span></div>
             </div>
             <div class="field">
-              <label>Mistral â€” Chave 2 <span class="fallback-badge">fallback</span></label>
+              <label>Mistral &mdash; Chave 2 <span class="fallback-badge">fallback</span></label>
               <div class="key-wrap" id="mistralKey2Slot"><span class="key-status" id="mistralKeyStatus2"></span></div>
             </div>
             <div class="field">
-              <label>Gemini â€” Chave 3 <span class="fallback-badge">fallback</span></label>
+              <label>Gemini &mdash; Chave 3 <span class="fallback-badge">fallback</span></label>
               <div class="key-wrap" id="apiKey3Slot"><span class="key-status" id="keyStatus3"></span></div>
             </div>
           </div>
 
           <div class="config-section-divider">
-            <span>ðŸ” Google Custom Search â€” Keywords do Google</span>
+            <span>&#128269; Google Custom Search &mdash; Keywords do Google</span>
             <div class="hint" style="margin-top:4px">
-              Cada usuÃ¡rio usa suas prÃ³prias chaves. Keywords buscadas automaticamente antes de processar cada ficha.
+              Cada usuário usa suas próprias chaves. Keywords buscadas automaticamente antes de processar cada ficha.
               Cache de 24h para economizar cota. Gratuito: 100 buscas/dia.
-              <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Criar API Key â†’</a>
+              <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Criar API Key &rarr;</a>
               &nbsp;|&nbsp;
-              <a href="https://programmablesearchengine.google.com" target="_blank" rel="noopener">Criar Search Engine ID â†’</a>
+              <a href="https://programmablesearchengine.google.com" target="_blank" rel="noopener">Criar Search Engine ID &rarr;</a>
             </div>
           </div>
 
@@ -874,7 +874,7 @@ export const ConfigModal = {
                   autocomplete="off"
                   spellcheck="false"
                 />
-                <button id="serp-api-key-toggle" class="btn btn-ghost serp-eye-btn" title="Mostrar/ocultar">ðŸ‘</button>
+                <button id="serp-api-key-toggle" class="btn btn-ghost serp-eye-btn" title="Mostrar/ocultar">Mostrar</button>
               </div>
             </div>
 
@@ -894,25 +894,25 @@ export const ConfigModal = {
             </div>
 
             <div class="field" style="grid-column:1/-1">
-              <label>Uso diÃ¡rio estimado</label>
+              <label>Uso diário estimado</label>
               <div class="serp-quota-bar">
                 <div id="serp-quota-fill" class="serp-quota-fill"></div>
               </div>
               <span id="serp-quota-label" class="hint">0 / 100 buscas hoje</span>
-              <button id="serp-cache-clear" class="btn btn-ghost serp-cache-btn">ðŸ—‘ Limpar cache</button>
+              <button id="serp-cache-clear" class="btn btn-ghost serp-cache-btn">Limpar cache</button>
             </div>
           </div>
 
         </div>
         <div class="modal-ftr" style="justify-content:flex-end">
-          <span class="modal-saved" id="configSavedMsg">âœ“ Salvo</span>
+          <span class="modal-saved" id="configSavedMsg">&#10003; Salvo</span>
           <button class="btn btn-primary" id="configModalClose2">Fechar</button>
         </div>
       </div>`;
 
     document.body.appendChild(overlay);
 
-    // Ativa os eventos do painel SerpAPI (os elementos jÃ¡ existem no HTML do modal)
+    // Ativa os eventos do painel SerpAPI.
     initSerpConfig();
 
     // Mover inputs principais para dentro dos slots do modal
@@ -933,9 +933,9 @@ export const ConfigModal = {
 
     // Atualizar hint do modelo
     const hints = {
-      'gemini-2.5-flash-lite': 'âœ“ recomendado â€” maior cota diÃ¡ria gratuita',
-      'gemini-2.5-flash':      'âœ“ boa qualidade, cota intermediÃ¡ria',
-      'gemini-2.5-pro':        'âš  apenas 100 req/dia â€” use para tarefas que exigem mais raciocÃ­nio',
+      'gemini-2.5-flash-lite': 'Recomendado - maior cota diaria gratuita',
+      'gemini-2.5-flash':      'Boa qualidade, cota intermediaria',
+      'gemini-2.5-pro':        'Apenas 100 req/dia - use para tarefas que exigem mais raciocinio',
     };
     const modelEl = document.getElementById('modelSel');
     const hintEl  = document.getElementById('modelHint');
@@ -974,7 +974,7 @@ export const ConfigModal = {
         const ok = isGemini ? (v.startsWith('AIza') && v.length > 20) : v.length > 20;
         if (!v) { el.className=''; if(st) st.textContent=''; try{localStorage.removeItem('fastseo_'+id);}catch{} return; }
         el.className = ok ? 'valid' : 'invalid';
-        if (st) st.textContent = ok ? 'âœ“' : 'âœ—';
+        if (st) st.textContent = ok ? 'OK' : 'X';
         if (ok) try{localStorage.setItem('fastseo_'+id, v);}catch{}
         this._showSaved();
       });
@@ -992,9 +992,9 @@ export const ConfigModal = {
     const hidden = document.getElementById('hiddenApiInputs');
     if (!hidden) return;
     const fallbacks = [
-      { id: 'apiKey2',     placeholder: 'AIza... (secundÃ¡ria)' },
-      { id: 'apiKey3',     placeholder: 'AIza... (terciÃ¡ria)'  },
-      { id: 'mistralKey2', placeholder: '... (secundÃ¡ria)'     },
+      { id: 'apiKey2',     placeholder: 'AIza... (secundaria)' },
+      { id: 'apiKey3',     placeholder: 'AIza... (terciaria)'  },
+      { id: 'mistralKey2', placeholder: '... (secundaria)'     },
     ];
     fallbacks.forEach(({ id, placeholder }) => {
       if (!document.getElementById(id)) {

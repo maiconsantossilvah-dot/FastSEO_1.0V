@@ -1639,6 +1639,215 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 }
 [data-theme-id="anime-zhuang"] .side-drawer-item-name { color: rgba(160,255,184,.85) !important; }
 
+/* Anime refinement layer */
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) body {
+  background-blend-mode: multiply !important;
+}
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) body::before {
+  opacity: .18 !important;
+  filter: blur(8px) saturate(.85) !important;
+}
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) body::after {
+  opacity: .14 !important;
+  filter: blur(10px) saturate(.75) !important;
+}
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .header,
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .sidebar {
+  backdrop-filter: blur(18px) saturate(1.05) !important;
+}
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .card,
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .results-placeholder,
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .modal,
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .side-drawer {
+  box-shadow: 0 14px 42px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.045) !important;
+}
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .card {
+  border-width: 1px !important;
+}
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .card-title,
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .result-label {
+  letter-spacing: .04em !important;
+  text-shadow: none !important;
+}
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .run-btn {
+  border-radius: 8px !important;
+  text-shadow: none !important;
+  letter-spacing: .03em !important;
+  transform: translateZ(0);
+}
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .run-btn:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+}
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .step.active,
+[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .learn-indicator-dot {
+  animation: none !important;
+}
+
+[data-theme-id="anime-vegito-ssj"] body {
+  background-color: #070507 !important;
+}
+[data-theme-id="anime-vegito-ssj"] .header,
+[data-theme-id="anime-vegito-ssj"] .sidebar {
+  background: rgba(10,7,5,.9) !important;
+  border-color: rgba(217,154,43,.14) !important;
+}
+[data-theme-id="anime-vegito-ssj"] .card,
+[data-theme-id="anime-vegito-ssj"] .results-placeholder,
+[data-theme-id="anime-vegito-ssj"] .modal {
+  background: rgba(12,8,5,.76) !important;
+  border-color: rgba(217,154,43,.16) !important;
+}
+[data-theme-id="anime-vegito-ssj"] .run-btn {
+  background: linear-gradient(135deg, #8e5520, #d99a2b 56%, #e5bd67) !important;
+  color: #1d1207 !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.34), 0 0 20px rgba(217,154,43,.18) !important;
+}
+[data-theme-id="anime-vegito-ssj"] .run-btn:hover:not(:disabled) {
+  box-shadow: 0 12px 34px rgba(0,0,0,.4), 0 0 26px rgba(217,154,43,.24) !important;
+}
+[data-theme-id="anime-vegito-ssj"] .logo-icon {
+  filter: drop-shadow(0 0 5px rgba(217,154,43,.42)) !important;
+}
+
+[data-theme-id="anime-vegito-blue"] body {
+  background-color: #03080d !important;
+}
+[data-theme-id="anime-vegito-blue"] .header,
+[data-theme-id="anime-vegito-blue"] .sidebar {
+  background: rgba(3,10,16,.9) !important;
+  border-color: rgba(63,182,217,.14) !important;
+}
+[data-theme-id="anime-vegito-blue"] .card,
+[data-theme-id="anime-vegito-blue"] .results-placeholder,
+[data-theme-id="anime-vegito-blue"] .modal {
+  background: rgba(3,10,16,.76) !important;
+  border-color: rgba(63,182,217,.17) !important;
+}
+[data-theme-id="anime-vegito-blue"] .run-btn {
+  background: linear-gradient(135deg, #14516d, #3fb6d9 58%, #8bd7ee) !important;
+  color: #031018 !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.36), 0 0 22px rgba(63,182,217,.18) !important;
+}
+[data-theme-id="anime-vegito-blue"] .run-btn:hover:not(:disabled) {
+  box-shadow: 0 12px 34px rgba(0,0,0,.42), 0 0 28px rgba(63,182,217,.24) !important;
+}
+[data-theme-id="anime-vegito-blue"] .logo-icon {
+  filter: drop-shadow(0 0 5px rgba(63,182,217,.42)) !important;
+}
+
+[data-theme-id="anime-serenity"] .header,
+[data-theme-id="anime-serenity"] .sidebar,
+[data-theme-id="anime-serenity"] .card,
+[data-theme-id="anime-serenity"] .results-placeholder,
+[data-theme-id="anime-serenity"] .modal {
+  background: rgba(16,12,28,.74) !important;
+  border-color: rgba(198,166,217,.16) !important;
+}
+[data-theme-id="anime-serenity"] .run-btn,
+[data-theme-id="anime-serenity"] .logo-icon {
+  background: linear-gradient(135deg, #736096, #c6a6d9) !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.32), 0 0 20px rgba(198,166,217,.16) !important;
+}
+[data-theme-id="anime-serenity"] .step.active {
+  box-shadow: 0 0 12px rgba(198,166,217,.08) !important;
+}
+
+[data-theme-id="anime-last-rite"] body {
+  background-color: #040810 !important;
+}
+[data-theme-id="anime-last-rite"] body::before {
+  background: linear-gradient(180deg, rgba(0,0,0,.72), rgba(4,8,16,.84)) !important;
+  filter: none !important;
+}
+[data-theme-id="anime-last-rite"] body::after {
+  background: rgba(15,28,45,.24) !important;
+  filter: none !important;
+}
+[data-theme-id="anime-last-rite"] .header,
+[data-theme-id="anime-last-rite"] .sidebar {
+  background: rgba(4,10,18,.92) !important;
+  border-color: rgba(116,183,230,.13) !important;
+}
+[data-theme-id="anime-last-rite"] .card,
+[data-theme-id="anime-last-rite"] .col-results > .card,
+[data-theme-id="anime-last-rite"] .results-placeholder,
+[data-theme-id="anime-last-rite"] .modal {
+  background: rgba(4,10,18,.78) !important;
+  border-color: rgba(116,183,230,.16) !important;
+}
+[data-theme-id="anime-last-rite"] .run-btn {
+  min-height: 56px !important;
+  padding: 16px 28px !important;
+  color: #e2f4ff !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  letter-spacing: .10em !important;
+}
+[data-theme-id="anime-last-rite"] .run-btn::before {
+  width: 136% !important;
+  opacity: .82 !important;
+  filter: saturate(.82) brightness(.82) contrast(1.03) !important;
+}
+[data-theme-id="anime-last-rite"] .run-btn:hover::before {
+  filter: saturate(.95) brightness(.96) contrast(1.05) !important;
+}
+[data-theme-id="anime-last-rite"] .step.active,
+[data-theme-id="anime-last-rite"] .step.done {
+  box-shadow: 0 0 14px rgba(116,183,230,.12), inset 0 1px 0 rgba(226,244,255,.08) !important;
+}
+
+[data-theme-id="anime-zhuang"] body {
+  background-color: #050c07 !important;
+}
+[data-theme-id="anime-zhuang"] .header,
+[data-theme-id="anime-zhuang"] .sidebar,
+[data-theme-id="anime-zhuang"] .card,
+[data-theme-id="anime-zhuang"] .results-placeholder,
+[data-theme-id="anime-zhuang"] .modal,
+[data-theme-id="anime-zhuang"] .side-drawer {
+  background: rgba(4,12,7,.78) !important;
+  border-color: rgba(84,199,122,.14) !important;
+}
+[data-theme-id="anime-zhuang"] .run-btn {
+  background: linear-gradient(135deg, #12301c, #2e7d4b 58%, #54c77a) !important;
+  border-color: rgba(84,199,122,.34) !important;
+  color: #d8ffe3 !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.36), 0 0 20px rgba(84,199,122,.15) !important;
+}
+[data-theme-id="anime-zhuang"] .run-btn:hover:not(:disabled) {
+  box-shadow: 0 12px 34px rgba(0,0,0,.42), 0 0 26px rgba(84,199,122,.22) !important;
+}
+[data-theme-id="anime-zhuang"] .card-title,
+[data-theme-id="anime-zhuang"] .step.active .step-name,
+[data-theme-id="anime-zhuang"] .side-drawer-item-name {
+  color: rgba(216,255,227,.88) !important;
+  text-shadow: none !important;
+}
+[data-theme-id="anime-zhuang"] .layout::before {
+  opacity: .45 !important;
+}
+
+body.theme-seinen {
+  background-color: #f2ecdf !important;
+}
+body.theme-seinen .card {
+  background: rgba(255,255,255,.72) !important;
+  border-color: rgba(0,0,0,.18) !important;
+  box-shadow: 2px 2px 0 rgba(0,0,0,.82) !important;
+}
+body.theme-seinen .card-hdr,
+body.theme-seinen .results-placeholder {
+  background: rgba(255,255,255,.48) !important;
+}
+body.theme-seinen .run-btn {
+  background: #161616 !important;
+  box-shadow: 3px 3px 0 rgba(0,0,0,.85) !important;
+  letter-spacing: .03em !important;
+}
+body.theme-seinen .run-btn:hover:not(:disabled) {
+  box-shadow: 4px 4px 0 rgba(0,0,0,.85) !important;
+}
+
 /* â”€â”€â”€ SerpAPI â€” painel de configuraÃ§Ã£o no ConfigModal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 /* Linha do input: campo + botÃ£o olho + botÃ£o salvar lado a lado */
