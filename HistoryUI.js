@@ -44,6 +44,10 @@ export const HistoryUI = {
     PipelineUI.showResults(item.ficha, '', item.conteudo, item.bivolt, false);
     const vo = $('validacaoOut'); if (vo) vo.textContent = '';
     $('results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    PipelineUI.toast('Ficha restaurada do historico.', 'ok');
+    import('./HistoryModal.js').then(({ HistoryModal }) => HistoryModal.close()).catch(() => {
+      document.getElementById('historicoModalOverlay')?.remove();
+    });
     PipelineUI.log(`📂 Resultado de ${item.data} restaurado.`, 'o');
   },
 };

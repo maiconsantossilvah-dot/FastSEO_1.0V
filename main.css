@@ -1706,6 +1706,44 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 }
 
 /* ─── PAGINAÇÃO DO HISTÓRICO ─── */
+.app-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 10000;
+  transform: translate(-50%, 10px);
+  opacity: 0;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: rgba(12,13,22,.96);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.app-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.app-toast--ok {
+  border-color: var(--color-success-border);
+  color: var(--color-success);
+}
+.app-toast--warn {
+  border-color: rgba(245,158,11,.35);
+  color: var(--color-warn);
+}
+.app-toast--error {
+  border-color: rgba(239,68,68,.35);
+  color: var(--color-danger);
+}
+
 .hist-page-btn {
   height: 26px; padding: 0 10px;
   border: 1px solid var(--color-border); border-radius: 6px;

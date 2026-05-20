@@ -12,6 +12,22 @@ const _stepStart = {};
 const _stepApiLabel = { 1: 'Mistral', 2: 'Gemini', 3: 'Gemini' };
 
 export const PipelineUI = {
+  toast(msg, type = 'ok') {
+    const old = document.querySelector('.app-toast');
+    if (old) old.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `app-toast app-toast--${type}`;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add('is-visible'));
+    setTimeout(() => {
+      toast.classList.remove('is-visible');
+      setTimeout(() => toast.remove(), 180);
+    }, 2200);
+  },
+
   log(msg, type = 'i') {
     const box = $('logBox');
     if (!box) return;
@@ -73,6 +89,11 @@ export const PipelineUI = {
     if (!btn) return;
     btn.disabled = on;
     btn.classList.toggle('loading', on);
+    const label = btn.querySelector('.run-icon');
+    if (label) {
+      if (!label.dataset.defaultText) label.dataset.defaultText = label.textContent;
+      label.textContent = on ? 'Processando ficha...' : label.dataset.defaultText;
+    }
   },
   showResults(ficha, validacao, conteudo, bivolt, reprovado) {
     if ($('fichaOut'))     $('fichaOut').textContent     = ficha;

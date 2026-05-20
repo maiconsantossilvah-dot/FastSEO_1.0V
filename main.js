@@ -32,12 +32,13 @@ const Export = {
    * Copia o texto de um dos blocos de resultado para a área de transferência.
    * @param {'ficha'|'conteudo'} which
    */
-  copy(which) {
+  async copy(which) {
     const elId   = which === 'ficha' ? 'fichaOut' : 'conteudoOut';
     const btnId  = which === 'ficha' ? 'copyFichaBtn' : 'copyConteudoBtn';
     const text   = document.getElementById(elId)?.innerText?.trim() || '';
 
     if (!text) {
+      PipelineUI.toast('Nada para copiar ainda.', 'warn');
       PipelineUI.log('Nada para copiar — execute o pipeline primeiro.', 'w');
       return;
     }
@@ -48,8 +49,10 @@ const Export = {
       const original = btn.textContent;
       btn.textContent = '✓ Copiado!';
       setTimeout(() => { btn.textContent = original; }, 1800);
+      PipelineUI.toast('Resultado copiado.', 'ok');
     }).catch(err => {
       PipelineUI.log(`Erro ao copiar: ${err.message}`, 'e');
+      PipelineUI.toast('Nao foi possivel copiar.', 'error');
     });
   },
 
@@ -59,6 +62,7 @@ const Export = {
   txt() {
     const text = document.getElementById('fichaOut')?.innerText?.trim() || '';
     if (!text) {
+      PipelineUI.toast('Nada para exportar ainda.', 'warn');
       PipelineUI.log('Nada para exportar — execute o pipeline primeiro.', 'w');
       return;
     }
@@ -74,6 +78,7 @@ const Export = {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    PipelineUI.toast('Arquivo .txt baixado.', 'ok');
   },
 };
 
@@ -113,6 +118,7 @@ async function init() {
   const _unsubSubcategories = SubcatModule.startSync();
   SubcatModule.migrateDefaultsToFirestore().catch(console.warn);
   SidebarUI.render();
+  updateRunReadiness();
   // Painel começa fechado — History.startSync() atualiza só o badge.
   // A lista é renderizada apenas quando o usuário abrir o painel.
 }
@@ -169,7 +175,19 @@ document.getElementById('resetCotaBtn')?.addEventListener('click', () => {
 // addCatBtn agora vive dentro do CategoriasModal
 // sbContent agora é oculto — seleção via CategoriasModal
 // apiKey, mistralKey e modelSel agora vivem dentro do ConfigModal
-document.getElementById('inputText')?.addEventListener('input',  () => ConfigUI.updateCharCount());
+function updateRunReadiness() {
+  const input = document.getElementById('inputText')?.value?.trim() || '';
+  const btn = document.getElementById('runBtn');
+  if (!btn) return;
+  const ready = input.length > 0;
+  btn.disabled = !ready;
+  btn.title = ready ? 'Processar ficha tecnica' : 'Cole os dados do produto para processar';
+}
+
+document.getElementById('inputText')?.addEventListener('input',  () => {
+  ConfigUI.updateCharCount();
+  updateRunReadiness();
+});
 
 // ── Drag & drop de PDF no textarea ────────────────────────────
 const _ta = document.getElementById('inputText');
@@ -218,8 +236,22 @@ document.getElementById('openHistoricoBtn')?.addEventListener('click',  () => Hi
 // clearHistoricoBtn é dinâmico (dentro do modal) — usar delegação no document
 document.addEventListener('click', async e => {
   if (e.target.id === 'clearHistoricoBtn') {
-    await History.clear();
-    HistoryUI.render();
+    const ok = confirm('Limpar todo o historico salvo? Essa acao nao pode ser desfeita.');
+    if (!ok) return;
+    const btn = e.target;
+    btn.disabled = true;
+    btn.textContent = 'Limpando...';
+    try {
+      await History.clear();
+      HistoryUI.render();
+      PipelineUI.toast('Historico limpo.', 'ok');
+    } catch (err) {
+      PipelineUI.log(`Erro ao limpar historico: ${err.message}`, 'e');
+      PipelineUI.toast('Nao foi possivel limpar o historico.', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Limpar tudo';
+    }
   }
 });
 // focus/blur do historicoBusca agora geridos dentro do HistoryModal
