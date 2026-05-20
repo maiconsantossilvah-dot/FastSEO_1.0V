@@ -9,32 +9,10 @@ import { Pipeline }     from './pipeline.js';
 import { SidebarUI }      from './SidebarUI.js';
 import { PipelineUI }     from './PipelineUI.js';
 import { HistoryUI }      from './HistoryUI.js';
-import { applySavedThemeShell } from './themeLoader.js';
+import { ConfigModal, ConfigUI, ThemeModal } from './ConfigUI.js';
 
 // ── Restaura tema imediatamente (evita flash de tema errado) ──
-let _configModulePromise = null;
-const loadConfigModule = () => _configModulePromise ||= import('./ConfigUI.js');
-
-function restoreSavedKeysLite() {
-  try {
-    const geminiKey  = localStorage.getItem('gemini_key') || '';
-    const mistralKey = localStorage.getItem('mistral_key') || '';
-    const apiKeyEl   = document.getElementById('apiKey');
-    const mistralEl  = document.getElementById('mistralKey');
-    if (geminiKey && apiKeyEl) apiKeyEl.value = geminiKey;
-    if (mistralKey && mistralEl) mistralEl.value = mistralKey;
-  } catch {}
-}
-
-function updateCharCountLite() {
-  const v  = document.getElementById('inputText')?.value || '';
-  const el = document.getElementById('charCount');
-  if (!el) return;
-  el.textContent = `${v.length.toLocaleString()} caracteres`;
-  el.className   = `char-count${v.length > 10000 ? ' warn' : ''}`;
-}
-
-applySavedThemeShell();
+ThemeModal.restore();
 
 // ── Export — copia e baixa os resultados gerados ──────────────
 // CORREÇÃO: Export não estava definido em nenhum lugar do código,
@@ -123,8 +101,10 @@ document.addEventListener('fastseo:catsChanged', () => {
 });
 
 async function init() {
-  restoreSavedKeysLite();
-  updateCharCountLite();
+  ConfigUI.restoreSavedKeys();
+  ConfigUI.updateCharCount();
+  ConfigUI.updateQuotaInfo();
+  ThemeModal.restoreDom();
   Quota.updateUI();
   const _unsubCategories    = Categories.startSync();
   const _unsubHistory       = History.startSync();
@@ -177,7 +157,6 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logou
 
 // ── Eventos do app ────────────────────────────────────────────
 document.getElementById('themeBtn')?.addEventListener('click', async () => {
-  const { ThemeModal } = await loadConfigModule();
   ThemeModal.restoreDom();
   ThemeModal.open();
 });
@@ -194,7 +173,6 @@ document.getElementById('openSubcatBtn')?.addEventListener('click', async () => 
   SubcatModal.open();
 });
 document.getElementById('openConfigBtn')?.addEventListener('click', async () => {
-  const { ConfigModal, ConfigUI, ThemeModal } = await loadConfigModule();
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateQuotaInfo();
   ThemeModal.restoreDom();
@@ -221,7 +199,7 @@ function updateRunReadiness() {
 }
 
 document.getElementById('inputText')?.addEventListener('input',  () => {
-  updateCharCountLite();
+  ConfigUI.updateCharCount();
   updateRunReadiness();
 });
 
