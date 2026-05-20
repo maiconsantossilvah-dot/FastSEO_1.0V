@@ -9,18 +9,11 @@ import { Pipeline }     from './pipeline.js';
 import { SidebarUI }      from './SidebarUI.js';
 import { PipelineUI }     from './PipelineUI.js';
 import { HistoryUI }      from './HistoryUI.js';
+import { applySavedThemeShell } from './themeLoader.js';
 
 // ── Restaura tema imediatamente (evita flash de tema errado) ──
 let _configModulePromise = null;
 const loadConfigModule = () => _configModulePromise ||= import('./ConfigUI.js');
-
-function restoreThemeShell() {
-  try {
-    const id = localStorage.getItem('fastseo_theme') || 'dark-glass';
-    document.documentElement.setAttribute('data-theme-id', id);
-    document.documentElement.setAttribute('data-theme', id.includes('light') ? 'light' : 'dark');
-  } catch {}
-}
 
 function restoreSavedKeysLite() {
   try {
@@ -41,7 +34,7 @@ function updateCharCountLite() {
   el.className   = `char-count${v.length > 10000 ? ' warn' : ''}`;
 }
 
-restoreThemeShell();
+applySavedThemeShell();
 
 // ── Export — copia e baixa os resultados gerados ──────────────
 // CORREÇÃO: Export não estava definido em nenhum lugar do código,
