@@ -76,6 +76,7 @@ const THEME_SHELLS = {
     bg: '#07040a',
     surface: 'rgba(245,166,35,.06)',
     border: 'rgba(245,166,35,.18)',
+    bgImage: './Img/vegito-ssj-bg.jpg',
   },
   'anime-vegito-blue': {
     accent: '#00bfff',
@@ -84,6 +85,7 @@ const THEME_SHELLS = {
     bg: '#03080f',
     surface: 'rgba(0,0,0,.55)',
     border: 'rgba(0,191,255,.25)',
+    bgImage: './Img/vegito-blue-bg.jpg',
   },
   'anime-serenity': {
     accent: '#c9a0dc',
@@ -100,6 +102,7 @@ const THEME_SHELLS = {
     bg: '#050a12',
     surface: 'rgba(0,0,0,.58)',
     border: 'rgba(74,166,255,.18)',
+    bgImage: './Img/last-rite-bg.webp',
   },
   'anime-zhuang': {
     accent: '#00cc55',
