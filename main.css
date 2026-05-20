@@ -1685,6 +1685,14 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 
 [data-theme-id="anime-vegito-ssj"] body {
   background-color: #070507 !important;
+  background-image:
+    linear-gradient(rgba(7,5,7,.46), rgba(7,5,7,.62)),
+    url('./Img/vegito-ssj-bg.jpg') !important;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+  background-blend-mode: normal !important;
 }
 [data-theme-id="anime-vegito-ssj"] .header,
 [data-theme-id="anime-vegito-ssj"] .sidebar {
@@ -1711,6 +1719,14 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 
 [data-theme-id="anime-vegito-blue"] body {
   background-color: #03080d !important;
+  background-image:
+    linear-gradient(rgba(3,8,13,.42), rgba(3,8,13,.62)),
+    url('./Img/vegito-blue-bg.jpg') !important;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+  background-blend-mode: normal !important;
 }
 [data-theme-id="anime-vegito-blue"] .header,
 [data-theme-id="anime-vegito-blue"] .sidebar {
@@ -1754,6 +1770,14 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 
 [data-theme-id="anime-last-rite"] body {
   background-color: #040810 !important;
+  background-image:
+    linear-gradient(rgba(4,8,16,.40), rgba(4,8,16,.64)),
+    url('./Img/last-rite-bg.webp') !important;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+  background-blend-mode: normal !important;
 }
 [data-theme-id="anime-last-rite"] body::before {
   background: linear-gradient(180deg, rgba(0,0,0,.72), rgba(4,8,16,.84)) !important;
@@ -1798,6 +1822,14 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 
 [data-theme-id="anime-zhuang"] body {
   background-color: #050c07 !important;
+  background-image:
+    linear-gradient(rgba(5,12,7,.42), rgba(5,12,7,.64)),
+    url('./Img/zhuang-fangyi.jpg') !important;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+  background-blend-mode: normal !important;
 }
 [data-theme-id="anime-zhuang"] .header,
 [data-theme-id="anime-zhuang"] .sidebar,
