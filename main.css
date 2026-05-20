@@ -1682,11 +1682,21 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 [data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .learn-indicator-dot {
   animation: none !important;
 }
+[data-theme-id="anime-vegito-ssj"] body::before,
+[data-theme-id="anime-vegito-ssj"] body::after,
+[data-theme-id="anime-vegito-blue"] body::before,
+[data-theme-id="anime-vegito-blue"] body::after,
+[data-theme-id="anime-last-rite"] body::before,
+[data-theme-id="anime-last-rite"] body::after,
+[data-theme-id="anime-zhuang"] body::before,
+[data-theme-id="anime-zhuang"] body::after {
+  display: none !important;
+}
 
 [data-theme-id="anime-vegito-ssj"] body {
   background-color: #070507 !important;
   background-image:
-    linear-gradient(rgba(7,5,7,.46), rgba(7,5,7,.62)),
+    linear-gradient(rgba(7,5,7,.16), rgba(7,5,7,.32)),
     url('./Img/vegito-ssj-bg.jpg') !important;
   background-size: cover !important;
   background-position: center top !important;
@@ -1720,7 +1730,7 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 [data-theme-id="anime-vegito-blue"] body {
   background-color: #03080d !important;
   background-image:
-    linear-gradient(rgba(3,8,13,.42), rgba(3,8,13,.62)),
+    linear-gradient(rgba(3,8,13,.14), rgba(3,8,13,.30)),
     url('./Img/vegito-blue-bg.jpg') !important;
   background-size: cover !important;
   background-position: center top !important;
@@ -1771,7 +1781,7 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 [data-theme-id="anime-last-rite"] body {
   background-color: #040810 !important;
   background-image:
-    linear-gradient(rgba(4,8,16,.40), rgba(4,8,16,.64)),
+    linear-gradient(rgba(4,8,16,.12), rgba(4,8,16,.30)),
     url('./Img/last-rite-bg.webp') !important;
   background-size: cover !important;
   background-position: center top !important;
@@ -1780,12 +1790,10 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   background-blend-mode: normal !important;
 }
 [data-theme-id="anime-last-rite"] body::before {
-  background: linear-gradient(180deg, rgba(0,0,0,.72), rgba(4,8,16,.84)) !important;
-  filter: none !important;
+  display: none !important;
 }
 [data-theme-id="anime-last-rite"] body::after {
-  background: rgba(15,28,45,.24) !important;
-  filter: none !important;
+  display: none !important;
 }
 [data-theme-id="anime-last-rite"] .header,
 [data-theme-id="anime-last-rite"] .sidebar {
@@ -1823,7 +1831,7 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
 [data-theme-id="anime-zhuang"] body {
   background-color: #050c07 !important;
   background-image:
-    linear-gradient(rgba(5,12,7,.42), rgba(5,12,7,.64)),
+    linear-gradient(rgba(5,12,7,.14), rgba(5,12,7,.30)),
     url('./Img/zhuang-fangyi.jpg') !important;
   background-size: cover !important;
   background-position: center top !important;

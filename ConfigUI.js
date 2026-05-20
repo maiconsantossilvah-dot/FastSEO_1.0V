@@ -450,8 +450,7 @@ function applyTheme(t) {
     zhuang:   'center top',
   };
   if (_bgUrl) {
-    const _isLastRite = t.bgImage === 'lastrite';
-    const _overlay = _isLastRite ? 'linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.55)), ' : '';
+    const _overlay = 'linear-gradient(rgba(0,0,0,.16),rgba(0,0,0,.28)), ';
     document.body.style.backgroundImage    = `${_overlay}url(${_bgUrl})`;
     document.body.style.backgroundSize     = 'cover';
     document.body.style.backgroundPosition = _bgPositionMap[t.bgImage] || 'center top';
