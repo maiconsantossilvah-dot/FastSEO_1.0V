@@ -1,27 +1,47 @@
 import { Auth }         from './auth.js';
-import { AppState }     from './state.js';
 import { Categories }   from './categories.js';
 import { History }      from './history.js';
 import { Prompts }      from './prompts.js';
 import { SubcatModule } from './subcategories.js';
-import { Quota, Logs }  from './quota.js';
+import { Quota }        from './quota.js';
 import { Pipeline }     from './pipeline.js';
 
 import { SidebarUI }      from './SidebarUI.js';
-import { CategoryModal }  from './CategoryModal.js';
 import { PipelineUI }     from './PipelineUI.js';
 import { HistoryUI }      from './HistoryUI.js';
-import { PromptModal }    from './PromptModal.js';
-import { AnalyticsModal } from './AnalyticsModal.js';
-import { SubcatModal }    from './SubcatModal.js';
-import { ConfigUI, ThemeUI, ThemeModal, SidebarToggle, ConfigModal } from './ConfigUI.js';
-import { HistoryModal }     from './HistoryModal.js';
-import { ExemplosModal }    from './ExemplosModal.js';
-import { CategoriasModal }  from './CategoriasModal.js';
-import { PDFReader }        from './PDFReader.js';
 
 // ── Restaura tema imediatamente (evita flash de tema errado) ──
-ThemeUI.restore();
+let _configModulePromise = null;
+const loadConfigModule = () => _configModulePromise ||= import('./ConfigUI.js');
+
+function restoreThemeShell() {
+  try {
+    const id = localStorage.getItem('fastseo_theme') || 'dark-glass';
+    document.documentElement.setAttribute('data-theme-id', id);
+    document.documentElement.setAttribute('data-theme', id.includes('light') ? 'light' : 'dark');
+  } catch {}
+}
+
+function restoreSavedKeysLite() {
+  try {
+    const geminiKey  = localStorage.getItem('gemini_key') || '';
+    const mistralKey = localStorage.getItem('mistral_key') || '';
+    const apiKeyEl   = document.getElementById('apiKey');
+    const mistralEl  = document.getElementById('mistralKey');
+    if (geminiKey && apiKeyEl) apiKeyEl.value = geminiKey;
+    if (mistralKey && mistralEl) mistralEl.value = mistralKey;
+  } catch {}
+}
+
+function updateCharCountLite() {
+  const v  = document.getElementById('inputText')?.value || '';
+  const el = document.getElementById('charCount');
+  if (!el) return;
+  el.textContent = `${v.length.toLocaleString()} caracteres`;
+  el.className   = `char-count${v.length > 10000 ? ' warn' : ''}`;
+}
+
+restoreThemeShell();
 
 // ── Export — copia e baixa os resultados gerados ──────────────
 // CORREÇÃO: Export não estava definido em nenhum lugar do código,
@@ -104,13 +124,14 @@ function showApp(user) {
 // ── Inicialização do app (só roda uma vez após login) ─────────
 // Ponte: HistoryModal dispara evento, HistoryUI escuta
 document.addEventListener('fastseo:historyRender', () => { HistoryUI.resetPage(); HistoryUI.render(); });
-document.addEventListener('fastseo:catsChanged',    () => { CategoriasModal.onCatsChanged(); });
+document.addEventListener('fastseo:catsChanged', () => {
+  if (!document.getElementById('categoriasModalOverlay')) return;
+  import('./CategoriasModal.js').then(({ CategoriasModal }) => CategoriasModal.onCatsChanged());
+});
 
 async function init() {
-  ThemeModal.restoreDom();
-  SidebarToggle.restore();
-  ConfigUI.restoreSavedKeys();
-  ConfigUI.updateQuotaInfo();
+  restoreSavedKeysLite();
+  updateCharCountLite();
   Quota.updateUI();
   const _unsubCategories    = Categories.startSync();
   const _unsubHistory       = History.startSync();
@@ -162,12 +183,34 @@ _loginBtn?.addEventListener('click', async () => {
 document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
 
 // ── Eventos do app ────────────────────────────────────────────
-document.getElementById('themeBtn')?.addEventListener('click',       () => ThemeModal.open());
-document.getElementById('openPromptsBtn')?.addEventListener('click',  () => PromptModal.open());
-document.getElementById('openAnalyticsBtn')?.addEventListener('click',() => AnalyticsModal.open());
-document.getElementById('openSubcatBtn')?.addEventListener('click',   () => SubcatModal.open());
-document.getElementById('openConfigBtn')?.addEventListener('click',    () => ConfigModal.open());
-document.getElementById('openCategoriasBtn')?.addEventListener('click', () => CategoriasModal.open());
+document.getElementById('themeBtn')?.addEventListener('click', async () => {
+  const { ThemeModal } = await loadConfigModule();
+  ThemeModal.restoreDom();
+  ThemeModal.open();
+});
+document.getElementById('openPromptsBtn')?.addEventListener('click', async () => {
+  const { PromptModal } = await import('./PromptModal.js');
+  PromptModal.open();
+});
+document.getElementById('openAnalyticsBtn')?.addEventListener('click', async () => {
+  const { AnalyticsModal } = await import('./AnalyticsModal.js');
+  AnalyticsModal.open();
+});
+document.getElementById('openSubcatBtn')?.addEventListener('click', async () => {
+  const { SubcatModal } = await import('./SubcatModal.js');
+  SubcatModal.open();
+});
+document.getElementById('openConfigBtn')?.addEventListener('click', async () => {
+  const { ConfigModal, ConfigUI, ThemeModal } = await loadConfigModule();
+  ConfigUI.restoreSavedKeys();
+  ConfigUI.updateQuotaInfo();
+  ThemeModal.restoreDom();
+  ConfigModal.open();
+});
+document.getElementById('openCategoriasBtn')?.addEventListener('click', async () => {
+  const { CategoriasModal } = await import('./CategoriasModal.js');
+  CategoriasModal.open();
+});
 document.getElementById('resetCotaBtn')?.addEventListener('click', () => {
   Quota.reset();
   PipelineUI.log('Contador local zerado.', 'o');
@@ -185,7 +228,7 @@ function updateRunReadiness() {
 }
 
 document.getElementById('inputText')?.addEventListener('input',  () => {
-  ConfigUI.updateCharCount();
+  updateCharCountLite();
   updateRunReadiness();
 });
 
@@ -202,10 +245,16 @@ _ta?.addEventListener('drop', async e => {
   e.preventDefault();
   _ta.style.borderColor = '';
   const file = e.dataTransfer?.files?.[0];
-  if (file) await PDFReader.drop(file);
+  if (file) {
+    const { PDFReader } = await import('./PDFReader.js');
+    await PDFReader.drop(file);
+  }
 });
 document.getElementById('runBtn')?.addEventListener('click', () => Pipeline.run());
-document.getElementById('pdfBtn')?.addEventListener('click',  () => PDFReader.open());
+document.getElementById('pdfBtn')?.addEventListener('click', async () => {
+  const { PDFReader } = await import('./PDFReader.js');
+  PDFReader.open();
+});
 
 // ── Botões de exportação (CORRIGIDOS: Export agora está definido) ──
 document.getElementById('copyFichaBtn')?.addEventListener('click',    () => Export.copy('ficha'));
@@ -231,7 +280,10 @@ document.getElementById('regenConteudoBtn')?.addEventListener('click', async () 
   }
 });
 
-document.getElementById('openHistoricoBtn')?.addEventListener('click',  () => HistoryModal.open());
+document.getElementById('openHistoricoBtn')?.addEventListener('click', async () => {
+  const { HistoryModal } = await import('./HistoryModal.js');
+  HistoryModal.open();
+});
 // busca/filtro agora vivem dentro do HistoryModal
 // clearHistoricoBtn é dinâmico (dentro do modal) — usar delegação no document
 document.addEventListener('click', async e => {
