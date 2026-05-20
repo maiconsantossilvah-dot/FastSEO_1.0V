@@ -58,6 +58,16 @@ async function obterContextoSEO(inputUsuario, categoriaAtual) {
   }
 }
 
+function getPipelineMode() {
+  try { return localStorage.getItem('fastseo_pipeline_mode') || 'quality'; }
+  catch { return 'quality'; }
+}
+
+function shouldAutoRunCopywriter() {
+  try { return localStorage.getItem('fastseo_auto_a3') !== '0'; }
+  catch { return true; }
+}
+
 export const Pipeline = {
   /**
    * Ponto de entrada público.
@@ -88,9 +98,10 @@ export const Pipeline = {
       return;
     }
 
-    const geminiKey = document.getElementById('apiKey')?.value.trim() || '';
-    if (!geminiKey.startsWith('AIza') || geminiKey.length <= 20) {
-      PipelineUI.log('⚠ API Key do Gemini necessária para regenerar o Conteúdo Comercial.', 'w');
+    const geminiKey  = document.getElementById('apiKey')?.value.trim() || '';
+    const mistralKey = document.getElementById('mistralKey')?.value.trim() || '';
+    if (!(geminiKey.startsWith('AIza') && geminiKey.length > 20) && mistralKey.length <= 20) {
+      PipelineUI.log('Configure Gemini ou Mistral para gerar o Conteudo Comercial.', 'w');
       return;
     }
 
@@ -133,6 +144,7 @@ export const Pipeline = {
       AppState.pipeline.result.conteudo = conteudo;
       const outEl = document.getElementById('conteudoOut');
       if (outEl) outEl.innerText = conteudo;
+      PipelineUI.showResults(fichaText, '', conteudo, bivolt, false);
 
       // Garante que o bloco esteja visível
       const copyBlock = document.getElementById('copyBlock');
@@ -167,19 +179,22 @@ export const Pipeline = {
 
     // Verificação de cota
     const uso = Quota.getUsage(), lim = Quota.getLimit();
+    const autoA3 = shouldAutoRunCopywriter();
+    const chamadasPrevistas = autoA3 ? 3 : 2;
     if (uso.count + 2 > lim) {
       alert(`Cota diária esgotada (${uso.count}/${lim}). A cota renova à meia-noite.`);
       trackCotaAtingida(); // Analytics: registra cota atingida
       return;
     }
-    if (uso.count + 3 > lim) {
-      PipelineUI.log(`⚠ Atenção: cota baixa (${uso.count}/${lim}) — A3 pode não ter cota suficiente.`, 'w');
+    if (uso.count + chamadasPrevistas > lim) {
+      PipelineUI.log(`Cota baixa (${uso.count}/${lim}) - o conteudo comercial pode precisar ser gerado depois.`, 'w');
     }
 
     // ── Metadados para Analytics ─────────────────────────────────────────────
     const modeloAtual    = document.getElementById('modelSel')?.value || 'gemini-2.5-flash-lite';
     const mistralOk      = mistralKey.length > 20;
     const categoriaAtual = AppState.categoriaAtiva?.nome || '';
+    const pipelineMode   = getPipelineMode();
 
     // Analytics: pipeline iniciado
     trackPipelineIniciado({
@@ -208,8 +223,9 @@ export const Pipeline = {
       const matched   = Utils.matchCategories(input, Categories.getAll());
       const unmatched = allCats.filter(c => !matched.includes(c));
 
-      PipelineUI.log(`Modelo Gemini: ${modeloAtual}${mistralOk ? ' · Mistral (A1)' : ''}`, 'i');
+      PipelineUI.log(`Modo: ${pipelineMode === 'quality' ? 'Qualidade' : pipelineMode} - Modelo Gemini: ${modeloAtual}${mistralOk ? ' · Mistral (A1)' : ''}`, 'i');
       if (mistralOk) PipelineUI.log('🔀 Modo mesclado: A1=Mistral · A2=Gemini · A3=Gemini', 'o');
+      if (!autoA3)   PipelineUI.log('A3 opcional: conteudo comercial ficara disponivel no botao Gerar.', 'i');
       if (bivolt)    PipelineUI.log('⚡ Modo bivolt detectado (110V + 220V)', 'o');
 
       if (allCats.length === 0) {
@@ -267,7 +283,7 @@ export const Pipeline = {
       // ── AGENTE 3 — Copywriter ────────────────────────────────────────────
       let conteudo = '';
       let etapaErro = '';
-      if (!reprovado) {
+      if (!reprovado && autoA3) {
         PipelineUI.setStep(3, 'active');
         PipelineUI.log('[A3] Gerando conteúdo comercial...', 'i');
         etapaErro = 'A3-copywriter';
@@ -277,7 +293,7 @@ export const Pipeline = {
         PipelineUI.log('[A3] Conteúdo gerado.', 'o');
       } else {
         PipelineUI.setStep(3, 'skip');
-        PipelineUI.log('[A3] Pulado.', 'w');
+        PipelineUI.log(reprovado ? '[A3] Pulado.' : '[A3] Opcional - use Gerar conteudo comercial quando precisar.', 'w');
       }
 
       // Salvar resultado no estado

@@ -101,9 +101,11 @@ export const PipelineUI = {
     if ($('bivoltBadge'))  $('bivoltBadge').style.display = bivolt ? 'inline-flex' : 'none';
     const sb = $('statusBadge');
     if (sb) { sb.textContent = reprovado ? 'REPROVADO' : 'APROVADO'; sb.className = `badge ${reprovado ? 'badge-fail' : 'badge-ok'}`; }
-    if (conteudo && $('conteudoOut') && $('copyBlock')) {
-      $('conteudoOut').textContent = conteudo;
+    if (!reprovado && $('conteudoOut') && $('copyBlock')) {
+      $('conteudoOut').textContent = conteudo || 'Conteudo comercial ainda nao gerado.';
       $('copyBlock').style.display = 'block';
+      const regenBtn = $('regenConteudoBtn');
+      if (regenBtn) regenBtn.textContent = conteudo ? 'Regenerar' : 'Gerar conteudo';
     }
     $('results')?.classList.add('vis');
   },

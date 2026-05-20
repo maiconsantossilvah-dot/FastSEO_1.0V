@@ -57,7 +57,7 @@ const Export = {
     const btnId  = which === 'ficha' ? 'copyFichaBtn' : 'copyConteudoBtn';
     const text   = document.getElementById(elId)?.innerText?.trim() || '';
 
-    if (!text) {
+    if (!text || text === 'Conteudo comercial ainda nao gerado.') {
       PipelineUI.toast('Nada para copiar ainda.', 'warn');
       PipelineUI.log('Nada para copiar — execute o pipeline primeiro.', 'w');
       return;

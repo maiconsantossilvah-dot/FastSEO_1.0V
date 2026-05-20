@@ -815,6 +815,21 @@ export const ConfigModal = {
               <div id="modelSelSlot"></div>
               <div class="hint" id="modelHint"></div>
             </div>
+            <div class="field">
+              <label>Modo de processamento</label>
+              <select id="pipelineModeSel">
+                <option value="quality">Qualidade (A1 + A2 + A3 opcional)</option>
+              </select>
+              <div class="hint">Mantem conferÃªncia separada para preservar qualidade.</div>
+            </div>
+            <div class="field">
+              <label>ConteÃºdo comercial</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-text-secondary);font-weight:500">
+                <input type="checkbox" id="autoA3Check" style="width:auto">
+                Gerar A3 automaticamente
+              </label>
+              <div class="hint">Desative para economizar 1 chamada por ficha e gerar depois pelo botÃ£o.</div>
+            </div>
           </div>
 
           <div class="config-section-divider">
@@ -925,6 +940,12 @@ export const ConfigModal = {
     const modelEl = document.getElementById('modelSel');
     const hintEl  = document.getElementById('modelHint');
     if (modelEl && hintEl) hintEl.textContent = hints[modelEl.value] || '';
+    const pipelineModeEl = document.getElementById('pipelineModeSel');
+    const autoA3El = document.getElementById('autoA3Check');
+    try {
+      if (pipelineModeEl) pipelineModeEl.value = localStorage.getItem('fastseo_pipeline_mode') || 'quality';
+      if (autoA3El) autoA3El.checked = localStorage.getItem('fastseo_auto_a3') !== '0';
+    } catch {}
 
     // Listeners
     document.getElementById('apiKey')?.addEventListener('input',     () => { ConfigUI.validateGeminiKey();  this._showSaved(); });
@@ -932,6 +953,14 @@ export const ConfigModal = {
     document.getElementById('modelSel')?.addEventListener('change',  () => {
       ConfigUI.updateQuotaInfo();
       if (hintEl) hintEl.textContent = hints[modelEl?.value] || '';
+      this._showSaved();
+    });
+    pipelineModeEl?.addEventListener('change', () => {
+      try { localStorage.setItem('fastseo_pipeline_mode', pipelineModeEl.value || 'quality'); } catch {}
+      this._showSaved();
+    });
+    autoA3El?.addEventListener('change', () => {
+      try { localStorage.setItem('fastseo_auto_a3', autoA3El.checked ? '1' : '0'); } catch {}
       this._showSaved();
     });
 
