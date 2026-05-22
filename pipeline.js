@@ -1,22 +1,22 @@
 /**
  * modules/pipeline.js
- * ────────────────────
+ * -----------------------------------------------------------------------------
  * Orquestra o fluxo de 3 agentes:
- *   1. Formatador (A1 → Mistral)
- *   2. Conferente/QA (A2 → Gemini)
- *   3. Copywriter (A3 → Gemini)
+ *   1. Formatador (A1 -> Mistral)
+ *   2. Conferente/QA (A2 -> Gemini)
+ *   3. Copywriter (A3 -> Gemini)
  *
  * Depende de:
- *   services/api.js         → callAgent()
- *   module./prompts.js      → Prompts.get()
- *   module./categories.js   → Categories.getAll()
- *   module./quota.js        → Quota
- *   module./history.js      → History.save()
- *   module./quota.js        → Logs.save()
- *   utils/index.js          → sanitize, detectBivolt, …
+ *   services/api.js         -> callAgent()
+ *   module./prompts.js      -> Prompts.get()
+ *   module./categories.js   -> Categories.getAll()
+ *   module./quota.js        -> Quota
+ *   module./history.js      -> History.save()
+ *   module./quota.js        -> Logs.save()
+ *   utils/index.js          -> sanitize, detectBivolt, ...
  *   components/PipelineUI.js
- *   services/serp.js        → buscarKeywords, montarContextoSEO, hasSerpApiKey
- *   services/analytics.js   → track*
+ *   services/serp.js        -> buscarKeywords, montarContextoSEO, hasSerpApiKey
+ *   services/analytics.js   -> track*
  */
 
 import { callAgent }    from './api.js';
@@ -29,7 +29,7 @@ import { Utils }        from './index.js';
 import { PipelineUI }   from './PipelineUI.js';
 import { AppState }     from './state.js';
 
-// ── Imports adicionados: SerpAPI + Analytics ──────────────────────────────────
+// Imports adicionados: SerpAPI + Analytics
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from './serp.js';
 import {
   trackPipelineIniciado,
@@ -39,9 +39,9 @@ import {
   trackRegeneracao,
 } from './analytics.js';
 
-// ─── Helper: busca keywords SEO antes de chamar os agentes ───────────────────
+// Helper: busca keywords SEO antes de chamar os agentes
 // Retorna uma string de contexto para injetar nos prompts,
-// ou '' se a chave SerpAPI não estiver configurada / ocorrer erro.
+// ou '' se a chave SerpAPI nao estiver configurada / ocorrer erro.
 async function obterContextoSEO(inputUsuario, categoriaAtual) {
   if (!hasSerpApiKey()) return '';
 
@@ -54,7 +54,7 @@ async function obterContextoSEO(inputUsuario, categoriaAtual) {
     const resultado = await buscarKeywords(query);
     return montarContextoSEO(resultado);
   } catch {
-    return ''; // falha silenciosa — não bloqueia o pipeline
+    return ''; // falha silenciosa - nao bloqueia o pipeline
   }
 }
 
@@ -70,8 +70,8 @@ function shouldAutoRunCopywriter() {
 
 export const Pipeline = {
   /**
-   * Ponto de entrada público.
-   * @param {boolean} forced - Ignora alertas de validação de input
+   * Ponto de entrada publico.
+   * @param {boolean} forced - Ignora alertas de validacao de input
    */
   async run(forced = false) {
     const inputRaw = document.getElementById('inputText')?.value || '';
@@ -83,18 +83,18 @@ export const Pipeline = {
     await this._execute(inputRaw);
   },
 
-  // ─── Reexecuta só o Agente 3 (Copywriter) ────────────────────────────────
-  // Reutiliza ficha e validação já geradas (AppState.pipeline.result),
+  // Reexecuta so o Agente 3 (Copywriter)
+  // Reutiliza ficha e validacao ja geradas (AppState.pipeline.result),
   // sem chamar A1 (Formatador) nem A2 (Conferente).
-  // Consome apenas 1 requisição de cota.
+  // Consome apenas 1 requisicao de cota.
   async rerunCopywriter() {
     const { ficha, bivolt } = AppState.pipeline.result || {};
 
-    // Fallback: lê do DOM caso o state tenha sido perdido (ex: reload parcial)
+    // Fallback: le do DOM caso o state tenha sido perdido (ex: reload parcial)
     const fichaText = ficha || document.getElementById('fichaOut')?.innerText?.trim() || '';
 
     if (!fichaText) {
-      PipelineUI.log('⚠ Execute o pipeline completo (⚡ Processar Ficha) antes de regenerar.', 'w');
+      PipelineUI.log('Atencao: execute o pipeline completo antes de regenerar.', 'w');
       return;
     }
 
@@ -105,23 +105,23 @@ export const Pipeline = {
       return;
     }
 
-    // Verificação de cota
+    // Verificacao de cota
     const uso = Quota.getUsage(), lim = Quota.getLimit();
     if (uso.count + 1 > lim) {
-      alert(`Cota diária esgotada (${uso.count}/${lim}). A cota renova à meia-noite.`);
+      alert(`Cota diaria esgotada (${uso.count}/${lim}). A cota renova a meia-noite.`);
       trackCotaAtingida(); // Analytics: registra cota atingida
       return;
     }
 
-    // Analytics: registra intenção de regeneração
+    // Analytics: registra intencao de regeneracao
     trackRegeneracao();
 
-    // Abort controller próprio para não cancelar um pipeline em andamento
+    // Abort controller proprio para nao cancelar um pipeline em andamento
     const abort  = new AbortController();
     const signal = abort.signal;
 
     PipelineUI.setStep(3, 'active');
-    PipelineUI.log('[A3] Regenerando conteúdo comercial...', 'i');
+    PipelineUI.log('[A3] Regenerando conteudo comercial...', 'i');
 
     try {
       const input      = document.getElementById('inputText')?.value || fichaText;
@@ -138,7 +138,7 @@ export const Pipeline = {
 
       Quota.add(1);
       PipelineUI.setStep(3, 'done');
-      PipelineUI.log('[A3] Conteúdo regenerado.', 'o');
+      PipelineUI.log('[A3] Conteudo regenerado.', 'o');
 
       // Atualiza state e DOM
       AppState.pipeline.result.conteudo = conteudo;
@@ -146,7 +146,7 @@ export const Pipeline = {
       if (outEl) outEl.innerText = conteudo;
       PipelineUI.showResults(fichaText, '', conteudo, bivolt, false);
 
-      // Garante que o bloco esteja visível
+      // Garante que o bloco esteja visivel
       const copyBlock = document.getElementById('copyBlock');
       if (copyBlock) copyBlock.style.display = '';
 
@@ -160,7 +160,7 @@ export const Pipeline = {
     }
   },
 
-  // ─── Execução principal ──────────────────────────────────────────────────
+  // Execucao principal
   async _execute(inputRaw) {
     const t0 = Date.now();
 
@@ -172,17 +172,17 @@ export const Pipeline = {
     if (!anyKeyOk)         { alert('Configure pelo menos uma API Key (Gemini ou Mistral) antes de continuar.'); return; }
     if (!inputRaw.trim())  { alert('Cole os dados do produto antes de processar.'); return; }
 
-    // Aborta execução anterior, se houver
+    // Aborta execucao anterior, se houver
     if (AppState.pipeline.abort) AppState.pipeline.abort.abort();
     AppState.pipeline.abort = new AbortController();
     const signal = AppState.pipeline.abort.signal;
 
-    // Verificação de cota
+    // Verificacao de cota
     const uso = Quota.getUsage(), lim = Quota.getLimit();
     const autoA3 = shouldAutoRunCopywriter();
     const chamadasPrevistas = autoA3 ? 3 : 2;
     if (uso.count + 2 > lim) {
-      alert(`Cota diária esgotada (${uso.count}/${lim}). A cota renova à meia-noite.`);
+      alert(`Cota diaria esgotada (${uso.count}/${lim}). A cota renova a meia-noite.`);
       trackCotaAtingida(); // Analytics: registra cota atingida
       return;
     }
@@ -190,7 +190,7 @@ export const Pipeline = {
       PipelineUI.log(`Cota baixa (${uso.count}/${lim}) - o conteudo comercial pode precisar ser gerado depois.`, 'w');
     }
 
-    // ── Metadados para Analytics ─────────────────────────────────────────────
+    // Metadados para Analytics
     const modeloAtual    = document.getElementById('modelSel')?.value || 'gemini-2.5-flash-lite';
     const mistralOk      = mistralKey.length > 20;
     const categoriaAtual = AppState.categoriaAtiva?.nome || '';
@@ -211,7 +211,7 @@ export const Pipeline = {
 
     try {
       const input  = Utils.sanitize(inputRaw);
-      if (!input) throw new Error('Input vazio após sanitização.');
+      if (!input) throw new Error('Input vazio apos sanitizacao.');
 
       const bivolt = Utils.detectBivolt(input);
 
@@ -223,19 +223,19 @@ export const Pipeline = {
       const matched   = Utils.matchCategories(input, Categories.getAll());
       const unmatched = allCats.filter(c => !matched.includes(c));
 
-      PipelineUI.log(`Modo: ${pipelineMode === 'quality' ? 'Qualidade' : pipelineMode} - Modelo Gemini: ${modeloAtual}${mistralOk ? ' · Mistral (A1)' : ''}`, 'i');
-      if (mistralOk) PipelineUI.log('🔀 Modo mesclado: A1=Mistral · A2=Gemini · A3=Gemini', 'o');
+      PipelineUI.log(`Modo: ${pipelineMode === 'quality' ? 'Qualidade' : pipelineMode} - Modelo Gemini: ${modeloAtual}${mistralOk ? ' - Mistral (A1)' : ''}`, 'i');
+      if (mistralOk) PipelineUI.log('Modo mesclado: A1=Mistral - A2=Gemini - A3=Gemini', 'o');
       if (!autoA3)   PipelineUI.log('A3 opcional: conteudo comercial ficara disponivel no botao Gerar.', 'i');
-      if (bivolt)    PipelineUI.log('⚡ Modo bivolt detectado (110V + 220V)', 'o');
+      if (bivolt)    PipelineUI.log('Modo bivolt detectado (110V + 220V)', 'o');
 
       if (allCats.length === 0) {
-        PipelineUI.log('📂 Nenhuma categoria configurada — processando sem exemplos', 'i');
+        PipelineUI.log('Nenhuma categoria configurada - processando sem exemplos', 'i');
       } else if (matched.length === 0) {
-        PipelineUI.log('⚠ Produto sem categoria correspondente — processando sem exemplos', 'w');
+        PipelineUI.log('Atencao: produto sem categoria correspondente - processando sem exemplos', 'w');
         this._showCategoryWarning(allCats.map(c => c.nome));
       } else {
-        PipelineUI.log(`📚 ${matched.length} categoria(s) aplicada(s): ${matched.map(c => c.nome).join(', ')}`, 'o');
-        if (unmatched.length) PipelineUI.log(`↳ Ignoradas: ${unmatched.map(c => c.nome).join(', ')}`, 'i');
+        PipelineUI.log(`${matched.length} categoria(s) aplicada(s): ${matched.map(c => c.nome).join(', ')}`, 'o');
+        if (unmatched.length) PipelineUI.log(`-> Ignoradas: ${unmatched.map(c => c.nome).join(', ')}`, 'i');
       }
 
       const fewShot    = Utils.buildFewShot(bivolt, matched);
@@ -244,13 +244,13 @@ export const Pipeline = {
 
       const subcatRule    = AppState.subcatRules.match(input);
       const subcatSnippet = AppState.subcatRules.buildSnippet(subcatRule);
-      if (subcatRule) PipelineUI.log(`📐 Padrão de título aplicado: ${subcatRule.nome}`, 'o');
+      if (subcatRule) PipelineUI.log(`Padrao de titulo aplicado: ${subcatRule.nome}`, 'o');
 
-      // ── Busca keywords SEO (invisível ao usuário, ~1-2s) ─────────────────
+      // Busca keywords SEO (invisivel ao usuario, ~1-2s)
       const contextoSEO = await obterContextoSEO(input, categoriaAtual);
-      if (contextoSEO) PipelineUI.log('🔍 Contexto SEO carregado.', 'o');
+      if (contextoSEO) PipelineUI.log('Contexto SEO carregado.', 'o');
 
-      // Monta prompts base + contexto SEO quando disponível
+      // Monta prompts base + contexto SEO quando disponivel
       const sys1Base = Prompts.get(bivolt ? 'P1B' : 'P1') + fewShot + subcatSnippet;
       const sys2Base = Prompts.get(bivolt ? 'P2B' : 'P2');
       const sys3Base = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
@@ -259,7 +259,7 @@ export const Pipeline = {
       const sys2 = contextoSEO ? `${sys2Base}\n\n${contextoSEO}` : sys2Base;
       const sys3 = contextoSEO ? `${sys3Base}\n\n${contextoSEO}` : sys3Base;
 
-      // ── AGENTE 1 — Formatador ────────────────────────────────────────────
+      // AGENTE 1 - Formatador
       PipelineUI.setStep(1, 'active');
       PipelineUI.log(`[A1] Formatando ficha${bivolt ? ' bivolt' : ''}...`, 'i');
       const ficha = await callAgent(sys1, `Dados do produto:\n${input}`, tok1, signal, 1);
@@ -267,7 +267,7 @@ export const Pipeline = {
       PipelineUI.setStep(1, 'done');
       PipelineUI.log('[A1] Ficha formatada.', 'o');
 
-      // ── AGENTE 2 — Conferente/QA ─────────────────────────────────────────
+      // AGENTE 2 - Conferente/QA
       PipelineUI.setStep(2, 'active');
       PipelineUI.log('[A2] Conferindo dados...', 'i');
       const validacao = await callAgent(
@@ -280,17 +280,17 @@ export const Pipeline = {
       PipelineUI.setStep(2, reprovado ? 'error' : 'done');
       PipelineUI.log(`[A2] ${reprovado ? 'REPROVADO' : 'APROVADO'}`, reprovado ? 'w' : 'o');
 
-      // ── AGENTE 3 — Copywriter ────────────────────────────────────────────
+      // AGENTE 3 - Copywriter
       let conteudo = '';
       let etapaErro = '';
       if (!reprovado && autoA3) {
         PipelineUI.setStep(3, 'active');
-        PipelineUI.log('[A3] Gerando conteúdo comercial...', 'i');
+        PipelineUI.log('[A3] Gerando conteudo comercial...', 'i');
         etapaErro = 'A3-copywriter';
         conteudo = await callAgent(sys3, ficha, 800, signal, 3);
         Quota.add(1);
         PipelineUI.setStep(3, 'done');
-        PipelineUI.log('[A3] Conteúdo gerado.', 'o');
+        PipelineUI.log('[A3] Conteudo gerado.', 'o');
       } else {
         PipelineUI.setStep(3, 'skip');
         PipelineUI.log(reprovado ? '[A3] Pulado.' : '[A3] Opcional - use Gerar conteudo comercial quando precisar.', 'w');
@@ -299,9 +299,9 @@ export const Pipeline = {
       // Salvar resultado no estado
       AppState.pipeline.result = { ficha, validacao, conteudo, bivolt, reprovado };
       PipelineUI.showResults(ficha, validacao, conteudo, bivolt, reprovado);
-      PipelineUI.log('Pipeline concluído.', 'o');
+      PipelineUI.log('Pipeline concluido.', 'o');
 
-      // Analytics: pipeline concluído com sucesso
+      // Analytics: pipeline concluido com sucesso
       trackPipelineConcluido({
         modelo:    modeloAtual,
         duracaoMs: Date.now() - t0,
@@ -310,7 +310,7 @@ export const Pipeline = {
         reprovado: !!reprovado,
       });
 
-      // Persistência (Firestore + localStorage como cache local)
+      // Persistencia (Firestore + localStorage como cache local)
       const preview = (document.getElementById('inputText')?.value || '').slice(0, 100).trim();
       await History.save({ preview, ficha, conteudo, bivolt });
       await Logs.save({
@@ -350,7 +350,7 @@ export const Pipeline = {
     }
   },
 
-  // ─── Flush do editor aberto antes de processar ───────────────────────────
+  // Flush do editor aberto antes de processar
   _flushOpenEditor() {
     const { active, editorOpen, saveTimer } = AppState.categories;
     if (saveTimer) { clearTimeout(saveTimer); AppState.categories.saveTimer = null; }
@@ -371,7 +371,7 @@ export const Pipeline = {
     }
   },
 
-  // ─── UI helpers ──────────────────────────────────────────────────────────
+  // UI helpers
   _showInputAlerts(alerts) {
     document.getElementById('inputAlertBox')?.remove();
     const box = document.createElement('div');
@@ -394,13 +394,13 @@ export const Pipeline = {
     toast.id = 'catToast';
     toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--color-surface);border:1px solid var(--color-warn);border-radius:10px;padding:14px 18px;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:13px;color:var(--color-text-secondary);line-height:1.6;animation:slideIn .25s ease;';
     toast.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px">
-      <span style="font-size:18px;flex-shrink:0">⚠️</span>
+      <span style="font-size:18px;flex-shrink:0">Atencao</span>
       <div>
         <strong style="color:var(--color-warn);display:block;margin-bottom:4px">Produto sem categoria correspondente</strong>
         Nenhuma categoria (${names.map(n => `<em>${Utils.escHtml(n)}</em>`).join(', ')}) foi identificada.
-        O pipeline continua <strong>sem exemplos de referência</strong>.
+        O pipeline continua <strong>sem exemplos de referencia</strong>.
       </div>
-      <button id="catToastClose" style="background:none;border:none;color:var(--color-text-muted);cursor:pointer;font-size:16px;flex-shrink:0;padding:0 0 0 6px">✕</button>
+      <button id="catToastClose" style="background:none;border:none;color:var(--color-text-muted);cursor:pointer;font-size:16px;flex-shrink:0;padding:0 0 0 6px">x</button>
     </div>`;
     document.body.appendChild(toast);
     toast.querySelector('#catToastClose').addEventListener('click', () => toast.remove());

@@ -1,13 +1,13 @@
-/**
+﻿/**
  * utils/index.js
- * ───────────────
- * Funções utilitárias puras (sem efeitos colaterais nem dependências de módulos do app).
+ * ---------------
+ * Funcoes utilitarias puras (sem efeitos colaterais nem dependencias de modulos do app).
  */
 
 import { APP_CONFIG } from './config.js';
 
 export const Utils = {
-  // ─── Segurança / sanitização ───────────────────────────────
+  // Seguranca / sanitizacao
   escHtml(s) {
     return String(s)
       .replace(/&/g, '&amp;')
@@ -24,46 +24,46 @@ export const Utils = {
       .replace(/ {3,}/g, '  ')
       .trim();
     if (t.length > APP_CONFIG.inputMaxChars) {
-      // PipelineUI.log é importado circularmente; usa console para evitar ciclo
+      // PipelineUI.log e importado circularmente; usa console para evitar ciclo
       console.warn(`Input truncado para ${APP_CONFIG.inputMaxChars} caracteres.`);
       t = t.slice(0, APP_CONFIG.inputMaxChars);
     }
     return t;
   },
 
-  // ─── Detecção de bivolt ────────────────────────────────────
+  // Deteccao de bivolt
   detectBivolt(text) {
     return /(?<!\d)(110|127)\s*[vV](?!\d)/.test(text)
         && /(?<!\d)(220|240)\s*[vV](?!\d)/.test(text);
   },
 
-  // ─── Validação de input ────────────────────────────────────
+  // Validacao de input
   validateInput(text) {
     const alerts = [];
     if (text.length < 80)
-      alerts.push('⚠ Input muito curto — verifique se os dados foram colados corretamente.');
+      alerts.push('Atencao: input muito curto - verifique se os dados foram colados corretamente.');
     if (!/\d/.test(text))
-      alerts.push('⚠ Nenhum dado numérico encontrado — fichas técnicas geralmente têm códigos ou medidas.');
+      alerts.push('Atencao: nenhum dado numerico encontrado - fichas tecnicas geralmente tem codigos ou medidas.');
     if (text.split('\n').filter(l => l.trim()).length < 3)
-      alerts.push('⚠ Poucas linhas de dados — o conteúdo pode estar incompleto.');
+      alerts.push('Atencao: poucas linhas de dados - o conteudo pode estar incompleto.');
     return alerts;
   },
 
-  // ─── Few-shot builder ──────────────────────────────────────
+  // Few-shot builder
   buildFewShot(bivolt, cats) {
     const MAX_CHARS   = 6000;
     const validCats   = (cats || []).filter(c => c.ficha || c.campos || c.copy);
     if (!validCats.length) return '';
 
-    const header = '\n\n── EXEMPLOS E PADRÕES DA EMPRESA ──\nUse os exemplos abaixo como referência de formato, campos prioritários e tom. Adapte ao produto atual.\n\n';
+    const header = '\n\n-- EXEMPLOS E PADROES DA EMPRESA --\nUse os exemplos abaixo como referencia de formato, campos prioritarios e tom. Adapte ao produto atual.\n\n';
     let bloco = header, len = 0;
     const limit = MAX_CHARS - header.length;
 
     for (const cat of validCats) {
       let parte = `=== CATEGORIA: ${cat.nome} ===\n`;
-      if (cat.campos) parte += `Campos prioritários:\n${cat.campos}\n\n`;
+      if (cat.campos) parte += `Campos prioritarios:\n${cat.campos}\n\n`;
       if (cat.ficha)  parte += `Exemplo de ficha ideal:\n${cat.ficha}\n\n`;
-      if (cat.copy && !bivolt) parte += `Exemplo de conteúdo comercial:\n${cat.copy}\n\n`;
+      if (cat.copy && !bivolt) parte += `Exemplo de conteudo comercial:\n${cat.copy}\n\n`;
       parte += '---\n';
       if (len + parte.length > limit) {
         bloco += '(demais categorias omitidas por limite de tamanho)\n';
@@ -75,75 +75,92 @@ export const Utils = {
     return bloco;
   },
 
-  // ─── Matching de categorias ────────────────────────────────
+  // Matching de categorias
   /**
-   * Determina se o input é SOBRE esta categoria.
+   * Determina se o input e SOBRE esta categoria.
    *
    * Regras:
-   *  1. Encontra a "linha âncora" — a primeira linha que parece ser
-   *     o nome/título do produto, pulando linhas de código, EAN,
+   *  1. Encontra a "linha ancora" - a primeira linha que parece ser
+   *     o nome/titulo do produto, pulando linhas de codigo, EAN,
    *     fornecedor, marca isolada, etc.
    *  2. O nome da categoria deve aparecer nas primeiras (N+1) palavras
-   *     da âncora (N = palavras do nome), com tolerância de 1 qualificador.
-   *  3. Não pode ser precedido por preposição.
-   *  4. Quando duas categorias batem e uma é prefixo da outra,
-   *     mantém apenas a mais específica.
+   *     da ancora (N = palavras do nome), com tolerancia de 1 qualificador.
+   *  3. Nao pode ser precedido por preposicao.
+   *  4. Quando duas categorias batem e uma e prefixo da outra,
+   *     mantem apenas a mais especifica.
    */
   matchCategories(input, allCats = []) {
     const validCats = allCats.filter(c => c.ficha || c.campos || c.copy);
 
-    const norm = s => s
+    const norm = s => String(s || '')
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[-\/]/g, ' ')
+      .replace(/[-/]/g, ' ')
+      .replace(/[^a-z0-9\s]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
 
-    const reEscape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const PREPOS   = /\b(de|do|da|dos|das|para|com|por|em|no|na|nos|nas|e)\s+$/i;
-    const STOP_INI = /^(o|a|os|as|um|uma|uns|umas|novo|nova)\s+/i;
+    const stopWords = new Set(['o','a','os','as','um','uma','uns','umas','de','do','da','dos','das','para','com','por','em','no','na','nos','nas','e']);
+    const tokenize = s => norm(s).split(' ').filter(t => t && !stopWords.has(t));
+    const hasAllTokens = (tokens, wanted) => wanted.every(t => tokens.includes(t));
+    const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const hasPhrase = (text, phrase) => new RegExp(`(?:^|\\s)${escapeRe(phrase)}(?:\\s|$)`).test(text);
 
-    // Detecta linhas que NÃO são o título do produto:
-    // - maioria dos chars são dígitos (códigos, EAN, referências)
-    // - contém palavras-chave de metadado como EAN, NCM, GTIN
-    // - são labels de campo: "Fornecedor:", "Marca:", "Ref:", etc.
-    const isLinhaRuido = l => {
-      const semEsp = l.replace(/\s/g, '');
-      if (!semEsp.length) return true;
-      if ((semEsp.match(/\d/g) || []).length / semEsp.length > 0.5) return true;
-      if (/\bean\b|\bncm\b|\bgtin\b/i.test(l)) return true;
-      if (/^\s*(fornecedor|marca|ref|cod|codigo|cód|fabricante|modelo|origem)\s*:/i.test(l)) return true;
+    const isLinhaRuido = line => {
+      const semEspaco = line.replace(/\s/g, '');
+      if (!semEspaco.length) return true;
+      if ((semEspaco.match(/\d/g) || []).length / semEspaco.length > 0.5) return true;
+      if (/\b(ean|ncm|gtin|sku)\b/i.test(line)) return true;
+      if (/^\s*(fornecedor|marca|ref|cod|codigo|cod\.|fabricante|modelo|origem)\s*:/i.test(norm(line))) return true;
       return false;
     };
 
-    // Encontra a primeira linha que parece ser o nome do produto,
-    // pulando linhas de código, EAN, metadados de fornecedor, etc.
-    // Busca nas primeiras 6 linhas para cobrir formatos variados de fornecedor.
-    const linhas = input.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 6);
-    const linhaAncora = linhas.find(l => !isLinhaRuido(l) && l.replace(/\d/g, '').trim().length >= 4) || linhas[0] || '';
+    const linhas = input.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 10);
+    const linhasUteis = linhas.filter(l => !isLinhaRuido(l) && l.replace(/\d/g, '').trim().length >= 4);
+    const textoTitulo = norm(linhasUteis.slice(0, 3).join(' ') || linhas[0] || '');
+    const textoGeral = norm(input).slice(0, 1200);
+    const tokensTitulo = tokenize(textoTitulo);
+    const tokensGeral = tokenize(textoGeral);
 
-    const ancoraNorm  = norm(linhaAncora).slice(0, 150).replace(STOP_INI, '');
-    const palavrasAnc = ancoraNorm.split(/\s+/);
+    const scored = validCats.map(cat => {
+      const nome = norm(cat.nome);
+      const catTokens = tokenize(cat.nome);
+      if (!nome || !catTokens.length) return null;
 
-    const candidatos = validCats.filter(cat => {
-      const nome  = norm(cat.nome);
-      const pNome = nome.split(/\s+/);
-      const janela = palavrasAnc.slice(0, pNome.length + 1).join(' ');
-      const re = new RegExp('(?<![\\w])' + reEscape(nome) + '(?![\\w])');
-      if (!re.test(janela)) return false;
-      const idx = janela.search(re);
-      if (idx > 0 && PREPOS.test(janela.slice(0, idx))) return false;
-      return true;
-    });
+      const titleHits = catTokens.filter(t => tokensTitulo.includes(t)).length;
+      const geralHits = catTokens.filter(t => tokensGeral.includes(t)).length;
+      const titleRatio = titleHits / catTokens.length;
+      const geralRatio = geralHits / catTokens.length;
+      const exactTitle = hasPhrase(textoTitulo, nome);
+      const exactGeral = hasPhrase(textoGeral, nome);
 
-    // Remove menos específicos quando um mais específico já cobre o prefixo
-    return candidatos.filter(cat => {
-      const nN = norm(cat.nome);
-      return !candidatos.some(o => o !== cat && norm(o.nome).startsWith(nN + ' '));
-    });
+      let score = 0;
+      if (exactTitle) score += 80;
+      else if (hasAllTokens(tokensTitulo, catTokens)) score += 58;
+      else if (catTokens.length > 1 && titleRatio >= 0.75) score += 36;
+
+      if (exactGeral) score += 28;
+      else if (hasAllTokens(tokensGeral, catTokens)) score += 18;
+      else if (catTokens.length > 1 && geralRatio >= 0.75) score += 10;
+
+      score += Math.min(catTokens.length, 6) * 4;
+
+      if (catTokens.length === 1 && !exactTitle && !tokensTitulo.includes(catTokens[0])) score = 0;
+      if (score < 34) return null;
+      return { cat, score, tokens: catTokens };
+    }).filter(Boolean);
+
+    return scored
+      .filter(item => !scored.some(other =>
+        other !== item &&
+        other.score >= item.score - 35 &&
+        other.tokens.length > item.tokens.length &&
+        item.tokens.every(t => other.tokens.includes(t))
+      ))
+      .sort((a, b) => b.score - a.score || b.tokens.length - a.tokens.length)
+      .map(item => item.cat);
   },
 
-  // ─── Toast helper ──────────────────────────────────────────
   showToast(msg, color = '#059669') {
     const t = document.createElement('div');
     t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:700;background:${color};color:#fff;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:fadeIn .2s ease;font-family:var(--font-body);white-space:nowrap;`;
@@ -152,7 +169,7 @@ export const Utils = {
     setTimeout(() => t.remove(), 2000);
   },
 
-  // ─── Clipboard ────────────────────────────────────────────
+  // Clipboard
   async copyToClipboard(text) {
     try {
       await navigator.clipboard.writeText(text);
@@ -170,3 +187,4 @@ export const Utils = {
     }
   },
 };
+
