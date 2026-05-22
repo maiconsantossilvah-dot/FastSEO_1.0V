@@ -73,14 +73,21 @@ function isNoiseLine(line) {
   const semEspaco = line.replace(/\s/g, '');
   const digitRatio = semEspaco ? (semEspaco.match(/\d/g) || []).length / semEspaco.length : 0;
   return !semEspaco.length ||
+    /^[=\-_*]{4,}$/.test(semEspaco) ||
     digitRatio > 0.5 ||
     /\b(ean|ncm|gtin|sku)\b/i.test(line) ||
     /^\s*(fornecedor|marca|ref|cod|codigo|cod\.|fabricante|modelo|origem)\s*:/i.test(normalizeText(line));
 }
 
+function cleanTitleLine(line) {
+  return String(line || '').replace(/^\s*(descricao|descri[cç][aã]o|produto|nome do produto)\s*:\s*/i, '').trim();
+}
+
 function getInputParts(input) {
   const linhas = String(input || '').split('\n').map(l => l.trim()).filter(Boolean).slice(0, 10);
-  const linhasUteis = linhas.filter(l => !isNoiseLine(l) && l.replace(/\d/g, '').trim().length >= 4);
+  const linhasUteis = linhas
+    .filter(l => !isNoiseLine(l) && l.replace(/\d/g, '').trim().length >= 4)
+    .map(cleanTitleLine);
   const tituloRaw = linhasUteis.slice(0, 3).join(' ') || linhas[0] || '';
   const titulo = normalizeText(tituloRaw);
   const geral = normalizeText(input).slice(0, 1200);
@@ -98,7 +105,7 @@ function getInputParts(input) {
   };
 }
 
-function buildCandidateFacts(parts, name) {
+function buildCandidateFacts(parts, name, options) {
   const key = normalizeText(name);
   const tokens = tokenize(name);
   if (!key || !tokens.length) return null;
@@ -131,9 +138,9 @@ function buildCandidateFacts(parts, name) {
     exactTitle: hasPhrase(parts.titulo, key) && !contextOnly,
     allTitle: hasAllTokens(parts.tokensTitulo, tokens),
     strongTitle: tokens.length > 1 && titleRatio >= 0.75 && !contextOnly,
-    exactGeneral: hasPhrase(parts.geral, key) && !contextOnly,
-    allGeneral: hasAllTokens(parts.tokensGeral, tokens) && !contextOnly,
-    strongGeneral: tokens.length > 1 && geralRatio >= 0.75 && !contextOnly,
+    exactGeneral: options.allowGeneralFallback && hasPhrase(parts.geral, key) && !contextOnly,
+    allGeneral: options.allowGeneralFallback && hasAllTokens(parts.tokensGeral, tokens) && !contextOnly,
+    strongGeneral: options.allowGeneralFallback && tokens.length > 1 && geralRatio >= 0.75 && !contextOnly,
     contextScore: (exactContext ? 18 : 10) + Math.min(tokens.length, 6) * 2,
     singleTokenOutsidePrimary: tokens.length === 1 && !exactPrimary && !parts.tokensPrincipal.includes(tokens[0]),
   };
@@ -164,11 +171,12 @@ function removeGenericMatches(candidates) {
   ));
 }
 
-export function rankMatches(input, items, getName = item => item.nome) {
+export function rankMatches(input, items, getName = item => item.nome, options = {}) {
+  const config = { allowGeneralFallback: true, ...options };
   const parts = getInputParts(input);
   const scored = items
     .map(item => {
-      const facts = buildCandidateFacts(parts, getName(item));
+      const facts = buildCandidateFacts(parts, getName(item), config);
       if (!facts) return null;
       const score = scoreCandidate(facts);
       return score >= 34 ? { item, score, ...facts, primaryScore: facts.primaryScore ? score : 0 } : null;
@@ -179,6 +187,6 @@ export function rankMatches(input, items, getName = item => item.nome) {
     .sort((a, b) => b.score - a.score || b.tokens.length - a.tokens.length);
 }
 
-export function bestMatch(input, items, getName = item => item.nome) {
-  return rankMatches(input, items, getName)[0]?.item || null;
+export function bestMatch(input, items, getName = item => item.nome, options = {}) {
+  return rankMatches(input, items, getName, options)[0]?.item || null;
 }
