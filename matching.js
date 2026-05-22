@@ -172,7 +172,8 @@ function removeGenericMatches(candidates) {
 }
 
 export function rankMatches(input, items, getName = item => item.nome, options = {}) {
-  const config = { allowGeneralFallback: true, ...options };
+  const config = { allowGeneralFallback: true, scope: 'full', ...options };
+  if (config.scope === 'title') config.allowGeneralFallback = false;
   const parts = getInputParts(input);
   const scored = items
     .map(item => {

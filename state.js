@@ -32,7 +32,7 @@ export const AppState = {
     },
     setRules(rules) { this._rules = rules; },
     match(input) {
-      return bestMatch(input, this._rules, item => item.nome, { allowGeneralFallback: false });
+      return bestMatch(input, this._rules, item => item.nome, { scope: 'title' });
     },
     buildSnippet(rule) {
       if (!rule) return '';

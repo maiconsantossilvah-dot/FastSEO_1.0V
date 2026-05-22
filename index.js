@@ -84,7 +84,7 @@ export const Utils = {
    */
   matchCategories(input, allCats = []) {
     const validCats = allCats.filter(c => c.ficha || c.campos || c.copy);
-    return rankMatches(input, validCats).map(match => match.item);
+    return rankMatches(input, validCats, item => item.nome, { scope: 'title' }).map(match => match.item);
   },
 
   showToast(msg, color = '#059669') {
