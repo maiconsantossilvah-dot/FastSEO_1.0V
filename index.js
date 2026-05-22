@@ -5,6 +5,7 @@
  */
 
 import { APP_CONFIG } from './config.js';
+import { rankMatches } from './matching.js';
 
 export const Utils = {
   // Seguranca / sanitizacao
@@ -77,88 +78,13 @@ export const Utils = {
 
   // Matching de categorias
   /**
-   * Determina se o input e SOBRE esta categoria.
-   *
-   * Regras:
-   *  1. Encontra a "linha ancora" - a primeira linha que parece ser
-   *     o nome/titulo do produto, pulando linhas de codigo, EAN,
-   *     fornecedor, marca isolada, etc.
-   *  2. O nome da categoria deve aparecer nas primeiras (N+1) palavras
-   *     da ancora (N = palavras do nome), com tolerancia de 1 qualificador.
-   *  3. Nao pode ser precedido por preposicao.
-   *  4. Quando duas categorias batem e uma e prefixo da outra,
-   *     mantem apenas a mais especifica.
+   * Pontua categorias pelo produto principal, nao pelo contexto de uso.
+   * Ex: "Tela plastica para ar condicionado" deve priorizar "Tela",
+   * enquanto "Ar Condicionado Split Philco" deve priorizar "Ar Condicionado".
    */
   matchCategories(input, allCats = []) {
     const validCats = allCats.filter(c => c.ficha || c.campos || c.copy);
-
-    const norm = s => String(s || '')
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[-/]/g, ' ')
-      .replace(/[^a-z0-9\s]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    const stopWords = new Set(['o','a','os','as','um','uma','uns','umas','de','do','da','dos','das','para','com','por','em','no','na','nos','nas','e']);
-    const tokenize = s => norm(s).split(' ').filter(t => t && !stopWords.has(t));
-    const hasAllTokens = (tokens, wanted) => wanted.every(t => tokens.includes(t));
-    const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const hasPhrase = (text, phrase) => new RegExp(`(?:^|\\s)${escapeRe(phrase)}(?:\\s|$)`).test(text);
-
-    const isLinhaRuido = line => {
-      const semEspaco = line.replace(/\s/g, '');
-      if (!semEspaco.length) return true;
-      if ((semEspaco.match(/\d/g) || []).length / semEspaco.length > 0.5) return true;
-      if (/\b(ean|ncm|gtin|sku)\b/i.test(line)) return true;
-      if (/^\s*(fornecedor|marca|ref|cod|codigo|cod\.|fabricante|modelo|origem)\s*:/i.test(norm(line))) return true;
-      return false;
-    };
-
-    const linhas = input.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 10);
-    const linhasUteis = linhas.filter(l => !isLinhaRuido(l) && l.replace(/\d/g, '').trim().length >= 4);
-    const textoTitulo = norm(linhasUteis.slice(0, 3).join(' ') || linhas[0] || '');
-    const textoGeral = norm(input).slice(0, 1200);
-    const tokensTitulo = tokenize(textoTitulo);
-    const tokensGeral = tokenize(textoGeral);
-
-    const scored = validCats.map(cat => {
-      const nome = norm(cat.nome);
-      const catTokens = tokenize(cat.nome);
-      if (!nome || !catTokens.length) return null;
-
-      const titleHits = catTokens.filter(t => tokensTitulo.includes(t)).length;
-      const geralHits = catTokens.filter(t => tokensGeral.includes(t)).length;
-      const titleRatio = titleHits / catTokens.length;
-      const geralRatio = geralHits / catTokens.length;
-      const exactTitle = hasPhrase(textoTitulo, nome);
-      const exactGeral = hasPhrase(textoGeral, nome);
-
-      let score = 0;
-      if (exactTitle) score += 80;
-      else if (hasAllTokens(tokensTitulo, catTokens)) score += 58;
-      else if (catTokens.length > 1 && titleRatio >= 0.75) score += 36;
-
-      if (exactGeral) score += 28;
-      else if (hasAllTokens(tokensGeral, catTokens)) score += 18;
-      else if (catTokens.length > 1 && geralRatio >= 0.75) score += 10;
-
-      score += Math.min(catTokens.length, 6) * 4;
-
-      if (catTokens.length === 1 && !exactTitle && !tokensTitulo.includes(catTokens[0])) score = 0;
-      if (score < 34) return null;
-      return { cat, score, tokens: catTokens };
-    }).filter(Boolean);
-
-    return scored
-      .filter(item => !scored.some(other =>
-        other !== item &&
-        other.score >= item.score - 35 &&
-        other.tokens.length > item.tokens.length &&
-        item.tokens.every(t => other.tokens.includes(t))
-      ))
-      .sort((a, b) => b.score - a.score || b.tokens.length - a.tokens.length)
-      .map(item => item.cat);
+    return rankMatches(input, validCats).map(match => match.item);
   },
 
   showToast(msg, color = '#059669') {
