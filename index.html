@@ -219,45 +219,6 @@
         <div class="learn-indicator-dot"></div>
         <span id="learnIndicatorText">Nenhum exemplo configurado</span>
       </div>
-      <div class="sidebar-status-row">
-        <span id="statusBadge" class="badge"></span>
-        <span id="bivoltBadge" class="badge badge-bivolt" style="display:none;">BIVOLT</span>
-      </div>
-    </div>
-
-    <div class="app-sidebar-section">
-      <span class="app-sidebar-label">Etapas</span>
-      <div class="steps sidebar-steps">
-        <div class="step" id="ps1">
-          <div class="step-num">01</div>
-          <div class="step-body">
-            <div class="step-name">Formatador</div>
-            <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time" id="ps1Time"></span></div>
-          </div>
-        </div>
-        <div class="step" id="ps2">
-          <div class="step-num">02</div>
-          <div class="step-body">
-            <div class="step-name">Conferente</div>
-            <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time" id="ps2Time"></span></div>
-          </div>
-        </div>
-        <div class="step" id="ps3">
-          <div class="step-num">03</div>
-          <div class="step-body">
-            <div class="step-name">Copywriter</div>
-            <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time" id="ps3Time"></span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="app-sidebar-section">
-      <span class="app-sidebar-label">Saída</span>
-      <button class="copy-btn sidebar-action" id="copyFichaBtn" type="button">Copiar ficha</button>
-      <button class="copy-btn sidebar-action" id="exportTxtBtn" type="button">Baixar .txt</button>
-      <button class="copy-btn sidebar-action" id="copyConteudoBtn" type="button">Copiar conteúdo</button>
-      <button class="copy-btn sidebar-action" id="regenConteudoBtn" type="button" title="Gerar novamente sem reprocessar os outros agentes">Regenerar conteúdo</button>
     </div>
 
     <div class="app-sidebar-section">
@@ -351,17 +312,29 @@ Corrente nominal: 63A ..."></textarea>
           <div class="card">
             <div class="result-hdr">
               <span class="result-label">Output: ficha técnica</span>
+              <div class="result-actions">
+                <span id="bivoltBadge" class="badge badge-bivolt" style="display:none;">BIVOLT</span>
+                <button class="copy-btn" id="exportTxtBtn" type="button">Baixar .txt</button>
+                <button class="copy-btn" id="copyFichaBtn" type="button">Copiar ficha</button>
+              </div>
             </div>
             <div class="result-content" id="fichaOut"></div>
           </div>
           <div class="card">
-            <div class="result-hdr"><span class="result-label">Output: conferência</span></div>
+            <div class="result-hdr">
+              <span class="result-label">Output: conferência</span>
+              <span id="statusBadge" class="badge"></span>
+            </div>
             <div class="result-content" id="validacaoOut"></div>
           </div>
 
           <div class="card" id="copyBlock" style="display:none">
             <div class="result-hdr">
               <span class="result-label">Output: conteúdo comercial</span>
+              <div class="result-actions">
+                <button class="copy-btn" id="regenConteudoBtn" type="button" title="Gerar novamente sem reprocessar os outros agentes">Regenerar</button>
+                <button class="copy-btn" id="copyConteudoBtn" type="button">Copiar conteúdo</button>
+              </div>
             </div>
             <div class="result-content" id="conteudoOut"></div>
           </div>
@@ -373,6 +346,29 @@ Corrente nominal: 63A ..."></textarea>
           <span class="card-title">Terminal</span>
         </div>
         <div class="card-body">
+          <div class="steps workspace-steps" aria-label="Etapas do pipeline">
+            <div class="step" id="ps1">
+              <div class="step-num">01</div>
+              <div class="step-body">
+                <div class="step-name">Formatador</div>
+                <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time" id="ps1Time"></span></div>
+              </div>
+            </div>
+            <div class="step" id="ps2">
+              <div class="step-num">02</div>
+              <div class="step-body">
+                <div class="step-name">Conferente</div>
+                <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time" id="ps2Time"></span></div>
+              </div>
+            </div>
+            <div class="step" id="ps3">
+              <div class="step-num">03</div>
+              <div class="step-body">
+                <div class="step-name">Copywriter</div>
+                <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time" id="ps3Time"></span></div>
+              </div>
+            </div>
+          </div>
           <div class="log-box" id="logBox"></div>
         </div>
       </section>

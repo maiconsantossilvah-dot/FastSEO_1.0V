@@ -2590,7 +2590,7 @@ select:focus,
   padding: 16px;
   display: grid;
   grid-template-columns: minmax(360px, 500px) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) 210px;
+  grid-template-rows: minmax(0, 1fr) 250px;
   gap: 14px;
 }
 
@@ -2608,6 +2608,12 @@ select:focus,
 .workspace-card--terminal .card-body {
   min-height: 0;
   flex: 1;
+}
+
+.workspace-card--terminal .card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .workspace-card--input textarea#inputText {
@@ -2657,7 +2663,8 @@ select:focus,
 
 .workspace-card--terminal .log-box {
   display: block;
-  height: 100%;
+  flex: 1;
+  height: auto;
   min-height: 0;
   max-height: none;
   margin: 0;
@@ -2716,30 +2723,33 @@ select:focus,
   font-size: 12px;
 }
 
-.sidebar-status-row {
+.result-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 6px;
 }
 
-.sidebar-status-row .badge:empty {
+.result-actions .copy-btn {
+  min-height: 30px;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+#statusBadge:empty {
   display: none;
 }
 
-.sidebar-steps {
-  gap: 7px;
+.workspace-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
-.sidebar-steps .step {
-  min-height: 48px;
+.workspace-steps .step {
+  min-height: 52px;
   padding: 9px 10px;
-}
-
-.sidebar-action {
-  width: 100%;
-  justify-content: center;
-  min-height: 36px;
-  border-radius: 8px;
 }
 
 .sidebar-account {
@@ -2818,6 +2828,10 @@ select:focus,
   .workspace-card--terminal .log-box {
     min-height: 180px;
   }
+
+  .workspace-steps {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 760px) {
@@ -2827,5 +2841,16 @@ select:focus,
 
   .workspace-grid {
     padding: 12px;
+  }
+
+  .result-hdr {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .result-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
