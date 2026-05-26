@@ -200,7 +200,7 @@
         <span class="app-nav-index">01</span>
         <span>
           <strong>Ficha técnica</strong>
-          <small>Input, output e terminal</small>
+          <small>Input, output e agentes</small>
         </span>
       </button>
       <button id="showFaqViewBtn" class="app-nav-item" type="button">
@@ -285,19 +285,20 @@
 
   <main class="main main--workspace" id="mainContent">
     <div class="workspace-grid" id="fastseoWorkspace">
-      <section class="card workspace-card workspace-card--input">
-        <div class="card-hdr">
-          <span class="card-title">Input</span>
-          <div class="input-actions">
-            <button id="pdfBtn" class="copy-btn" type="button" title="Importar dados de um PDF de ficha técnica">Importar PDF</button>
-            <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
-              <span class="run-icon">Processar ficha</span>
-              <div class="spinner"></div>
-            </button>
+      <div class="workspace-input-stack">
+        <section class="card workspace-card workspace-card--input">
+          <div class="card-hdr">
+            <span class="card-title">Input</span>
+            <div class="input-actions">
+              <button id="pdfBtn" class="copy-btn" type="button" title="Importar dados de um PDF de ficha técnica">Importar PDF</button>
+              <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
+                <span class="run-icon">Processar ficha</span>
+                <div class="spinner"></div>
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="card-body">
-          <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor... ou arraste um PDF para cá
+          <div class="card-body">
+            <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor... ou arraste um PDF para cá
 
 Ex:
 4203900 - EAN: 7893401194859
@@ -306,8 +307,33 @@ DISJUNTOR STECK DIN 3P 63A CURVA C 3KA SDD63C63 BRANCO
 
 Marca: Steck
 Corrente nominal: 63A ..."></textarea>
+          </div>
+        </section>
+
+        <div class="steps workspace-steps" aria-label="Etapas do pipeline">
+          <div class="step" id="ps1">
+            <div class="step-num">01</div>
+            <div class="step-body">
+              <div class="step-name">Formatador</div>
+              <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time" id="ps1Time"></span></div>
+            </div>
+          </div>
+          <div class="step" id="ps2">
+            <div class="step-num">02</div>
+            <div class="step-body">
+              <div class="step-name">Conferente</div>
+              <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time" id="ps2Time"></span></div>
+            </div>
+          </div>
+          <div class="step" id="ps3">
+            <div class="step-num">03</div>
+            <div class="step-body">
+              <div class="step-name">Copywriter</div>
+              <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time" id="ps3Time"></span></div>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
 
       <section class="workspace-card workspace-card--output">
         <div class="results-placeholder" id="resultsPlaceholder">
@@ -352,38 +378,6 @@ Corrente nominal: 63A ..."></textarea>
             </div>
             <div class="result-content" id="conteudoOut"></div>
           </div>
-        </div>
-      </section>
-
-      <section class="card workspace-card workspace-card--terminal">
-        <div class="card-hdr">
-          <span class="card-title">Terminal</span>
-        </div>
-        <div class="card-body">
-          <div class="steps workspace-steps" aria-label="Etapas do pipeline">
-            <div class="step" id="ps1">
-              <div class="step-num">01</div>
-              <div class="step-body">
-                <div class="step-name">Formatador</div>
-                <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time" id="ps1Time"></span></div>
-              </div>
-            </div>
-            <div class="step" id="ps2">
-              <div class="step-num">02</div>
-              <div class="step-body">
-                <div class="step-name">Conferente</div>
-                <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time" id="ps2Time"></span></div>
-              </div>
-            </div>
-            <div class="step" id="ps3">
-              <div class="step-num">03</div>
-              <div class="step-body">
-                <div class="step-name">Copywriter</div>
-                <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time" id="ps3Time"></span></div>
-              </div>
-            </div>
-          </div>
-          <div class="log-box" id="logBox"></div>
         </div>
       </section>
     </div>
@@ -449,6 +443,7 @@ Corrente nominal: 63A ..."></textarea>
   <div id="sbContent"></div>
   <div id="sbFooter"></div>
   <button id="addCatBtn"></button>
+  <div id="logBox"></div>
 </div>
 
 <script type="module" src="src/main.js"></script>

@@ -232,7 +232,7 @@ export const Pipeline = {
         PipelineUI.log('Nenhuma categoria configurada - processando sem exemplos', 'i');
       } else if (matched.length === 0) {
         PipelineUI.log('Atencao: produto sem categoria correspondente - processando sem exemplos', 'w');
-        this._showCategoryWarning(allCats.map(c => c.nome));
+        this._showCategoryWarning();
       } else {
         PipelineUI.log(`${matched.length} categoria(s) aplicada(s): ${matched.map(c => c.nome).join(', ')}`, 'o');
         if (unmatched.length) PipelineUI.log(`-> Ignoradas: ${unmatched.map(c => c.nome).join(', ')}`, 'i');
@@ -388,17 +388,15 @@ export const Pipeline = {
     box.querySelector('#cancelAlertBtn').addEventListener('click', () => box.remove());
   },
 
-  _showCategoryWarning(names) {
+  _showCategoryWarning() {
     document.getElementById('catToast')?.remove();
     const toast = document.createElement('div');
     toast.id = 'catToast';
-    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--color-surface);border:1px solid var(--color-warn);border-radius:10px;padding:14px 18px;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:13px;color:var(--color-text-secondary);line-height:1.6;animation:slideIn .25s ease;';
+    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--color-surface);border:1px solid var(--color-warn);border-radius:10px;padding:12px 14px;max-width:300px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:13px;color:var(--color-text-secondary);line-height:1.5;animation:slideIn .25s ease;';
     toast.innerHTML = `<div style="display:flex;align-items:flex-start;gap:10px">
-      <span style="font-size:18px;flex-shrink:0">Atencao</span>
       <div>
-        <strong style="color:var(--color-warn);display:block;margin-bottom:4px">Produto sem categoria correspondente</strong>
-        Nenhuma categoria (${names.map(n => `<em>${Utils.escHtml(n)}</em>`).join(', ')}) foi identificada.
-        O pipeline continua <strong>sem exemplos de referencia</strong>.
+        <strong style="color:var(--color-warn);display:block;margin-bottom:3px">Produto sem categoria correspondente</strong>
+        Processando sem exemplos de referencia.
       </div>
       <button id="catToastClose" style="background:none;border:none;color:var(--color-text-muted);cursor:pointer;font-size:16px;flex-shrink:0;padding:0 0 0 6px">x</button>
     </div>`;

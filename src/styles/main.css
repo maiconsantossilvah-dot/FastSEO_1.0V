@@ -2565,7 +2565,7 @@ select:focus,
   }
 }
 
-/* SIMPLE WORKSPACE - input, output e terminal no centro */
+/* SIMPLE WORKSPACE - input, output e agentes no centro */
 .app-layout--simple {
   background: transparent;
 }
@@ -2594,7 +2594,6 @@ select:focus,
   padding: 16px;
   display: grid;
   grid-template-columns: minmax(360px, 500px) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) 250px;
   gap: 14px;
 }
 
@@ -2602,22 +2601,24 @@ select:focus,
   min-height: 0;
 }
 
-.workspace-card--input,
-.workspace-card--terminal {
+.workspace-input-stack,
+.workspace-card--input {
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
-.workspace-card--input .card-body,
-.workspace-card--terminal .card-body {
-  min-height: 0;
+.workspace-input-stack {
+  gap: 10px;
+}
+
+.workspace-card--input {
   flex: 1;
 }
 
-.workspace-card--terminal .card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.workspace-card--input .card-body {
+  min-height: 0;
+  flex: 1;
 }
 
 .workspace-card--input textarea#inputText {
@@ -2681,25 +2682,6 @@ select:focus,
 
 .workspace-card--output .results.vis {
   display: flex;
-}
-
-.workspace-card--terminal {
-  grid-column: 1 / -1;
-}
-
-.workspace-card--terminal .log-box {
-  display: block;
-  flex: 1;
-  height: auto;
-  min-height: 0;
-  max-height: none;
-  margin: 0;
-  background: rgba(2,6,12,.86) !important;
-}
-
-.workspace-card--terminal .log-box:empty::before {
-  content: "Terminal aguardando execução.";
-  color: rgba(205,222,245,.36);
 }
 
 .sidebar-run-panel .run-btn {
@@ -2769,12 +2751,13 @@ select:focus,
 
 .workspace-steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 8px;
+  flex: 0 0 auto;
 }
 
 .workspace-steps .step {
-  min-height: 52px;
+  min-height: 48px;
   padding: 9px 10px;
 }
 
@@ -3099,18 +3082,6 @@ select:focus,
 
   .workspace-card--output {
     overflow: visible;
-  }
-
-  .workspace-card--terminal {
-    grid-column: auto;
-  }
-
-  .workspace-card--terminal .log-box {
-    min-height: 180px;
-  }
-
-  .workspace-steps {
-    grid-template-columns: 1fr;
   }
 }
 
