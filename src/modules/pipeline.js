@@ -28,6 +28,7 @@ import { Logs }         from './quota.js';
 import { Utils }        from '../utils/index.js';
 import { PipelineUI }   from '../components/PipelineUI.js';
 import { AppState }     from './state.js';
+import { parseQAJson, formatQAReport } from './qa.js';
 
 // Imports adicionados: SerpAPI + Analytics
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -144,7 +145,7 @@ export const Pipeline = {
       AppState.pipeline.result.conteudo = conteudo;
       const outEl = document.getElementById('conteudoOut');
       if (outEl) outEl.innerText = conteudo;
-      PipelineUI.showResults(fichaText, '', conteudo, bivolt, false);
+      PipelineUI.showResults(fichaText, AppState.pipeline.result.validacao || '', conteudo, bivolt, false);
 
       // Garante que o bloco esteja visivel
       const copyBlock = document.getElementById('copyBlock');
@@ -273,12 +274,14 @@ export const Pipeline = {
       const validacao = await callAgent(
         sys2,
         `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}`,
-        400, signal, 2
+        1000, signal, 2
       );
       Quota.add(1);
-      const reprovado = validacao.toUpperCase().includes('REPROVADO');
+      const qa = parseQAJson(validacao);
+      const validacaoFormatada = formatQAReport(qa);
+      const reprovado = qa.status === 'REPROVADO';
       PipelineUI.setStep(2, reprovado ? 'error' : 'done');
-      PipelineUI.log(`[A2] ${reprovado ? 'REPROVADO' : 'APROVADO'}`, reprovado ? 'w' : 'o');
+      PipelineUI.log(`[A2] ${qa.status} - confianca ${qa.confianca}`, reprovado ? 'w' : 'o');
 
       // AGENTE 3 - Copywriter
       let conteudo = '';
@@ -297,8 +300,8 @@ export const Pipeline = {
       }
 
       // Salvar resultado no estado
-      AppState.pipeline.result = { ficha, validacao, conteudo, bivolt, reprovado };
-      PipelineUI.showResults(ficha, validacao, conteudo, bivolt, reprovado);
+      AppState.pipeline.result = { ficha, validacao: validacaoFormatada, validacaoRaw: validacao, qa, conteudo, bivolt, reprovado };
+      PipelineUI.showResults(ficha, validacaoFormatada, conteudo, bivolt, reprovado);
       PipelineUI.log('Pipeline concluido.', 'o');
 
       // Analytics: pipeline concluido com sucesso

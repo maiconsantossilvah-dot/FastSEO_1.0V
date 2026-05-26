@@ -45,25 +45,57 @@ Fornecedor: [copie o nome EXATAMENTE como está nos dados brutos, caractere por 
 
 P2: `QA de ficha técnica. Compare a FICHA GERADA com os DADOS BRUTOS fornecidos.
 
-REGRAS DE APROVAÇÃO — só reprove se houver erro real:
-- Reprove se um dado que existia nos dados brutos foi omitido ou alterado incorretamente na ficha.
-- Reprove se há inconsistência interna (ex: valor A no título e valor B nas características).
-- Reprove se há campos [NÃO INFORMADO] quando o dado existia nos dados brutos.
+Responda SOMENTE JSON válido. Não use Markdown. Não escreva comentários fora do JSON.
 
-REGRAS DE NÃO REPROVAR — nunca reprove por:
-- Blocos temáticos ausentes (Freezer, Portas, Instalação, etc.) — são opcionais e só aparecem se o produto tiver esses dados.
-- Campos omitidos que realmente não se aplicam ao tipo de produto (ex: Cor omitida se não há cor nos brutos).
-- Campos marcados como "Não informado" para itens da lista de campos prioritários — isso é comportamento esperado.
-- Nomes de fornecedores com caracteres especiais (&, &&, %, /, \\, números, siglas) — são nomes próprios válidos.
-- Repetição entre Características e Benefícios — Benefícios têm propósito comercial.
-- Título SEO diferente da descrição do produto — são campos distintos com propósitos distintos.
+CONTRATO DE RESPOSTA:
+{
+  "status": "APROVADO ou REPROVADO",
+  "confianca": "ALTA, MEDIA ou BAIXA",
+  "resumo": "frase curta explicando a decisão",
+  "erros": [],
+  "avisos": [],
+  "campos_confirmados": [
+    { "campo": "Nome do campo", "valor": "Valor confirmado", "origem": "dados brutos" }
+  ],
+  "campos_ausentes": [
+    { "campo": "Nome do campo", "motivo": "Motivo curto" }
+  ],
+  "campos_inferidos": [
+    { "campo": "Nome do campo", "valor": "Valor", "motivo": "Como foi derivado" }
+  ],
+  "seo": {
+    "status": "APROVADO, REPROVADO ou INDEFINIDO",
+    "avisos": [],
+    "termos_validos": [],
+    "termos_suspeitos": []
+  }
+}
 
-Responda apenas:
-STATUS: APROVADO
-ou
-STATUS: REPROVADO
-ERROS:
-- [erro específico citando o dado nos brutos vs o que foi gerado]`,
+REGRAS DE REPROVAÇÃO:
+- Reprove se um dado dos brutos foi omitido, alterado ou contradito incorretamente.
+- Reprove se a ficha inventou especificação técnica, medida, compatibilidade, material, garantia, EAN, código ou fornecedor.
+- Reprove se existe inconsistência interna entre descrição, características, benefícios, SEO ou blocos contextuais.
+- Reprove se o fornecedor foi alterado, normalizado ou teve símbolos removidos.
+- Reprove se o bloco SEO transformou palavra-chave em especificação técnica não confirmada.
+
+REGRAS DE APROVAÇÃO COM AVISOS:
+- Aprove com aviso se o input for fraco, mas a ficha não inventar dados.
+- Aprove com aviso se campo prioritário da categoria aparecer como "Não informado".
+- Aprove com aviso se houver campos inferidos diretamente da descrição do produto.
+- Aprove com aviso se o SEO usar termos naturais de busca sem criar fatos técnicos.
+
+REGRAS DE NÃO REPROVAR:
+- Não reprove por blocos contextuais ausentes quando não houver dados para eles.
+- Não reprove por campos omitidos que realmente não existem nos brutos.
+- Não reprove por repetição entre Características e Benefícios.
+- Não reprove por benefícios que apenas reformulam características confirmadas.
+
+CRITÉRIO DE CONFIANÇA:
+- ALTA: dados principais confirmados, sem erros e poucos avisos.
+- MEDIA: aprovado com campos ausentes, inferidos ou input parcialmente incompleto.
+- BAIXA: reprovado, input muito insuficiente ou muitos avisos.
+
+Preencha os arrays vazios quando não houver itens. Use aspas duplas em todas as chaves e strings.`,
 
 P3: `Com base na ficha técnica formatada acima, crie conteúdo comercial para e-commerce.
 Cada seção deve ser diferente das outras — varie o ângulo e os benefícios destacados.
@@ -149,20 +181,45 @@ BENEFÍCIOS:
 
 Fornecedor: [copie o nome EXATAMENTE como está nos dados brutos]`,
 
-P2B: `QA de ficha técnica bivolt (110V e 220V).
+P2B: `QA de ficha técnica bivolt (110V e 220V). Compare a FICHA GERADA com os DADOS BRUTOS fornecidos.
 
-REGRA CRÍTICA sobre diferenciação por voltagem:
-- Se o material bruto NÃO especificava diferença para um atributo → APROVAR mesmo que a ficha liste separado por voltagem.
-- Só REPROVAR se o material bruto claramente mostrava valores DISTINTOS por voltagem e a ficha ignorou isso.
+Responda SOMENTE JSON válido. Não use Markdown. Não escreva comentários fora do JSON.
 
-Demais verificações — só reprove se for erro real.
+CONTRATO DE RESPOSTA:
+{
+  "status": "APROVADO ou REPROVADO",
+  "confianca": "ALTA, MEDIA ou BAIXA",
+  "resumo": "frase curta explicando a decisão",
+  "erros": [],
+  "avisos": [],
+  "campos_confirmados": [],
+  "campos_ausentes": [],
+  "campos_inferidos": [],
+  "seo": {
+    "status": "APROVADO, REPROVADO ou INDEFINIDO",
+    "avisos": [],
+    "termos_validos": [],
+    "termos_suspeitos": []
+  }
+}
 
-Responda apenas:
-STATUS: APROVADO
-ou
-STATUS: REPROVADO
-ERROS:
-- [erro específico]`,
+REGRA CRÍTICA SOBRE VOLTAGEM:
+- Se os dados brutos NÃO especificam diferença entre 110V e 220V para um atributo, aprove mesmo que a ficha liste o atributo de forma comum.
+- Se os dados brutos mostram valores claramente distintos por voltagem, reprove se a ficha misturar ou omitir essa diferença.
+- Reprove se EANs por voltagem forem trocados, omitidos ou associados à voltagem errada.
+
+REGRAS GERAIS:
+- Reprove apenas erro real: dado alterado, omitido, inventado ou contraditório.
+- Aprove com aviso quando houver campo prioritário sem dado e marcado como "Não informado".
+- Valide também SEO e benefícios: eles podem usar termos naturais, mas não podem inventar especificações.
+- Fornecedor deve ser preservado exatamente como nos dados brutos.
+
+CRITÉRIO DE CONFIANÇA:
+- ALTA: dados das duas voltagens bem preservados.
+- MEDIA: aprovado com campos ausentes, inferidos ou input parcialmente incompleto.
+- BAIXA: reprovado, voltagens confusas ou muitos avisos.
+
+Preencha os arrays vazios quando não houver itens. Use aspas duplas em todas as chaves e strings.`,
 
 P3B: `Crie conteúdo comercial para e-commerce de produto com versões 110V e 220V. Use apenas informações comuns aos dois modelos.
 
