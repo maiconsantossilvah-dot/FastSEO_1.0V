@@ -3,16 +3,12 @@ import { Categories }   from './modules/categories.js';
 import { History }      from './modules/history.js';
 import { Prompts }      from './modules/prompts.js';
 import { SubcatModule } from './modules/subcategories.js';
-import { Quota }        from './modules/quota.js';
 import { Pipeline }     from './modules/pipeline.js';
 
 import { SidebarUI }      from './components/SidebarUI.js';
 import { PipelineUI }     from './components/PipelineUI.js';
 import { HistoryUI }      from './components/HistoryUI.js';
-import { ConfigModal, ConfigUI, ThemeModal } from './components/ConfigUI.js';
-
-// ── Restaura tema imediatamente (evita flash de tema errado) ──
-ThemeModal.restore();
+import { ConfigModal, ConfigUI } from './components/ConfigUI.js';
 
 // ── Export — copia e baixa os resultados gerados ──────────────
 // CORREÇÃO: Export não estava definido em nenhum lugar do código,
@@ -104,8 +100,6 @@ async function init() {
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateCharCount();
   ConfigUI.updateQuotaInfo();
-  ThemeModal.restoreDom();
-  Quota.updateUI();
   const _unsubCategories    = Categories.startSync();
   const _unsubHistory       = History.startSync();
   const _unsubPrompts       = Prompts.startSync();
@@ -156,10 +150,6 @@ _loginBtn?.addEventListener('click', async () => {
 document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
 
 // ── Eventos do app ────────────────────────────────────────────
-document.getElementById('themeBtn')?.addEventListener('click', async () => {
-  ThemeModal.restoreDom();
-  ThemeModal.open();
-});
 document.getElementById('openPromptsBtn')?.addEventListener('click', async () => {
   const { PromptModal } = await import('./components/PromptModal.js');
   PromptModal.open();
@@ -175,16 +165,11 @@ document.getElementById('openSubcatBtn')?.addEventListener('click', async () => 
 document.getElementById('openConfigBtn')?.addEventListener('click', async () => {
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateQuotaInfo();
-  ThemeModal.restoreDom();
   ConfigModal.open();
 });
 document.getElementById('openCategoriasBtn')?.addEventListener('click', async () => {
   const { CategoriasModal } = await import('./components/CategoriasModal.js');
   CategoriasModal.open();
-});
-document.getElementById('resetCotaBtn')?.addEventListener('click', () => {
-  Quota.reset();
-  PipelineUI.log('Contador local zerado.', 'o');
 });
 // addCatBtn agora vive dentro do CategoriasModal
 // sbContent agora é oculto — seleção via CategoriasModal
@@ -279,27 +264,3 @@ document.addEventListener('click', async e => {
 });
 // focus/blur do historicoBusca agora geridos dentro do HistoryModal
 
-// ── Gaveta lateral (botões secundários) ───────────────────────
-const _drawerBtn     = document.getElementById('hdrMoreBtn');
-const _drawer        = document.getElementById('sideDrawer');
-const _drawerOverlay = document.getElementById('sideDrawerOverlay');
-
-function _openDrawer() {
-  if (!_drawer) return;
-  _drawer.classList.add('is-open');
-  _drawerOverlay.classList.add('is-open');
-}
-function _closeDrawer() {
-  if (!_drawer) return;
-  _drawer.classList.remove('is-open');
-  _drawerOverlay.classList.remove('is-open');
-}
-
-_drawerBtn?.addEventListener('click', _openDrawer);
-_drawerOverlay?.addEventListener('click', _closeDrawer);
-document.getElementById('sideDrawerClose')?.addEventListener('click', _closeDrawer);
-
-// Fecha ao clicar em qualquer item da gaveta
-document.getElementById('sideDrawer')?.querySelectorAll('.side-drawer-item').forEach(item => {
-  item.addEventListener('click', _closeDrawer);
-});

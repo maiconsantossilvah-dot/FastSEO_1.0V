@@ -145,19 +145,6 @@
   }
   .status-ok   { color: var(--color-success, #22c55e); }
   .status-erro { color: var(--color-error,   #ef4444); }
-  .quota-bar {
-    height: 6px;
-    background: var(--color-border, #e2e8f0);
-    border-radius: 999px;
-    overflow: hidden;
-    margin: 0.5rem 0 0.25rem;
-  }
-  .quota-fill {
-    height: 100%;
-    border-radius: 999px;
-    transition: width 0.3s ease;
-    background: var(--color-success, #22c55e);
-  }
   .config-hint { font-size: 0.75rem; color: var(--color-text-muted); }
   .btn-sm { font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-top: 0.5rem; }
 </style>
@@ -203,135 +190,192 @@
       <div><div class="logo-text">Fast<span>SEO</span></div><span class="logo-sub">Pipeline de Fichas</span></div>
     </div>
   </div>
-  <div class="header-right">
-    <div class="quota-bar">
-      <span id="quotaLabel">0 / 1000 hoje</span>
-      <div class="quota-track"><div class="quota-fill" id="quotaFill" style="width:0%"></div></div>
-      <button id="resetCotaBtn" title="Zerar contador" class="btn" style="background:none;border:none;color:var(--color-text-muted);font-size:11px;padding:0 2px;">↺</button>
-    </div>
-    <div class="free-pill">✓ gratuito</div>
-    <button id="openCategoriasBtn"  class="btn btn-ghost" title="Gerenciar categorias">🧠 Categorias</button>
-    <button id="openHistoricoBtn"   class="btn btn-ghost" title="Histórico de fichas geradas">📂 Histórico <span id="historicoCount" style="font-size:9px;padding:1px 5px;border-radius:99px;background:rgba(99,102,241,.2);color:#a5b4fc;margin-left:2px;display:none"></span></button>
-    <button id="openConfigBtn"      class="btn btn-ghost" title="Configuração de APIs e modelo">⚙️ Config</button>
-    <button class="btn btn-ghost" id="hdrMoreBtn" title="Mais opções">⋯</button>
-    <!-- Usuário logado -->
-    <div class="user-info">
-      <span id="userDisplayName"></span>
-      <button id="logoutBtn" title="Sair">Sair</button>
-    </div>
-  </div>
 </header>
 
-<div class="layout" id="appLayout" style="display:none">
-
-  <main class="main" id="mainContent">
-    <div class="page page--wide">
-
-      <div class="learn-indicator empty" id="learnIndicator" style="grid-column:1/-1">
-        <div class="learn-indicator-dot"></div>
-        <span id="learnIndicatorText">Nenhum exemplo configurado — abra o painel lateral para adicionar referências</span>
+<div class="layout app-layout--simple" id="appLayout" style="display:none">
+  <aside class="app-sidebar app-sidebar--control" aria-label="Barra lateral de ações">
+    <div class="app-sidebar-section sidebar-run-panel">
+      <span class="app-sidebar-label">Execução</span>
+      <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
+        <span class="run-icon">Processar ficha</span>
+        <div class="spinner"></div>
+      </button>
+      <button id="pdfBtn" class="app-nav-item app-nav-item--compact" type="button" title="Importar dados de um PDF de ficha técnica">
+        <span class="app-nav-index">PDF</span>
+        <span>
+          <strong>Importar PDF</strong>
+          <small>Preencher input</small>
+        </span>
+      </button>
+      <div class="sidebar-metric">
+        <span>Input</span>
+        <strong id="charCount">0 caracteres</strong>
       </div>
+    </div>
 
-      <!-- ── COLUNA ESQUERDA: input + pipeline ── -->
-      <div class="col-input">
-        <div class="card">
-          <div class="card-hdr">
-          <span class="card-title">Dados do Produto</span>
-          <div style="display:flex;align-items:center;gap:8px">
-            <button id="pdfBtn" class="btn btn-ghost" title="Importar dados de um PDF de ficha técnica" style="font-size:11px;padding:4px 10px">📄 PDF</button>
-            <span class="char-count" id="charCount">0 caracteres</span>
+    <div class="app-sidebar-section">
+      <span class="app-sidebar-label">Referência ativa</span>
+      <div class="learn-indicator empty sidebar-indicator" id="learnIndicator">
+        <div class="learn-indicator-dot"></div>
+        <span id="learnIndicatorText">Nenhum exemplo configurado</span>
+      </div>
+      <div class="sidebar-status-row">
+        <span id="statusBadge" class="badge"></span>
+        <span id="bivoltBadge" class="badge badge-bivolt" style="display:none;">BIVOLT</span>
+      </div>
+    </div>
+
+    <div class="app-sidebar-section">
+      <span class="app-sidebar-label">Etapas</span>
+      <div class="steps sidebar-steps">
+        <div class="step" id="ps1">
+          <div class="step-num">01</div>
+          <div class="step-body">
+            <div class="step-name">Formatador</div>
+            <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time" id="ps1Time"></span></div>
           </div>
         </div>
-          <div class="card-body">
-            <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor... ou arraste um PDF para cá
+        <div class="step" id="ps2">
+          <div class="step-num">02</div>
+          <div class="step-body">
+            <div class="step-name">Conferente</div>
+            <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time" id="ps2Time"></span></div>
+          </div>
+        </div>
+        <div class="step" id="ps3">
+          <div class="step-num">03</div>
+          <div class="step-body">
+            <div class="step-name">Copywriter</div>
+            <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time" id="ps3Time"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-sidebar-section">
+      <span class="app-sidebar-label">Saída</span>
+      <button class="copy-btn sidebar-action" id="copyFichaBtn" type="button">Copiar ficha</button>
+      <button class="copy-btn sidebar-action" id="exportTxtBtn" type="button">Baixar .txt</button>
+      <button class="copy-btn sidebar-action" id="copyConteudoBtn" type="button">Copiar conteúdo</button>
+      <button class="copy-btn sidebar-action" id="regenConteudoBtn" type="button" title="Gerar novamente sem reprocessar os outros agentes">Regenerar conteúdo</button>
+    </div>
+
+    <div class="app-sidebar-section">
+      <span class="app-sidebar-label">Ferramentas</span>
+      <button id="openCategoriasBtn" class="app-nav-item" type="button">
+        <span class="app-nav-index">01</span>
+        <span>
+          <strong>Categorias</strong>
+          <small>Referências e exemplos</small>
+        </span>
+      </button>
+      <button id="openHistoricoBtn" class="app-nav-item" type="button">
+        <span class="app-nav-index">02</span>
+        <span>
+          <strong>Histórico</strong>
+          <small>Fichas geradas <em id="historicoCount"></em></small>
+        </span>
+      </button>
+      <button id="openConfigBtn" class="app-nav-item" type="button">
+        <span class="app-nav-index">03</span>
+        <span>
+          <strong>Configurações</strong>
+          <small>APIs e modelo</small>
+        </span>
+      </button>
+      <button id="openPromptsBtn" class="app-nav-item" type="button">
+        <span class="app-nav-index">04</span>
+        <span>
+          <strong>Prompts</strong>
+          <small>Editar agentes</small>
+        </span>
+      </button>
+      <button id="openSubcatBtn" class="app-nav-item" type="button">
+        <span class="app-nav-index">05</span>
+        <span>
+          <strong>Títulos</strong>
+          <small>Padrões por subcategoria</small>
+        </span>
+      </button>
+      <button id="openAnalyticsBtn" class="app-nav-item" type="button">
+        <span class="app-nav-index">06</span>
+        <span>
+          <strong>Analytics</strong>
+          <small>Métricas do pipeline</small>
+        </span>
+      </button>
+    </div>
+
+    <div class="app-sidebar-section sidebar-account">
+      <span class="app-sidebar-label">Conta</span>
+      <div class="user-info">
+        <span id="userDisplayName"></span>
+        <button id="logoutBtn" title="Sair">Sair</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main main--workspace" id="mainContent">
+    <div class="workspace-grid">
+      <section class="card workspace-card workspace-card--input">
+        <div class="card-hdr">
+          <span class="card-title">Input</span>
+        </div>
+        <div class="card-body">
+          <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor... ou arraste um PDF para cá
 
 Ex:
-4203900 – EAN: 7893401194859
+4203900 - EAN: 7893401194859
 Fornecedor: STECK INDUSTRIA ELETRICA
 DISJUNTOR STECK DIN 3P 63A CURVA C 3KA SDD63C63 BRANCO
 
 Marca: Steck
 Corrente nominal: 63A ..."></textarea>
-          </div>
         </div>
+      </section>
 
-        <div class="steps">
-          <div class="step" id="ps1">
-            <div class="step-num">01</div>
-            <div class="step-body">
-              <div class="step-name">Formatador</div>
-              <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time" id="ps1Time"></span></div>
-            </div>
-          </div>
-          <div class="step" id="ps2">
-            <div class="step-num">02</div>
-            <div class="step-body">
-              <div class="step-name">Conferente</div>
-              <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time" id="ps2Time"></span></div>
-            </div>
-          </div>
-          <div class="step" id="ps3">
-            <div class="step-num">03</div>
-            <div class="step-body">
-              <div class="step-name">Copywriter</div>
-              <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time" id="ps3Time"></span></div>
-            </div>
-          </div>
-        </div>
-
-        <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
-          <span class="run-icon">⚡ Processar Ficha</span>
-          <div class="spinner"></div>
-        </button>
-
-        <div class="log-box" id="logBox"></div>
-      </div>
-
-      <!-- ── COLUNA DIREITA: resultados ── -->
-      <div class="col-results">
+      <section class="workspace-card workspace-card--output">
         <div class="results-placeholder" id="resultsPlaceholder">
           <img id="placeholderImg" src="" alt="" style="display:none"/>
-          <div class="results-placeholder-icon" id="placeholderIcon">⚡</div>
+          <div class="results-placeholder-icon" id="placeholderIcon">OUT</div>
           <svg id="placeholderStar" style="display:none;width:120px;height:120px;opacity:.25" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M60 6 L71 40 L107 40 L79 62 L90 96 L60 74 L30 96 L41 62 L13 40 L49 40 Z"
               fill="#c9a0dc" stroke="#7b5ea7" stroke-width="2" stroke-linejoin="round"/>
             <path d="M60 18 L68 42 L94 42 L73 57 L81 81 L60 66 L39 81 L47 57 L26 42 L52 42 Z"
               fill="#e8d0f4" opacity=".4"/>
           </svg>
-          <p>Os resultados aparecerão aqui após processar a ficha</p>
+          <p>O output aparece aqui após processar a ficha</p>
         </div>
 
         <div class="results" id="results">
           <div class="card">
             <div class="result-hdr">
-              <span class="result-label">Ficha Técnica Formatada</span>
-              <div style="display:flex;gap:6px;align-items:center;">
-                <span id="bivoltBadge" class="badge badge-bivolt" style="display:none;">⚡ BIVOLT</span>
-                <button class="copy-btn" id="exportTxtBtn" style="background:var(--color-bg-subtle);color:var(--color-text-secondary);">⬇ .txt</button>
-                <button class="copy-btn" id="copyFichaBtn">Copiar</button>
-              </div>
+              <span class="result-label">Output: ficha técnica</span>
             </div>
             <div class="result-content" id="fichaOut"></div>
           </div>
           <div class="card">
-            <div class="result-hdr"><span class="result-label">Conferência de Qualidade</span><span id="statusBadge" class="badge"></span></div>
+            <div class="result-hdr"><span class="result-label">Output: conferência</span></div>
             <div class="result-content" id="validacaoOut"></div>
           </div>
 
-          <!-- ── Bloco: Conteúdo Comercial ── -->
           <div class="card" id="copyBlock" style="display:none">
             <div class="result-hdr">
-              <span class="result-label">Conteúdo Comercial</span>
-              <div style="display:flex;gap:6px;align-items:center;">
-                <button class="copy-btn" id="regenConteudoBtn" title="Gerar novamente sem reprocessar os outros agentes" style="background:var(--color-bg-subtle);color:var(--color-text-secondary);">↺ Regenerar</button>
-                <button class="copy-btn" id="copyConteudoBtn">Copiar</button>
-              </div>
+              <span class="result-label">Output: conteúdo comercial</span>
             </div>
             <div class="result-content" id="conteudoOut"></div>
           </div>
         </div>
-      </div>
+      </section>
 
+      <section class="card workspace-card workspace-card--terminal">
+        <div class="card-hdr">
+          <span class="card-title">Terminal</span>
+        </div>
+        <div class="card-body">
+          <div class="log-box" id="logBox"></div>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -357,33 +401,6 @@ Corrente nominal: 63A ..."></textarea>
   <button id="addCatBtn"></button>
 </div>
 
-<!-- Gaveta lateral direita — botões secundários -->
-<div id="sideDrawerOverlay" class="side-drawer-overlay"></div>
-<div id="sideDrawer" class="side-drawer">
-  <div class="side-drawer-header">
-    <span class="side-drawer-title">Mais opções</span>
-    <button class="modal-close" id="sideDrawerClose">✕</button>
-  </div>
-  <div class="side-drawer-body">
-    <button id="openPromptsBtn"   class="side-drawer-item">
-      <span class="side-drawer-icon">✏️</span>
-      <div><div class="side-drawer-item-name">Prompts</div><div class="side-drawer-item-desc">Editar prompts dos agentes</div></div>
-    </button>
-    <button id="openAnalyticsBtn" class="side-drawer-item">
-      <span class="side-drawer-icon">📊</span>
-      <div><div class="side-drawer-item-name">Analytics</div><div class="side-drawer-item-desc">Métricas de pipeline</div></div>
-    </button>
-    <button id="openSubcatBtn"    class="side-drawer-item">
-      <span class="side-drawer-icon">📐</span>
-      <div><div class="side-drawer-item-name">Títulos</div><div class="side-drawer-item-desc">Padrões de subcategoria</div></div>
-    </button>
-    <div class="side-drawer-divider"></div>
-    <button id="themeBtn" class="side-drawer-item">
-      <span class="side-drawer-icon">🎨</span>
-      <div><div class="side-drawer-item-name">Tema</div><div class="side-drawer-item-desc">Aparência do site</div></div>
-    </button>
-  </div>
-</div>
 <script type="module" src="src/main.js"></script>
 
 </body>
