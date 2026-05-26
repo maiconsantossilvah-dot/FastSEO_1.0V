@@ -1,15 +1,15 @@
-import { Auth }         from './auth.js';
-import { Categories }   from './categories.js';
-import { History }      from './history.js';
-import { Prompts }      from './prompts.js';
-import { SubcatModule } from './subcategories.js';
-import { Quota }        from './quota.js';
-import { Pipeline }     from './pipeline.js';
+import { Auth }         from './services/auth.js';
+import { Categories }   from './modules/categories.js';
+import { History }      from './modules/history.js';
+import { Prompts }      from './modules/prompts.js';
+import { SubcatModule } from './modules/subcategories.js';
+import { Quota }        from './modules/quota.js';
+import { Pipeline }     from './modules/pipeline.js';
 
-import { SidebarUI }      from './SidebarUI.js';
-import { PipelineUI }     from './PipelineUI.js';
-import { HistoryUI }      from './HistoryUI.js';
-import { ConfigModal, ConfigUI, ThemeModal } from './ConfigUI.js';
+import { SidebarUI }      from './components/SidebarUI.js';
+import { PipelineUI }     from './components/PipelineUI.js';
+import { HistoryUI }      from './components/HistoryUI.js';
+import { ConfigModal, ConfigUI, ThemeModal } from './components/ConfigUI.js';
 
 // ── Restaura tema imediatamente (evita flash de tema errado) ──
 ThemeModal.restore();
@@ -97,7 +97,7 @@ function showApp(user) {
 document.addEventListener('fastseo:historyRender', () => { HistoryUI.resetPage(); HistoryUI.render(); });
 document.addEventListener('fastseo:catsChanged', () => {
   if (!document.getElementById('categoriasModalOverlay')) return;
-  import('./CategoriasModal.js').then(({ CategoriasModal }) => CategoriasModal.onCatsChanged());
+  import('./components/CategoriasModal.js').then(({ CategoriasModal }) => CategoriasModal.onCatsChanged());
 });
 
 async function init() {
@@ -161,15 +161,15 @@ document.getElementById('themeBtn')?.addEventListener('click', async () => {
   ThemeModal.open();
 });
 document.getElementById('openPromptsBtn')?.addEventListener('click', async () => {
-  const { PromptModal } = await import('./PromptModal.js');
+  const { PromptModal } = await import('./components/PromptModal.js');
   PromptModal.open();
 });
 document.getElementById('openAnalyticsBtn')?.addEventListener('click', async () => {
-  const { AnalyticsModal } = await import('./AnalyticsModal.js');
+  const { AnalyticsModal } = await import('./components/AnalyticsModal.js');
   AnalyticsModal.open();
 });
 document.getElementById('openSubcatBtn')?.addEventListener('click', async () => {
-  const { SubcatModal } = await import('./SubcatModal.js');
+  const { SubcatModal } = await import('./components/SubcatModal.js');
   SubcatModal.open();
 });
 document.getElementById('openConfigBtn')?.addEventListener('click', async () => {
@@ -179,7 +179,7 @@ document.getElementById('openConfigBtn')?.addEventListener('click', async () => 
   ConfigModal.open();
 });
 document.getElementById('openCategoriasBtn')?.addEventListener('click', async () => {
-  const { CategoriasModal } = await import('./CategoriasModal.js');
+  const { CategoriasModal } = await import('./components/CategoriasModal.js');
   CategoriasModal.open();
 });
 document.getElementById('resetCotaBtn')?.addEventListener('click', () => {
@@ -217,13 +217,13 @@ _ta?.addEventListener('drop', async e => {
   _ta.style.borderColor = '';
   const file = e.dataTransfer?.files?.[0];
   if (file) {
-    const { PDFReader } = await import('./PDFReader.js');
+    const { PDFReader } = await import('./modules/PDFReader.js');
     await PDFReader.drop(file);
   }
 });
 document.getElementById('runBtn')?.addEventListener('click', () => Pipeline.run());
 document.getElementById('pdfBtn')?.addEventListener('click', async () => {
-  const { PDFReader } = await import('./PDFReader.js');
+  const { PDFReader } = await import('./modules/PDFReader.js');
   PDFReader.open();
 });
 
@@ -252,7 +252,7 @@ document.getElementById('regenConteudoBtn')?.addEventListener('click', async () 
 });
 
 document.getElementById('openHistoricoBtn')?.addEventListener('click', async () => {
-  const { HistoryModal } = await import('./HistoryModal.js');
+  const { HistoryModal } = await import('./components/HistoryModal.js');
   HistoryModal.open();
 });
 // busca/filtro agora vivem dentro do HistoryModal

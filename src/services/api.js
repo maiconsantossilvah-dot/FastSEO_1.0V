@@ -4,8 +4,8 @@
  * Inclui fila por provedor, espera automatica em limite por minuto e fallback.
  */
 
-import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from './config.js';
-import { PipelineUI } from './PipelineUI.js';
+import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from '../config.js';
+import { PipelineUI } from '../components/PipelineUI.js';
 
 function _sleep(ms, signal) {
   return new Promise((resolve, reject) => {

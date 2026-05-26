@@ -14,7 +14,7 @@ export const SubcatModule = {
     else _rules.push({ ...data });
     AppState.subcatRules.setRules(_rules);
     try {
-      const { SubcategoriesDB } = await import('./firestore.js');
+      const { SubcategoriesDB } = await import('../firebase/firestore.js');
       await SubcategoriesDB.upsert(nome, data);
     } catch(e) { console.warn('[SubcatModule] Firestore indisponível:', e); }
   },
@@ -23,7 +23,7 @@ export const SubcatModule = {
     _rules = _rules.filter(r => r.nome !== nome);
     AppState.subcatRules.setRules(_rules);
     try {
-      const { SubcategoriesDB } = await import('./firestore.js');
+      const { SubcategoriesDB } = await import('../firebase/firestore.js');
       await SubcategoriesDB.delete(nome);
     } catch(e) { console.warn('[SubcatModule] Firestore indisponível:', e); }
   },
@@ -41,7 +41,7 @@ export const SubcatModule = {
     _rules = [...SUBCAT_RULES_DEFAULT];
     AppState.subcatRules.setRules(_rules);
     try {
-      const { SubcategoriesDB } = await import('./firestore.js');
+      const { SubcategoriesDB } = await import('../firebase/firestore.js');
       const snap = await SubcategoriesDB.getAll();
       for (const r of snap) await SubcategoriesDB.delete(r.nome);
       await SubcategoriesDB.importBatch(SUBCAT_RULES_DEFAULT);
@@ -52,7 +52,7 @@ export const SubcatModule = {
     // Popula AppState imediatamente com as regras locais
     AppState.subcatRules.setRules(_rules);
     // Tenta Firestore em background — não bloqueia
-    import('./firestore.js').then(({ SubcategoriesDB }) => {
+    import('../firebase/firestore.js').then(({ SubcategoriesDB }) => {
       SubcategoriesDB.listen(rules => {
         _rules = rules.length > 0 ? rules : [...SUBCAT_RULES_DEFAULT];
         AppState.subcatRules.setRules(_rules);
@@ -63,7 +63,7 @@ export const SubcatModule = {
 
   async migrateDefaultsToFirestore() {
     try {
-      const { SubcategoriesDB } = await import('./firestore.js');
+      const { SubcategoriesDB } = await import('../firebase/firestore.js');
       const existing = await SubcategoriesDB.getAll();
       if (existing.length === 0) {
         await SubcategoriesDB.importBatch(SUBCAT_RULES_DEFAULT);

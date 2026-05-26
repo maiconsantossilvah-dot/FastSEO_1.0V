@@ -7,8 +7,8 @@
  * Uso: PDFReader.open() — abre seletor de arquivo
  */
 
-import { PipelineUI } from './PipelineUI.js';
-import { Utils }      from './index.js';
+import { PipelineUI } from '../components/PipelineUI.js';
+import { Utils }      from '../utils/index.js';
 
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const WORKER    = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';

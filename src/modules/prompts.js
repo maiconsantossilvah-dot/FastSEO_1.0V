@@ -5,7 +5,7 @@
  * Fonte primária: Firestore. Fallback: valores padrão embutidos.
  */
 
-import { PromptsDB } from './firestore.js';
+import { PromptsDB } from '../firebase/firestore.js';
 
 // ─── Prompts padrão (embutidos no código) ───────────────────
 export const PROMPTS_DEFAULT = {

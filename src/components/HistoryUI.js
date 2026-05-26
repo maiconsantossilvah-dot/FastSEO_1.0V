@@ -10,10 +10,10 @@
  * - Busca e filtro resetam para página 1
  */
 
-import { History }    from './history.js';
-import { AppState }   from './state.js';
+import { History }    from '../modules/history.js';
+import { AppState }   from '../modules/state.js';
 import { PipelineUI } from './PipelineUI.js';
-import { Utils }      from './index.js';
+import { Utils }      from '../utils/index.js';
 
 const PAGE_SIZE = 10;
 const $         = id => document.getElementById(id);

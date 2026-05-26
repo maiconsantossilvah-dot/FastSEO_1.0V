@@ -5,8 +5,8 @@
  * Substitui a sidebar lateral — lista, cria, edita e exclui categorias.
  */
 
-import { Categories } from './categories.js';
-import { AppState }   from './state.js';
+import { Categories } from '../modules/categories.js';
+import { AppState }   from '../modules/state.js';
 
 const $ = id => document.getElementById(id);
 

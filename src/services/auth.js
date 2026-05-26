@@ -9,7 +9,7 @@
  * Importa auth e db do firebase.js central — não inicializa de novo.
  */
 
-import { auth, db } from './firebase.js';
+import { auth, db } from '../firebase/firebase.js';
 
 import {
   GoogleAuthProvider,

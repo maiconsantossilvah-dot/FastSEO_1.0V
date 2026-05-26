@@ -5,7 +5,7 @@
  * Todos os modulos importam daqui - nunca criam estado proprio.
  */
 
-import { bestMatch } from './matching.js';
+import { bestMatch } from '../utils/matching.js';
 
 export const AppState = {
   sidebar:  { open: true },

@@ -19,25 +19,25 @@
  *   services/analytics.js   -> track*
  */
 
-import { callAgent }    from './api.js';
+import { callAgent }    from '../services/api.js';
 import { Prompts }      from './prompts.js';
 import { Categories }   from './categories.js';
 import { Quota }        from './quota.js';
 import { History }      from './history.js';
 import { Logs }         from './quota.js';
-import { Utils }        from './index.js';
-import { PipelineUI }   from './PipelineUI.js';
+import { Utils }        from '../utils/index.js';
+import { PipelineUI }   from '../components/PipelineUI.js';
 import { AppState }     from './state.js';
 
 // Imports adicionados: SerpAPI + Analytics
-import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from './serp.js';
+import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
 import {
   trackPipelineIniciado,
   trackPipelineConcluido,
   trackPipelineErro,
   trackCotaAtingida,
   trackRegeneracao,
-} from './analytics.js';
+} from '../services/analytics.js';
 
 // Helper: busca keywords SEO antes de chamar os agentes
 // Retorna uma string de contexto para injetar nos prompts,

@@ -5,7 +5,7 @@
  * e localStorage como cache offline/fallback.
  */
 
-import { CategoriesDB }  from './firestore.js';
+import { CategoriesDB }  from '../firebase/firestore.js';
 const LS_CATS = 'ficha_categorias'; // chave de cache local
 
 // Cache em memória (atualizado pelo listener em tempo real)

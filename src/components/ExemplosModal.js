@@ -6,8 +6,8 @@
  * de navegação: lista de categorias à esquerda, conteúdo à direita.
  */
 
-import { Categories } from './categories.js';
-import { AppState }   from './state.js';
+import { Categories } from '../modules/categories.js';
+import { AppState }   from '../modules/state.js';
 
 export const ExemplosModal = {
   _activeCat: null,

@@ -3,9 +3,9 @@
  * Gerencia a UI de configuracao: API keys, modelo e contador de caracteres.
  */
 
-import { Quota } from './quota.js';
-import { getGoogleApiKey, setGoogleApiKey, getGoogleCx, setGoogleCx, hasSerpApiKey } from './serp.js';
-import { trackSerpApiConfigurada } from './analytics.js';
+import { Quota } from '../modules/quota.js';
+import { getGoogleApiKey, setGoogleApiKey, getGoogleCx, setGoogleCx, hasSerpApiKey } from '../services/serp.js';
+import { trackSerpApiConfigurada } from '../services/analytics.js';
 const $ = id => document.getElementById(id);
 
 // Cache de keys no localStorage (sem enviar ao servidor)
@@ -154,17 +154,17 @@ function _serpQuota(labelEl, fillEl) {
 /**
  * ThemeModal - seletor de temas visuais
  */
-import { AppState } from './state.js';
-const ICE_BTN_IMG = './Img/ice-button.webp';
-const LAST_RITE_PH = './Img/last-rite-placeholder.webp';
-const LAST_RITE_BG = './Img/last-rite-bg.webp';
-const VEGITO_SSJ_BG = './Img/vegito-ssj-bg.jpg';
-const VEGITO_BLUE_BG = './Img/vegito-blue-bg.jpg';
+import { AppState } from '../modules/state.js';
+const ICE_BTN_IMG = '../assets/img/ice-button.webp';
+const LAST_RITE_PH = '../assets/img/last-rite-placeholder.webp';
+const LAST_RITE_BG = '../assets/img/last-rite-bg.webp';
+const VEGITO_SSJ_BG = '../assets/img/vegito-ssj-bg.jpg';
+const VEGITO_BLUE_BG = '../assets/img/vegito-blue-bg.jpg';
 
-const GOKU_LOGO_IMG = './Img/goku-logo.png';
-const GOKU_PH_IMG = './Img/goku-placeholder.png';
+const GOKU_LOGO_IMG = '../assets/img/goku-logo.png';
+const GOKU_PH_IMG = '../assets/img/goku-placeholder.png';
 
-const ZHUANG_BG ="./Img/zhuang-fangyi.jpg";
+const ZHUANG_BG ="../assets/img/zhuang-fangyi.jpg";
 // Cada tema pode ter: accent, orb1, orb2, bg, surface, border, text
 // Campos omitidos usam os valores padrao do CSS.
 const THEMES = [
@@ -590,7 +590,7 @@ function _applyDomTheme(t) {
       phIcon.style.display = 'none';
       if (phStar) phStar.style.display = 'none';
     } else if (isZhuang) {
-       phImg.src = './Img/zhuang_fangyi_chibi.png'; // imagem que quiser
+       phImg.src = '../assets/img/zhuang_fangyi_chibi.png'; // imagem que quiser
   phImg.style.cssText = 'display:block;width:220px;height:auto;margin:0 auto;opacity:.85;filter:drop-shadow(0 0 16px rgba(0,204,85,.6))';
   phIcon.style.display = 'none';
       if (phStar) phStar.style.display = 'none';

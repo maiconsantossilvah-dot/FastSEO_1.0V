@@ -4,7 +4,7 @@
  * Funcoes utilitarias puras (sem efeitos colaterais nem dependencias de modulos do app).
  */
 
-import { APP_CONFIG } from './config.js';
+import { APP_CONFIG } from '../config.js';
 import { rankMatches } from './matching.js';
 
 export const Utils = {

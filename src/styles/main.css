@@ -1171,7 +1171,7 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   width: 160% !important;
   /* Proporcional a imagem original 1571x672 ~ 2.34:1 */
   height: calc(160% / 3.37 * 2.8) !important;
-  background-image: url('./Img/ice-button.webp') !important;
+  background-image: url('../assets/img/ice-button.webp') !important;
   background-size: contain !important;
   background-repeat: no-repeat !important;
   background-position: center center !important;
@@ -1694,7 +1694,7 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   background-color: #070507 !important;
   background-image:
     linear-gradient(rgba(7,5,7,.16), rgba(7,5,7,.32)),
-    url('./Img/vegito-ssj-bg.jpg') !important;
+    url('../assets/img/vegito-ssj-bg.jpg') !important;
   background-size: cover !important;
   background-position: center top !important;
   background-attachment: fixed !important;
@@ -1728,7 +1728,7 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   background-color: #03080d !important;
   background-image:
     linear-gradient(rgba(3,8,13,.14), rgba(3,8,13,.30)),
-    url('./Img/vegito-blue-bg.jpg') !important;
+    url('../assets/img/vegito-blue-bg.jpg') !important;
   background-size: cover !important;
   background-position: center top !important;
   background-attachment: fixed !important;
@@ -1779,7 +1779,7 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   background-color: #040810 !important;
   background-image:
     linear-gradient(rgba(4,8,16,.12), rgba(4,8,16,.30)),
-    url('./Img/last-rite-bg.webp') !important;
+    url('../assets/img/last-rite-bg.webp') !important;
   background-size: cover !important;
   background-position: center top !important;
   background-attachment: fixed !important;
@@ -1829,7 +1829,7 @@ body.theme-seinen .learn-indicator-dot { background: #111 !important; box-shadow
   background-color: #050c07 !important;
   background-image:
     linear-gradient(rgba(5,12,7,.14), rgba(5,12,7,.30)),
-    url('./Img/zhuang-fangyi.jpg') !important;
+    url('../assets/img/zhuang-fangyi.jpg') !important;
   background-size: cover !important;
   background-position: center top !important;
   background-attachment: fixed !important;
