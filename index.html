@@ -194,19 +194,26 @@
 
 <div class="layout app-layout--simple" id="appLayout" style="display:none">
   <aside class="app-sidebar app-sidebar--control" aria-label="Barra lateral de ações">
-    <div class="app-sidebar-section sidebar-run-panel">
-      <span class="app-sidebar-label">Execução</span>
-      <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
-        <span class="run-icon">Processar ficha</span>
-        <div class="spinner"></div>
-      </button>
-      <button id="pdfBtn" class="app-nav-item app-nav-item--compact" type="button" title="Importar dados de um PDF de ficha técnica">
-        <span class="app-nav-index">PDF</span>
+    <div class="app-sidebar-section">
+      <span class="app-sidebar-label">Telas</span>
+      <button id="showFichaViewBtn" class="app-nav-item active" type="button" aria-current="page">
+        <span class="app-nav-index">01</span>
         <span>
-          <strong>Importar PDF</strong>
-          <small>Preencher input</small>
+          <strong>Ficha técnica</strong>
+          <small>Input, output e terminal</small>
         </span>
       </button>
+      <button id="showFaqViewBtn" class="app-nav-item" type="button">
+        <span class="app-nav-index">02</span>
+        <span>
+          <strong>Criador de FAQ</strong>
+          <small>Perguntas e HTML pronto</small>
+        </span>
+      </button>
+    </div>
+
+    <div class="app-sidebar-section sidebar-run-panel">
+      <span class="app-sidebar-label">Entrada</span>
       <div class="sidebar-metric">
         <span>Input</span>
         <strong id="charCount">0 caracteres</strong>
@@ -277,10 +284,17 @@
   </aside>
 
   <main class="main main--workspace" id="mainContent">
-    <div class="workspace-grid">
+    <div class="workspace-grid" id="fastseoWorkspace">
       <section class="card workspace-card workspace-card--input">
         <div class="card-hdr">
           <span class="card-title">Input</span>
+          <div class="input-actions">
+            <button id="pdfBtn" class="copy-btn" type="button" title="Importar dados de um PDF de ficha técnica">Importar PDF</button>
+            <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
+              <span class="run-icon">Processar ficha</span>
+              <div class="spinner"></div>
+            </button>
+          </div>
         </div>
         <div class="card-body">
           <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor... ou arraste um PDF para cá
@@ -370,6 +384,46 @@ Corrente nominal: 63A ..."></textarea>
             </div>
           </div>
           <div class="log-box" id="logBox"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="faq-workspace" id="faqWorkspace" hidden>
+      <div class="faq-topbar">
+        <div class="faq-brand">
+          <h1>Criador de FAQ</h1>
+          <p>Preencha perguntas e respostas para gerar o bloco HTML pronto.</p>
+        </div>
+        <div class="faq-actions">
+          <button class="copy-btn" id="faqAddItemTop" type="button">Adicionar pergunta</button>
+          <button class="copy-btn" id="faqCopyHtmlTop" type="button">Copiar HTML</button>
+        </div>
+      </div>
+
+      <section class="faq-layout" aria-label="Criador de FAQ">
+        <div class="faq-panel faq-editor-panel">
+          <div class="faq-panel__head">
+            <h2>Conteúdo</h2>
+            <button class="copy-btn" id="faqAddItem" type="button">Adicionar</button>
+          </div>
+          <div class="faq-panel__body">
+            <div class="faq-editor" id="faqEditor"></div>
+          </div>
+        </div>
+
+        <div class="faq-panel faq-output-panel">
+          <div class="faq-panel__head">
+            <h2>HTML pronto</h2>
+            <button class="copy-btn" id="faqCopyHtml" type="button">Copiar</button>
+          </div>
+          <div class="faq-panel__body faq-output">
+            <div class="faq-status" id="faqCopyStatus" aria-live="polite"></div>
+            <textarea id="faqGeneratedHtml" readonly spellcheck="false" aria-label="HTML gerado"></textarea>
+            <div class="faq-preview-shell">
+              <span class="faq-preview-shell__label">Prévia</span>
+              <div class="faq-preview-frame" id="faqPreviewFrame"></div>
+            </div>
+          </div>
         </div>
       </section>
     </div>

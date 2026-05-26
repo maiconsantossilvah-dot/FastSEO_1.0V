@@ -4,6 +4,7 @@ import { History }      from './modules/history.js';
 import { Prompts }      from './modules/prompts.js';
 import { SubcatModule } from './modules/subcategories.js';
 import { Pipeline }     from './modules/pipeline.js';
+import { FAQCreator }   from './modules/faqCreator.js';
 
 import { SidebarUI }      from './components/SidebarUI.js';
 import { PipelineUI }     from './components/PipelineUI.js';
@@ -100,6 +101,7 @@ async function init() {
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateCharCount();
   ConfigUI.updateQuotaInfo();
+  FAQCreator.init();
   const _unsubCategories    = Categories.startSync();
   const _unsubHistory       = History.startSync();
   const _unsubPrompts       = Prompts.startSync();
@@ -150,6 +152,28 @@ _loginBtn?.addEventListener('click', async () => {
 document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
 
 // ── Eventos do app ────────────────────────────────────────────
+function showMainView(view) {
+  const ficha = document.getElementById('fastseoWorkspace');
+  const faq = document.getElementById('faqWorkspace');
+  const fichaBtn = document.getElementById('showFichaViewBtn');
+  const faqBtn = document.getElementById('showFaqViewBtn');
+  const isFaq = view === 'faq';
+
+  if (ficha) ficha.hidden = isFaq;
+  if (faq) faq.hidden = !isFaq;
+
+  fichaBtn?.classList.toggle('active', !isFaq);
+  faqBtn?.classList.toggle('active', isFaq);
+  fichaBtn?.toggleAttribute('aria-current', !isFaq);
+  faqBtn?.toggleAttribute('aria-current', isFaq);
+}
+
+document.getElementById('showFichaViewBtn')?.addEventListener('click', () => showMainView('ficha'));
+document.getElementById('showFaqViewBtn')?.addEventListener('click', () => {
+  FAQCreator.init();
+  showMainView('faq');
+});
+
 document.getElementById('openPromptsBtn')?.addEventListener('click', async () => {
   const { PromptModal } = await import('./components/PromptModal.js');
   PromptModal.open();
@@ -232,7 +256,7 @@ document.getElementById('regenConteudoBtn')?.addEventListener('click', async () 
     await Pipeline.rerunCopywriter();
   } finally {
     btn.classList.remove('regen-loading');
-    btn.textContent = '↺ Regenerar';
+    btn.textContent = 'Regenerar';
   }
 });
 
