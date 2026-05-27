@@ -10,6 +10,8 @@ import { bestMatch } from '../utils/matching.js';
 export const AppState = {
   sidebar:  { open: true },
   pipeline: { running: false, result: {}, abort: null },
+  pdfTexto: '',
+  inputSource: '',
   categories: {
     active:     null,   // ID da categoria selecionada
     editorOpen: false,

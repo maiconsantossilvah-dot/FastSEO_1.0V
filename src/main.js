@@ -212,7 +212,7 @@ document.getElementById('inputText')?.addEventListener('input',  () => {
   updateRunReadiness();
 });
 
-// ── Drag & drop de PDF no textarea ────────────────────────────
+// ── Drag & drop de arquivos no textarea ────────────────────────────
 const _ta = document.getElementById('inputText');
 _ta?.addEventListener('dragover', e => {
   e.preventDefault();
@@ -226,14 +226,14 @@ _ta?.addEventListener('drop', async e => {
   _ta.style.borderColor = '';
   const file = e.dataTransfer?.files?.[0];
   if (file) {
-    const { PDFReader } = await import('./modules/PDFReader.js');
-    await PDFReader.drop(file);
+    const { FileImporter } = await import('./modules/FileImporter.js');
+    await FileImporter.importFile(file);
   }
 });
 document.getElementById('runBtn')?.addEventListener('click', () => Pipeline.run());
-document.getElementById('pdfBtn')?.addEventListener('click', async () => {
-  const { PDFReader } = await import('./modules/PDFReader.js');
-  PDFReader.open();
+document.getElementById('importFileBtn')?.addEventListener('click', async () => {
+  const { FileImporter } = await import('./modules/FileImporter.js');
+  FileImporter.open();
 });
 
 // ── Botões de exportação (CORRIGIDOS: Export agora está definido) ──

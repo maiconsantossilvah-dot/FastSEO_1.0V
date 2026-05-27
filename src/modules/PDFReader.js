@@ -9,11 +9,14 @@
 
 import { PipelineUI } from '../components/PipelineUI.js';
 import { Utils }      from '../utils/index.js';
+import { AppState }   from './state.js';
 
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const WORKER    = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 let _loaded = false;
+
+const _button = () => document.getElementById('importFileBtn') || document.getElementById('pdfBtn');
 
 async function _loadPdfJs() {
   if (_loaded || window.pdfjsLib) { _loaded = true; return; }
@@ -93,11 +96,15 @@ export const PDFReader = {
   },
 
   async _process(file) {
-    const btn = document.getElementById('pdfBtn');
+    const btn = _button();
 
     try {
       // Feedback visual
-      if (btn) { btn.textContent = '⏳ Lendo...'; btn.disabled = true; }
+      if (btn) {
+        btn.dataset.defaultText = btn.dataset.defaultText || btn.textContent;
+        btn.textContent = 'Lendo...';
+        btn.disabled = true;
+      }
       PipelineUI.log(`📄 Lendo PDF: ${file.name}`, 'i');
 
       const text = await _extractText(file);
@@ -114,6 +121,8 @@ export const PDFReader = {
         ta.value = text;
         ta.dispatchEvent(new Event('input', { bubbles: true }));
       }
+      AppState.pdfTexto = text;
+      AppState.inputSource = 'pdf';
 
       const chars = text.length.toLocaleString('pt-BR');
       PipelineUI.log(`✓ PDF extraído — ${chars} caracteres, ${file.name}`, 'o');
@@ -124,8 +133,15 @@ export const PDFReader = {
       Utils.showToast('Erro ao ler o PDF', '#DC2626');
       console.error('PDFReader:', err);
     } finally {
-      if (btn) { btn.textContent = '📄 PDF'; btn.disabled = false; }
+      if (btn) {
+        btn.textContent = btn.dataset.defaultText || 'Importar arquivo';
+        btn.disabled = false;
+      }
     }
+  },
+
+  process(file) {
+    return PDFReader._process(file);
   },
 
   // Suporte a drag & drop — chama direto com o File
