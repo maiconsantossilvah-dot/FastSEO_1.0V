@@ -402,6 +402,22 @@ Corrente nominal: 63A ..."></textarea>
             <button class="copy-btn" id="faqAddItem" type="button">Adicionar</button>
           </div>
           <div class="faq-panel__body">
+            <div class="faq-editor-tools">
+              <label class="faq-field">
+                <span>Colar perguntas e respostas</span>
+                <textarea class="faq-bulk-input" id="faqBulkInput" spellcheck="false" placeholder="4. O produto contém glúten?
+
+Não. O adoçante não contém glúten, o que amplia as possibilidades de consumo para diferentes rotinas alimentares.
+
+5. O sabor funciona bem no café?
+
+Sim. A apresentação líquida facilita a diluição e ajuda no uso em bebidas quentes como café e chá."></textarea>
+              </label>
+              <div class="faq-bulk-actions">
+                <button class="copy-btn" id="faqFillFromBulk" type="button">Preencher campos</button>
+                <span class="faq-bulk-status" id="faqBulkStatus" aria-live="polite"></span>
+              </div>
+            </div>
             <div class="faq-editor" id="faqEditor"></div>
           </div>
         </div>
@@ -416,7 +432,7 @@ Corrente nominal: 63A ..."></textarea>
             <textarea id="faqGeneratedHtml" readonly spellcheck="false" aria-label="HTML gerado"></textarea>
             <div class="faq-preview-shell">
               <span class="faq-preview-shell__label">Prévia</span>
-              <div class="faq-preview-frame" id="faqPreviewFrame"></div>
+              <iframe class="faq-preview-frame" id="faqPreviewFrame" title="Prévia do FAQ"></iframe>
             </div>
           </div>
         </div>

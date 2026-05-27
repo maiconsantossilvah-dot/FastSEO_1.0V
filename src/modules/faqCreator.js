@@ -1,15 +1,15 @@
 const faqStyle = String.raw`<style>
-.faq-section,
-.faq-section * {
+#faq-section,
+#faq-section * {
 box-sizing: border-box;
 }
 
-.faq-section * {
+#faq-section * {
 padding: 0;
 margin: 0;
 }
 
-.faq-section {
+#faq-section {
 width: 100%;
 padding: 0rem 16px;
 box-sizing: border-box;
@@ -17,7 +17,7 @@ margin: -10px auto 25px;
 font-family: sans-serif;
 }
 
-.faq-section__header {
+#faq-section__header {
 color: #f1f1f1;
 margin: 0 0 12px;
 font-size: 14px;
@@ -28,7 +28,7 @@ font-weight: 400;
 text-decoration: none;
 }
 
-.faq-section__title {
+#faq-section__title {
 text-align: center;
 align-items: flex-start;
 background: rgb(0, 157, 255);
@@ -43,7 +43,7 @@ width: 100%;
 box-sizing: border-box;
 }
 
-.faq-section__list {
+#faq-section__list {
 list-style: none;
 margin: 0 auto;
 padding: 0;
@@ -52,14 +52,14 @@ flex-direction: column;
 gap: 8px;
 }
 
-.faq-section__item {
+#faq-section__item {
 background: #fff;
 border: 1px solid #e5e5e5;
 border-radius: 12px;
 overflow: hidden;
 }
 
-.faq-section__item summary {
+#faq-section__item summary {
 display: flex;
 align-items: center;
 justify-content: space-between;
@@ -70,21 +70,21 @@ list-style: none;
 transition: background 0.15s ease;
 }
 
-.faq-section__item summary::-webkit-details-marker {
+#faq-section__item summary::-webkit-details-marker {
 display: none;
 }
 
-.faq-section__item summary:hover {
+#faq-section__item summary:hover {
 background: #f9f9f9;
 }
 
-.faq-section__item summary:focus-visible {
+#faq-section__item summary:focus-visible {
 outline: 2px solid #ea5b0c;
 outline-offset: -2px;
 border-radius: 12px;
 }
 
-.faq-section__q-text {
+#faq-section__q-text {
 font-size: 14px;
 font-weight: bold;
 color: #333;
@@ -93,15 +93,15 @@ margin: 0;
 transition: color 0.15s ease;
 }
 
-.faq-section__icon {
+#faq-section__icon {
 width: 20px;
 height: 20px;
 flex-shrink: 0;
 position: relative;
 }
 
-.faq-section__icon::before,
-.faq-section__icon::after {
+#faq-section__icon::before,
+#faq-section__icon::after {
 content: '';
 position: absolute;
 background: rgb(46, 53, 56);
@@ -109,31 +109,31 @@ border-radius: 2px;
 transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
-.faq-section__icon::before {
+#faq-section__icon::before {
 width: 12px;
 height: 1.5px;
 top: 9px;
 left: 4px;
 }
 
-.faq-section__icon::after {
+#faq-section__icon::after {
 width: 1.5px;
 height: 12px;
 top: 4px;
 left: 9px;
 }
 
-.faq-section__item details[open] .faq-section__icon::after {
+#faq-section__item details[open] #faq-section__icon::after {
 transform: rotate(90deg);
 opacity: 0;
 }
 
-.faq-section__a-inner {
+#faq-section__a-inner {
 padding: 14px 20px 16px;
 border-top: 1px solid #e5e5e5;
 }
 
-.faq-section__a-text {
+#faq-section__a-text {
 font-size: 12px;
 color: rgb(46, 53, 56);
 line-height: 1.6;
@@ -141,7 +141,7 @@ margin: 0;
 }
 
 @media (max-width: 480px) {
-.faq-section__q-text {
+#faq-section__q-text {
 font-size: 0.9rem;
 }
 }
@@ -177,36 +177,38 @@ function renderFaqItem(item) {
   const question = escapeHtml(item.question.trim());
   const answer = formatAnswer(item.answer);
 
-  return `<li class="faq-section__item">
+  return `        <!-- Cole aqui as perguntas e respostas -->
+        <li id="faq-section__item">
 <details>
 <summary>
-<h3 class="faq-section__q-text">${question}</h3>
-<span class="faq-section__icon" aria-hidden="true"></span>
+<h3 id="faq-section__q-text"> ${question} </h3>
+<span id="faq-section__icon" aria-hidden="true"></span>
 </summary>
-<div class="faq-section__a-inner">
-<p class="faq-section__a-text">${answer}</p>
+<div id="faq-section__a-inner">
+<p id="faq-section__a-text"> ${answer} </p>
 </div>
 </details>
-</li>`;
+</li>
+        <!-------------------------->`;
 }
 
 function buildFaqHtml() {
-  const title = escapeHtml(faqTitle);
   const items = state.items
     .filter(item => item.question.trim() || item.answer.trim())
     .map(renderFaqItem)
     .join('\n\n');
 
-  return `
-<meta charset="UTF-8">
-<section class="faq-section" aria-labelledby="faq-section-title">
-<div class="faq-section__header">
-<h2 class="faq-section__title" id="faq-section-title">${title}</h2>
+  return `<meta charset="UTF-8">
+<section id="faq-section" aria-labelledby="faq-section__title">
+<div id="faq-section__header">
+<h2 id="faq-section__title">${escapeHtml(faqTitle)}</h2>
 </div>
-<ul class="faq-section__list" role="list">
+<ul id="faq-section__list" role="list">
 ${items}
 </ul>
 </section>
+
+<!-- ESSES CÓDIGOS ABAIXO VOCÊ NÃO PRECISA MEXER!!! APENAS O HTML ACIMA-->
 
 ${faqStyle}`;
 }
@@ -219,7 +221,8 @@ function updateOutput() {
 
   const html = buildFaqHtml();
   generatedHtml.value = html;
-  previewFrame.innerHTML = html;
+  if ('srcdoc' in previewFrame) previewFrame.srcdoc = html;
+  else previewFrame.innerHTML = html;
   if (copyStatus) copyStatus.textContent = '';
 }
 
@@ -253,6 +256,53 @@ function addItem() {
   state.items.push({ question: '', answer: '' });
   renderEditor();
   $('faqEditor')?.querySelector('.faq-editor__item:last-child input')?.focus();
+}
+
+function parseBulkFaq(value = '') {
+  const normalized = value.replace(/\r\n?/g, '\n');
+  const questionPattern = /(?:^|\n)\s*(?:\d+|[A-Za-z])\.\s*([\s\S]*?\?)/g;
+  const matches = [];
+  const items = [];
+  let match;
+
+  while ((match = questionPattern.exec(normalized)) !== null) {
+    matches.push({
+      start: match.index,
+      end: match.index + match[0].length,
+      question: match[1].replace(/\s+/g, ' ').trim(),
+    });
+  }
+
+  matches.forEach((item, index) => {
+    const nextItem = matches[index + 1];
+    const answerEnd = nextItem ? nextItem.start : normalized.length;
+    const answer = normalized.slice(item.end, answerEnd).trim();
+
+    if (item.question || answer) {
+      items.push({ question: item.question, answer });
+    }
+  });
+
+  return items;
+}
+
+function fillFromBulk() {
+  const bulkInput = $('faqBulkInput');
+  const bulkStatus = $('faqBulkStatus');
+  if (!bulkInput) return;
+
+  const parsedItems = parseBulkFaq(bulkInput.value);
+
+  if (!parsedItems.length) {
+    if (bulkStatus) bulkStatus.textContent = 'Não encontrei perguntas no formato 1. Pergunta?';
+    return;
+  }
+
+  state.items = parsedItems;
+  if (bulkStatus) {
+    bulkStatus.textContent = `${parsedItems.length} pergunta${parsedItems.length === 1 ? '' : 's'} preenchida${parsedItems.length === 1 ? '' : 's'}.`;
+  }
+  renderEditor();
 }
 
 async function copyGeneratedHtml() {
@@ -305,6 +355,7 @@ function bindEvents() {
 
   $('faqAddItem')?.addEventListener('click', addItem);
   $('faqAddItemTop')?.addEventListener('click', addItem);
+  $('faqFillFromBulk')?.addEventListener('click', fillFromBulk);
   $('faqCopyHtml')?.addEventListener('click', copyGeneratedHtml);
   $('faqCopyHtmlTop')?.addEventListener('click', copyGeneratedHtml);
 }
