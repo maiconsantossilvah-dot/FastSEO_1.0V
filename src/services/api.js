@@ -102,10 +102,15 @@ async function _requestWithAutoWait(provider, fetcher, signal, attempt = 1) {
   return res;
 }
 
-export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal = null) {
+export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal = null, options = {}) {
   const model = _getModel();
   const keys = _getGeminiKeys();
   if (!keys.length) throw new Error('API Key do Gemini nao configurada.');
+  const generationConfig = {
+    maxOutputTokens: maxTokens,
+    temperature: options.jsonMode ? 0 : 0.3,
+    ...(options.jsonMode ? { responseMimeType: 'application/json' } : {}),
+  };
 
   let lastErr = null;
   for (let i = 0; i < keys.length; i++) {
@@ -120,7 +125,7 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
         body: JSON.stringify({
           system_instruction: { parts: [{ text: system }] },
           contents: [{ role: 'user', parts: [{ text: userMsg }] }],
-          generationConfig: { maxOutputTokens: maxTokens, temperature: 0.3 },
+          generationConfig,
         }),
       }), signal);
 
@@ -156,7 +161,7 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
   throw lastErr || new Error('Gemini indisponivel.');
 }
 
-export async function callMistral(system, userMsg, maxTokens, signal = null, attempt = 0) {
+export async function callMistral(system, userMsg, maxTokens, signal = null, attempt = 0, options = {}) {
   const keys = _getMistralKeys();
   if (!keys.length) throw new Error('API Key da Mistral nao configurada.');
 
@@ -175,7 +180,8 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
         body: JSON.stringify({
           model:       MISTRAL_MODEL,
           max_tokens:  maxTokens,
-          temperature: 0.3,
+          temperature: options.jsonMode ? 0 : 0.3,
+          ...(options.jsonMode ? { response_format: { type: 'json_object' } } : {}),
           messages: [
             { role: 'system', content: system },
             { role: 'user',   content: userMsg },
@@ -219,11 +225,12 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
 export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
   const mistralOk = _getMistralKeys().length > 0;
   const geminiOk  = _getGeminiKeys().length > 0;
+  const options = { jsonMode: agentNum === 2 };
 
   const tryFallback = async (skipApi, label) => {
     if (skipApi !== 'mistral' && mistralOk) {
       PipelineUI.log(`${label} - usando Mistral como fallback...`, 'w');
-      try { return await callMistral(system, userMsg, maxTokens, signal); }
+      try { return await callMistral(system, userMsg, maxTokens, signal, 0, options); }
       catch (e2) {
         if (!e2.cotaEsgotada) throw e2;
         PipelineUI.log('Mistral tambem indisponivel no fallback.', 'w');
@@ -231,7 +238,7 @@ export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
     }
     if (skipApi !== 'gemini' && geminiOk) {
       PipelineUI.log(`${label} - usando Gemini como fallback...`, 'w');
-      return callGemini(system, userMsg, maxTokens, 1, signal);
+      return callGemini(system, userMsg, maxTokens, 1, signal, options);
     }
     throw new Error(`Todas as APIs falharam no A${agentNum}. Verifique chaves, cotas e tente novamente em alguns minutos.`);
   };
@@ -241,7 +248,7 @@ export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
       PipelineUI.log('Mistral nao configurada no A1 - usando Gemini como fallback...', 'w');
       return tryFallback('mistral', 'A1 sem Mistral');
     }
-    try { return await callMistral(system, userMsg, maxTokens, signal); }
+    try { return await callMistral(system, userMsg, maxTokens, signal, 0, options); }
     catch (err) {
       if (err.cotaEsgotada) return tryFallback('mistral', 'Mistral indisponivel no A1');
       throw err;
@@ -252,7 +259,7 @@ export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
     PipelineUI.log(`Gemini nao configurada no A${agentNum} - usando Mistral como fallback...`, 'w');
     return tryFallback('gemini', `A${agentNum} sem Gemini`);
   }
-  try { return await callGemini(system, userMsg, maxTokens, 1, signal); }
+  try { return await callGemini(system, userMsg, maxTokens, 1, signal, options); }
   catch (err) {
     if (err.cotaEsgotada) return tryFallback('gemini', `Gemini indisponivel no A${agentNum}`);
     throw err;

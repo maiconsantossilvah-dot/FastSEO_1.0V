@@ -276,7 +276,7 @@ export const Pipeline = {
       const validacao = await callAgent(
         sys2,
         `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}${qaSchemaPrompt ? `\n\n---\nJSON DE VALIDACAO DA CATEGORIA:\n${qaSchemaPrompt}` : ''}`,
-        1000, signal, 2
+        2000, signal, 2
       );
       Quota.add(1);
       const qa = parseQAJson(validacao);
