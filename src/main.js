@@ -93,8 +93,10 @@ function showApp(user) {
 // Ponte: HistoryModal dispara evento, HistoryUI escuta
 document.addEventListener('fastseo:historyRender', () => { HistoryUI.resetPage(); HistoryUI.render(); });
 document.addEventListener('fastseo:catsChanged', () => {
-  if (!document.getElementById('categoriasModalOverlay')) return;
-  import('./components/CategoriasModal.js').then(({ CategoriasModal }) => CategoriasModal.onCatsChanged());
+  SidebarUI.render();
+  if (document.getElementById('categoriasModalOverlay')) {
+    import('./components/CategoriasModal.js').then(({ CategoriasModal }) => CategoriasModal.onCatsChanged());
+  }
 });
 
 async function init() {

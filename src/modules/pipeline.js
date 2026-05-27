@@ -218,7 +218,7 @@ export const Pipeline = {
       const bivolt = Utils.detectBivolt(input);
 
       // Flush de modal aberto (auto-save antes de processar)
-      this._flushOpenEditor();
+      await this._flushOpenEditor();
 
       // Matching de categorias
       const allCats   = Categories.getAll().filter(hasCategoryDefinition);
@@ -356,22 +356,39 @@ export const Pipeline = {
   },
 
   // Flush do editor aberto antes de processar
-  _flushOpenEditor() {
+  async _flushOpenEditor() {
     const { active, editorOpen, saveTimer } = AppState.categories;
     if (saveTimer) { clearTimeout(saveTimer); AppState.categories.saveTimer = null; }
+
+    const currentFields = {
+      nome: document.getElementById('catEditNome'),
+      camposObrigatorios: document.getElementById('catEditObrigatorios'),
+      camposOpcionais: document.getElementById('catEditOpcionais'),
+      fichaIdeal: document.getElementById('catEditFichaIdeal'),
+    };
+    if (active && Object.values(currentFields).every(Boolean)) {
+      await Categories.update(active, {
+        nome: currentFields.nome.value || 'Sem nome',
+        camposObrigatorios: textToFieldList(currentFields.camposObrigatorios.value),
+        camposOpcionais: textToFieldList(currentFields.camposOpcionais.value),
+        fichaIdeal: currentFields.fichaIdeal.value,
+      });
+      return;
+    }
+
     if (!editorOpen || !active) return;
-    const fields = {
+    const legacyFields = {
       nome:   document.getElementById('catNome'),
       camposObrigatorios: document.getElementById('catCamposObrigatorios'),
       camposOpcionais:    document.getElementById('catCamposOpcionais'),
       fichaIdeal:         document.getElementById('catFichaIdeal'),
     };
-    if (Object.values(fields).every(Boolean)) {
-      Categories.update(active, {
-        nome: fields.nome.value || 'Sem nome',
-        camposObrigatorios: textToFieldList(fields.camposObrigatorios.value),
-        camposOpcionais: textToFieldList(fields.camposOpcionais.value),
-        fichaIdeal: fields.fichaIdeal.value,
+    if (Object.values(legacyFields).every(Boolean)) {
+      await Categories.update(active, {
+        nome: legacyFields.nome.value || 'Sem nome',
+        camposObrigatorios: textToFieldList(legacyFields.camposObrigatorios.value),
+        camposOpcionais: textToFieldList(legacyFields.camposOpcionais.value),
+        fichaIdeal: legacyFields.fichaIdeal.value,
       });
     }
   },

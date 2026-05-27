@@ -18,6 +18,10 @@ let _cache = [];
 let _changeTimer = null; // throttle do evento catsChanged
 const _migrationQueue = new Set();
 
+function emitChanged() {
+  document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
+}
+
 export const Categories = {
   // ─── Cache local ─────────────────────────────────────────
   getAll() { return _cache; },
@@ -43,16 +47,42 @@ export const Categories = {
       fichaIdeal: '',
     });
     const created = await CategoriesDB.create(data);
-    return normalizeCategory(created);
+    const normalized = normalizeCategory(created);
+    if (!this.find(normalized.id)) {
+      this._writeCache([..._cache, normalized]);
+      emitChanged();
+    }
+    return normalized;
   },
 
   async update(id, data) {
     const previous = this.find(id) || {};
-    await CategoriesDB.update(id, buildCategoryPayload(data, previous));
+    const payload = buildCategoryPayload(data, previous);
+    const next = normalizeCategory({ ...previous, ...payload, id });
+    const before = _cache;
+    const exists = _cache.some(cat => cat.id === id);
+    this._writeCache(exists ? _cache.map(cat => cat.id === id ? next : cat) : [..._cache, next]);
+    emitChanged();
+    try {
+      await CategoriesDB.update(id, payload);
+    } catch (err) {
+      this._writeCache(before);
+      emitChanged();
+      throw err;
+    }
   },
 
   async delete(id) {
-    await CategoriesDB.delete(id);
+    const before = _cache;
+    this._writeCache(_cache.filter(cat => cat.id !== id));
+    emitChanged();
+    try {
+      await CategoriesDB.delete(id);
+    } catch (err) {
+      this._writeCache(before);
+      emitChanged();
+      throw err;
+    }
   },
 
   // ─── Listener em tempo real ───────────────────────────────
@@ -74,7 +104,7 @@ export const Categories = {
       // múltiplos re-renders em cascata durante sincronizações do Firestore
       clearTimeout(_changeTimer);
       _changeTimer = setTimeout(() => {
-        document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
+        emitChanged();
       }, 200);
     });
   },

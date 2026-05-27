@@ -123,6 +123,7 @@ export const CategoriasModal = {
     const cat = normalizeCategory(rawCat);
 
     AppState.categories.active = id;
+    AppState.categories.editorOpen = true;
     this._editingId = id;
     this._render();
 
@@ -168,7 +169,6 @@ export const CategoriasModal = {
     if (!id) return;
     await Categories.update(id, this._getEditorDraft());
     this._showSaved();
-    document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
   },
 
   _getEditorDraft() {
@@ -189,9 +189,6 @@ export const CategoriasModal = {
   async _createNew() {
     const nova = await Categories.create();
     AppState.categories.active = nova.id;
-    if (!Categories.find(nova.id)) {
-      Categories._writeCache([...Categories.getAll(), nova]);
-    }
     this._render();
     this._openEditor(nova.id);
     setTimeout(() => { $('catEditNome')?.focus(); $('catEditNome')?.select(); }, 50);
@@ -226,6 +223,7 @@ export const CategoriasModal = {
   close() {
     clearTimeout(this._saveTimer);
     if (this._editingId) this._save();
+    AppState.categories.editorOpen = false;
     $('categoriasModalOverlay')?.remove();
     document.removeEventListener('keydown', this._escHandler);
   },
