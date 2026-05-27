@@ -403,6 +403,7 @@ textarea#inputText { min-height: 180px; resize: vertical; line-height: 1.7; font
 }
 
 .sheet-modal-footer {
+  flex-wrap: wrap;
   justify-content: flex-end;
 }
 

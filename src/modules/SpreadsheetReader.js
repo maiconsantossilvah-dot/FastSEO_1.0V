@@ -1,16 +1,16 @@
 /**
  * modules/SpreadsheetReader.js
  * ----------------------------
- * Le planilhas e envia uma linha escolhida para o input principal.
+ * Le planilhas e envia linhas escolhidas para o input principal.
  */
 
 import { PipelineUI } from '../components/PipelineUI.js';
 import { Utils }      from '../utils/index.js';
+import { APP_CONFIG } from '../config.js';
 import { AppState }   from './state.js';
 
 const XLSX_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 const MAX_PREVIEW_ROWS = 80;
-const MAX_PREVIEW_COLS = 8;
 
 let _loaded = false;
 
@@ -146,7 +146,14 @@ function selectedItem() {
   return state.dataRows.find(item => item.rowNumber === state.selectedRowNumber) || filteredRows()[0] || null;
 }
 
+function dataColumns(rows = state.dataRows) {
+  const width = state.headers.length;
+  return Array.from({ length: width }, (_, index) => index)
+    .filter(index => rows.some(item => cleanCell(item.row[index])));
+}
+
 function formatRow(item) {
+  const cols = dataColumns([item]);
   const lines = [
     `Dados extraidos da planilha: ${state.file?.name || ''}`,
     `Aba: ${state.sheetName}`,
@@ -154,20 +161,39 @@ function formatRow(item) {
     '',
   ];
 
-  state.headers.forEach((header, index) => {
+  cols.forEach(index => {
     const value = cleanCell(item.row[index]);
-    if (value) lines.push(`${header}: ${value}`);
+    if (value) lines.push(`${state.headers[index]}: ${value}`);
   });
 
   return lines.join('\n').trim();
 }
 
+function formatAllRows() {
+  const cols = dataColumns();
+  const lines = [
+    `Dados extraidos da planilha: ${state.file?.name || ''}`,
+    `Aba: ${state.sheetName}`,
+    `Linhas: ${state.dataRows.length}`,
+    `Colunas: ${cols.length}`,
+    '',
+  ];
+
+  state.dataRows.forEach(item => {
+    lines.push(`--- Linha ${item.rowNumber} ---`);
+    cols.forEach(index => {
+      const value = cleanCell(item.row[index]);
+      if (value) lines.push(`${state.headers[index]}: ${value}`);
+    });
+    lines.push('');
+  });
+
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 function previewColumns(rows) {
-  const width = state.headers.length;
-  const useful = Array.from({ length: width }, (_, index) => index)
-    .filter(index => rows.some(item => cleanCell(item.row[index])));
-  const cols = useful.length ? useful : Array.from({ length: width }, (_, index) => index);
-  return cols.slice(0, MAX_PREVIEW_COLS);
+  const cols = dataColumns(rows);
+  return cols.length ? cols : Array.from({ length: state.headers.length }, (_, index) => index);
 }
 
 function closeModal() {
@@ -198,6 +224,7 @@ function renderTable() {
   state.selectedRowNumber = selectedVisible ? state.selectedRowNumber : rows[0]?.rowNumber || null;
 
   if (!rows.length) {
+    table.style.minWidth = '';
     table.innerHTML = '<tbody><tr><td class="sheet-empty">Nenhuma linha encontrada.</td></tr></tbody>';
     if (status) status.textContent = '0 linhas';
     renderSelected();
@@ -205,6 +232,7 @@ function renderTable() {
   }
 
   const cols = previewColumns(rows);
+  table.style.minWidth = `${Math.max(760, (cols.length + 1) * 150)}px`;
   const head = cols
     .map(index => `<th>${Utils.escHtml(state.headers[index])}</th>`)
     .join('');
@@ -222,8 +250,7 @@ function renderTable() {
   if (status) {
     const total = state.dataRows.length;
     const shown = rows.length;
-    const suffix = state.headers.length > MAX_PREVIEW_COLS ? `, ${MAX_PREVIEW_COLS} colunas visiveis` : '';
-    status.textContent = `${shown}/${total} linhas${suffix}`;
+    status.textContent = `${shown}/${total} linhas, ${cols.length} colunas`;
   }
 
   renderSelected();
@@ -232,9 +259,11 @@ function renderTable() {
 function renderSelected() {
   const pre = $('sheetLinePreview');
   const btn = $('sheetUseBtn');
+  const allBtn = $('sheetUseAllBtn');
   const item = selectedItem();
 
   if (btn) btn.disabled = !item;
+  if (allBtn) allBtn.disabled = !state.dataRows.length;
   if (!pre) return;
 
   pre.textContent = item ? formatRow(item) : 'Escolha uma linha da planilha.';
@@ -275,7 +304,8 @@ function openModal() {
       </div>
       <div class="modal-ftr sheet-modal-footer">
         <button class="btn btn-secondary" id="sheetCancelBtn">Cancelar</button>
-        <button class="btn btn-primary" id="sheetUseBtn">Usar este produto</button>
+        <button class="btn btn-secondary" id="sheetUseBtn">Usar linha selecionada</button>
+        <button class="btn btn-primary" id="sheetUseAllBtn">Usar toda a aba</button>
       </div>
     </div>`;
 
@@ -306,6 +336,7 @@ function openModal() {
   });
   $('sheetPreviewTable')?.addEventListener('dblclick', () => useSelected());
   $('sheetUseBtn')?.addEventListener('click', () => useSelected());
+  $('sheetUseAllBtn')?.addEventListener('click', () => useAllRows());
 
   renderSheets();
   renderTable();
@@ -315,17 +346,35 @@ function useSelected() {
   const item = selectedItem();
   if (!item) return;
 
+  sendToInput(formatRow(item));
+  PipelineUI.log(`Planilha importada: ${state.file?.name || ''}, linha ${item.rowNumber}`, 'o');
+  Utils.showToast('Linha da planilha enviada ao input');
+  closeModal();
+}
+
+function useAllRows() {
+  if (!state.dataRows.length) return;
+
+  sendToInput(formatAllRows());
+  PipelineUI.log(`Planilha importada: ${state.file?.name || ''}, ${state.dataRows.length} linhas`, 'o');
+  Utils.showToast('Planilha enviada ao input');
+  closeModal();
+}
+
+function sendToInput(text) {
   const input = $('inputText');
   if (input) {
-    input.value = formatRow(item);
+    input.value = text;
     input.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
   AppState.pdfTexto = '';
   AppState.inputSource = 'spreadsheet';
-  PipelineUI.log(`Planilha importada: ${state.file?.name || ''}, linha ${item.rowNumber}`, 'o');
-  Utils.showToast('Dados da planilha enviados ao input');
-  closeModal();
+
+  if (text.length > APP_CONFIG.inputMaxChars) {
+    PipelineUI.log(`Planilha grande: ${text.length.toLocaleString('pt-BR')} caracteres no input.`, 'w');
+    Utils.showToast('Planilha grande: revise o limite do agente', '#D97706');
+  }
 }
 
 export const SpreadsheetReader = {
