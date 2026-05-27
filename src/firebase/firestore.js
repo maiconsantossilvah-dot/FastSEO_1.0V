@@ -39,6 +39,12 @@ const Refs = {
   history:       () => collection(db, 'history'),
 };
 
+function cleanUndefined(data) {
+  return Object.fromEntries(
+    Object.entries(data || {}).filter(([, value]) => value !== undefined)
+  );
+}
+
 // ─────────────────────────────────────────────────────────────
 // CATEGORIES
 // ─────────────────────────────────────────────────────────────
@@ -49,19 +55,18 @@ export const CategoriesDB = {
   },
 
   async create(data) {
-    const ref = await addDoc(Refs.categories(), {
-      nome:      data.nome   || 'Nova Categoria',
-      campos:    data.campos || '',
-      ficha:     data.ficha  || '',
-      copy:      data.copy   || '',
+    const payload = cleanUndefined({
+      ...data,
+      nome: data.nome || 'Nova Categoria',
       updatedAt: serverTimestamp(),
     });
-    return { id: ref.id, ...data };
+    const ref = await addDoc(Refs.categories(), payload);
+    return { id: ref.id, ...payload };
   },
 
   async update(id, data) {
     await updateDoc(doc(db, 'categories', id), {
-      ...data,
+      ...cleanUndefined(data),
       updatedAt: serverTimestamp(),
     });
   },

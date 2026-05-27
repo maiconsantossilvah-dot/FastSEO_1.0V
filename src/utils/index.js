@@ -5,6 +5,11 @@
  */
 
 import { APP_CONFIG } from '../config.js';
+import {
+  fieldListToText,
+  hasCategoryDefinition,
+  normalizeCategory,
+} from '../modules/categoryQaSchema.js';
 import { rankMatches } from './matching.js';
 
 export const Utils = {
@@ -53,18 +58,20 @@ export const Utils = {
   // Few-shot builder
   buildFewShot(bivolt, cats) {
     const MAX_CHARS   = 6000;
-    const validCats   = (cats || []).filter(c => c.ficha || c.campos || c.copy);
+    const validCats   = (cats || []).filter(hasCategoryDefinition).map(normalizeCategory);
     if (!validCats.length) return '';
 
-    const header = '\n\n-- EXEMPLOS E PADROES DA EMPRESA --\nUse os exemplos abaixo como referencia de formato, campos prioritarios e tom. Adapte ao produto atual.\n\n';
+    const header = '\n\n-- EXEMPLOS E PADROES DA EMPRESA --\nUse os exemplos abaixo como referencia de formato e campos da categoria. Adapte ao produto atual.\n\n';
     let bloco = header, len = 0;
     const limit = MAX_CHARS - header.length;
 
     for (const cat of validCats) {
       let parte = `=== CATEGORIA: ${cat.nome} ===\n`;
-      if (cat.campos) parte += `Campos prioritarios:\n${cat.campos}\n\n`;
-      if (cat.ficha)  parte += `Exemplo de ficha ideal:\n${cat.ficha}\n\n`;
-      if (cat.copy && !bivolt) parte += `Exemplo de conteudo comercial:\n${cat.copy}\n\n`;
+      const obrigatorios = fieldListToText(cat.camposObrigatorios);
+      const opcionais = fieldListToText(cat.camposOpcionais);
+      if (obrigatorios) parte += `Campos obrigatorios/prioritarios:\n${obrigatorios}\n\n`;
+      if (opcionais) parte += `Campos opcionais:\n${opcionais}\n\n`;
+      if (cat.fichaIdeal) parte += `Ficha ideal:\n${cat.fichaIdeal}\n\n`;
       parte += '---\n';
       if (len + parte.length > limit) {
         bloco += '(demais categorias omitidas por limite de tamanho)\n';
@@ -83,7 +90,7 @@ export const Utils = {
    * enquanto "Ar Condicionado Split Philco" deve priorizar "Ar Condicionado".
    */
   matchCategories(input, allCats = []) {
-    const validCats = allCats.filter(c => c.ficha || c.campos || c.copy);
+    const validCats = allCats.filter(hasCategoryDefinition).map(normalizeCategory);
     return rankMatches(input, validCats, item => item.nome, { scope: 'title' }).map(match => match.item);
   },
 

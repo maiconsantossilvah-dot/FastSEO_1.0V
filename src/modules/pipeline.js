@@ -29,6 +29,7 @@ import { Utils }        from '../utils/index.js';
 import { PipelineUI }   from '../components/PipelineUI.js';
 import { AppState }     from './state.js';
 import { parseQAJson, formatQAReport } from './qa.js';
+import { buildCategoryQaSchemaPrompt, hasCategoryDefinition, textToFieldList } from './categoryQaSchema.js';
 
 // Imports adicionados: SerpAPI + Analytics
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -126,7 +127,7 @@ export const Pipeline = {
 
     try {
       const input      = document.getElementById('inputText')?.value || fichaText;
-      const allCats    = Categories.getAll().filter(c => c.ficha || c.campos || c.copy);
+      const allCats    = Categories.getAll().filter(hasCategoryDefinition);
       const matched    = Utils.matchCategories(input, Categories.getAll());
       const fewShot    = Utils.buildFewShot(bivolt, matched);
 
@@ -220,7 +221,7 @@ export const Pipeline = {
       this._flushOpenEditor();
 
       // Matching de categorias
-      const allCats   = Categories.getAll().filter(c => c.ficha || c.campos || c.copy);
+      const allCats   = Categories.getAll().filter(hasCategoryDefinition);
       const matched   = Utils.matchCategories(input, Categories.getAll());
       const unmatched = allCats.filter(c => !matched.includes(c));
 
@@ -242,6 +243,7 @@ export const Pipeline = {
       const fewShot    = Utils.buildFewShot(bivolt, matched);
       const hasFewShot = fewShot.length > 0;
       const tok1       = (bivolt ? 1500 : 1200) + (hasFewShot ? 300 : 0);
+      const qaSchemaPrompt = buildCategoryQaSchemaPrompt(matched);
 
       const subcatRule    = AppState.subcatRules.match(input);
       const subcatSnippet = AppState.subcatRules.buildSnippet(subcatRule);
@@ -273,7 +275,7 @@ export const Pipeline = {
       PipelineUI.log('[A2] Conferindo dados...', 'i');
       const validacao = await callAgent(
         sys2,
-        `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}`,
+        `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}${qaSchemaPrompt ? `\n\n---\nJSON DE VALIDACAO DA CATEGORIA:\n${qaSchemaPrompt}` : ''}`,
         1000, signal, 2
       );
       Quota.add(1);
@@ -360,16 +362,16 @@ export const Pipeline = {
     if (!editorOpen || !active) return;
     const fields = {
       nome:   document.getElementById('catNome'),
-      campos: document.getElementById('catCampos'),
-      ficha:  document.getElementById('catFicha'),
-      copy:   document.getElementById('catCopy'),
+      camposObrigatorios: document.getElementById('catCamposObrigatorios'),
+      camposOpcionais:    document.getElementById('catCamposOpcionais'),
+      fichaIdeal:         document.getElementById('catFichaIdeal'),
     };
     if (Object.values(fields).every(Boolean)) {
       Categories.update(active, {
-        nome:   fields.nome.value   || undefined,
-        campos: fields.campos.value,
-        ficha:  fields.ficha.value,
-        copy:   fields.copy.value,
+        nome: fields.nome.value || 'Sem nome',
+        camposObrigatorios: textToFieldList(fields.camposObrigatorios.value),
+        camposOpcionais: textToFieldList(fields.camposOpcionais.value),
+        fichaIdeal: fields.fichaIdeal.value,
       });
     }
   },

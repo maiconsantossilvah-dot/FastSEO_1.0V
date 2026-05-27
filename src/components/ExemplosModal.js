@@ -1,13 +1,14 @@
 /**
  * components/ExemplosModal.js
- * ────────────────────────────
- * Modal do painel de exemplos por categoria.
- * Lê as categorias do módulo Categories e exibe numa interface
- * de navegação: lista de categorias à esquerda, conteúdo à direita.
+ * Exibe a estrutura cadastrada por categoria.
  */
 
 import { Categories } from '../modules/categories.js';
-import { AppState }   from '../modules/state.js';
+import {
+  fieldListToText,
+  hasCategoryDefinition,
+  normalizeCategory,
+} from '../modules/categoryQaSchema.js';
 
 export const ExemplosModal = {
   _activeCat: null,
@@ -21,17 +22,15 @@ export const ExemplosModal = {
     overlay.innerHTML = `
       <div class="modal modal--exemplos">
         <div class="modal-hdr">
-          <span class="modal-title">📚 Exemplos por Categoria</span>
-          <button class="modal-close" id="exemplosModalClose">✕</button>
+          <span class="modal-title">Estrutura por Categoria</span>
+          <button class="modal-close" id="exemplosModalClose">x</button>
         </div>
         <div class="exemplos-layout">
-          <!-- Lista de categorias -->
           <div class="exemplos-sidebar" id="exemplosSidebar"></div>
-          <!-- Conteúdo da categoria selecionada -->
           <div class="exemplos-content" id="exemplosContent">
             <div class="exemplos-empty">
-              <span style="font-size:28px;opacity:.3">📂</span>
-              <p>Selecione uma categoria para ver os exemplos</p>
+              <span style="font-size:28px;opacity:.3">CAT</span>
+              <p>Selecione uma categoria para ver a estrutura</p>
             </div>
           </div>
         </div>
@@ -61,7 +60,7 @@ export const ExemplosModal = {
     }
 
     sidebar.innerHTML = cats.map(c => {
-      const hasContent = !!(c.ficha || c.campos || c.copy);
+      const hasContent = hasCategoryDefinition(c);
       return `<button class="exemplos-cat-item${this._activeCat === c.id ? ' active' : ''}" data-id="${c.id}">
         <span class="exemplos-cat-dot" style="background:${hasContent ? '#4ade80' : '#374151'}"></span>
         <span class="exemplos-cat-name">${this._esc_html(c.nome || 'Sem nome')}</span>
@@ -77,9 +76,8 @@ export const ExemplosModal = {
       });
     });
 
-    // Selecionar primeira com conteúdo automaticamente
     if (!this._activeCat) {
-      const first = cats.find(c => c.ficha || c.campos || c.copy) || cats[0];
+      const first = cats.find(hasCategoryDefinition) || cats[0];
       if (first) {
         this._activeCat = first.id;
         const btn = sidebar.querySelector(`[data-id="${first.id}"]`);
@@ -92,23 +90,28 @@ export const ExemplosModal = {
   _renderContent(catId) {
     const content = document.getElementById('exemplosContent');
     if (!content) return;
-    const cat = Categories.find(catId);
-    if (!cat) return;
+    const rawCat = Categories.find(catId);
+    if (!rawCat) return;
+    const cat = normalizeCategory(rawCat);
 
-    const section = (label, text) => text ? `
-      <div class="exemplos-section">
-        <div class="exemplos-section-label">${label}</div>
-        <pre class="exemplos-section-body">${this._esc_html(text)}</pre>
-      </div>` : '';
+    const section = (label, value) => {
+      const text = Array.isArray(value) ? fieldListToText(value) : value;
+      return text ? `
+        <div class="exemplos-section">
+          <div class="exemplos-section-label">${label}</div>
+          <pre class="exemplos-section-body">${this._esc_html(text)}</pre>
+        </div>` : '';
+    };
 
     content.innerHTML = `
       <div class="exemplos-cat-header">
         <span class="exemplos-cat-title">${this._esc_html(cat.nome || 'Sem nome')}</span>
       </div>
-      ${section('Campos prioritários', cat.campos)}
-      ${section('Exemplo de ficha ideal', cat.ficha)}
-      ${section('Exemplo de conteúdo comercial', cat.copy)}
-      ${!cat.campos && !cat.ficha && !cat.copy ? '<div class="exemplos-empty"><span style="font-size:28px;opacity:.3">📝</span><p>Esta categoria ainda não tem exemplos configurados.</p></div>' : ''}
+      ${section('Campos obrigatorios', cat.camposObrigatorios)}
+      ${section('Campos opcionais', cat.camposOpcionais)}
+      ${section('Ficha ideal', cat.fichaIdeal)}
+      ${section('JSON de validacao', JSON.stringify(cat.qaSchema, null, 2))}
+      ${!hasCategoryDefinition(cat) ? '<div class="exemplos-empty"><span style="font-size:28px;opacity:.3">CAT</span><p>Esta categoria ainda nao tem estrutura configurada.</p></div>' : ''}
     `;
   },
 

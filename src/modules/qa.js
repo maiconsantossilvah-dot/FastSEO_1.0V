@@ -13,6 +13,13 @@ const QA_DEFAULT = {
     termos_validos: [],
     termos_suspeitos: [],
   },
+  category_validation: {
+    category: '',
+    schema_version: '',
+    checked_fields: [],
+    failed_rules: [],
+    warnings: [],
+  },
 };
 
 function arrayOrEmpty(value) {
@@ -59,6 +66,15 @@ function normalizeQa(value, raw = '') {
       avisos: arrayOrEmpty(source.seo?.avisos),
       termos_validos: arrayOrEmpty(source.seo?.termos_validos),
       termos_suspeitos: arrayOrEmpty(source.seo?.termos_suspeitos),
+    },
+    category_validation: {
+      ...QA_DEFAULT.category_validation,
+      ...(source.category_validation && typeof source.category_validation === 'object' ? source.category_validation : {}),
+      category: text(source.category_validation?.category),
+      schema_version: text(source.category_validation?.schema_version),
+      checked_fields: arrayOrEmpty(source.category_validation?.checked_fields),
+      failed_rules: arrayOrEmpty(source.category_validation?.failed_rules),
+      warnings: arrayOrEmpty(source.category_validation?.warnings),
     },
   };
 }
@@ -139,6 +155,21 @@ export function formatQAReport(qa) {
   addList(lines, 'Avisos SEO', normalized.seo.avisos);
   addList(lines, 'Termos Validos', normalized.seo.termos_validos);
   addList(lines, 'Termos Suspeitos', normalized.seo.termos_suspeitos);
+
+  const categoryValidation = normalized.category_validation || {};
+  const hasCategoryValidation = text(categoryValidation.category) ||
+    arrayOrEmpty(categoryValidation.checked_fields).length ||
+    arrayOrEmpty(categoryValidation.failed_rules).length ||
+    arrayOrEmpty(categoryValidation.warnings).length;
+
+  if (hasCategoryValidation) {
+    lines.push('', 'Validacao da Categoria:');
+    if (categoryValidation.category) lines.push(`Categoria: ${categoryValidation.category}`);
+    if (categoryValidation.schema_version) lines.push(`Schema: ${categoryValidation.schema_version}`);
+    addList(lines, 'Campos Checados', categoryValidation.checked_fields);
+    addList(lines, 'Regras Reprovadas', categoryValidation.failed_rules);
+    addList(lines, 'Avisos da Categoria', categoryValidation.warnings);
+  }
 
   return lines.join('\n');
 }

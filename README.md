@@ -65,7 +65,7 @@ src/
 ES Modules precisam de servidor HTTP; abrir o HTML via `file://` pode falhar.
 
 ```bash
-python -m http.server 5500
+py -m http.server 5500
 ```
 
 Depois acesse:
@@ -80,5 +80,7 @@ A aplicacao usa:
 
 - Firebase Auth com Google.
 - Firestore para `categories`, `subcategories`, `prompts`, `history` e `usuarios_autorizados`.
+- `categories` usa `nome`, `camposObrigatorios`, `camposOpcionais`, `fichaIdeal` e `qaSchema`.
+- Categorias antigas com `campos` e `ficha` sao migradas automaticamente para o novo formato.
 
 Para autorizar um usuario, crie um documento na colecao `usuarios_autorizados` usando o e-mail como ID do documento.

@@ -1,12 +1,17 @@
 /**
  * components/CategoriasModal.js
- * ──────────────────────────────
  * Modal completo de gerenciamento de categorias.
- * Substitui a sidebar lateral — lista, cria, edita e exclui categorias.
  */
 
 import { Categories } from '../modules/categories.js';
 import { AppState }   from '../modules/state.js';
+import {
+  createQaSchemaFromCategory,
+  fieldListToText,
+  hasCategoryDefinition,
+  normalizeCategory,
+  textToFieldList,
+} from '../modules/categoryQaSchema.js';
 
 const $ = id => document.getElementById(id);
 
@@ -23,32 +28,30 @@ export const CategoriasModal = {
     overlay.innerHTML = `
       <div class="modal modal--cats">
         <div class="modal-hdr">
-          <span class="modal-title">🧠 Categorias de Referência</span>
-          <button class="modal-close" id="catsModalClose">✕</button>
+          <span class="modal-title">Categorias de Referencia</span>
+          <button class="modal-close" id="catsModalClose">x</button>
         </div>
 
         <div class="cats-layout">
-          <!-- Coluna esquerda: lista -->
           <div class="cats-list-col">
             <div class="cats-search-row">
               <input type="text" id="catsBusca" placeholder="Buscar categoria..." autocomplete="off"/>
-              <button class="btn btn-primary" id="catsAddBtn" style="white-space:nowrap;padding:7px 14px;font-size:12px">＋ Nova</button>
+              <button class="btn btn-primary" id="catsAddBtn" style="white-space:nowrap;padding:7px 14px;font-size:12px">Nova</button>
             </div>
             <div class="cats-list" id="catsList"></div>
             <div class="cats-list-footer" id="catsFooter"></div>
           </div>
 
-          <!-- Coluna direita: editor -->
           <div class="cats-editor-col" id="catsEditor">
             <div class="cats-editor-empty">
-              <span style="font-size:32px;opacity:.2">🧠</span>
+              <span style="font-size:32px;opacity:.2">CAT</span>
               <p>Selecione ou crie uma categoria para editar</p>
             </div>
           </div>
         </div>
 
         <div class="modal-ftr" style="justify-content:flex-end">
-          <span class="modal-saved" id="catsSavedMsg">✓ Salvo</span>
+          <span class="modal-saved" id="catsSavedMsg">Salvo</span>
           <button class="btn btn-primary" id="catsModalClose2">Fechar</button>
         </div>
       </div>`;
@@ -65,7 +68,6 @@ export const CategoriasModal = {
     document.addEventListener('keydown', this._escHandler);
 
     this._render();
-    // Abrir editor da categoria ativa se houver
     if (AppState.categories.active) this._openEditor(AppState.categories.active);
   },
 
@@ -75,21 +77,21 @@ export const CategoriasModal = {
     if (!list) return;
 
     const query = ($('catsBusca')?.value || '').toLowerCase().trim();
-    const all   = Categories.getAll();
-    const cats  = query ? all.filter(c => (c.nome||'').toLowerCase().includes(query)) : all;
+    const all = Categories.getAll();
+    const cats = query ? all.filter(c => (c.nome || '').toLowerCase().includes(query)) : all;
 
     if (!cats.length) {
-      list.innerHTML = `<div class="cats-empty">${query ? 'Nenhuma categoria encontrada' : 'Nenhuma categoria ainda — crie a primeira!'}</div>`;
+      list.innerHTML = `<div class="cats-empty">${query ? 'Nenhuma categoria encontrada' : 'Nenhuma categoria ainda - crie a primeira!'}</div>`;
     } else {
       list.innerHTML = cats.map(c => {
-        const hasEx = !!(c.ficha || c.campos || c.copy);
+        const hasEx = hasCategoryDefinition(c);
         const active = AppState.categories.active === c.id;
         return `<div class="cats-item${active ? ' active' : ''}" data-id="${c.id}">
           <span class="cats-item-dot" style="background:${hasEx ? '#4ade80' : 'rgba(255,255,255,.2)'}${hasEx ? ';box-shadow:0 0 6px rgba(74,222,128,.4)' : ''}"></span>
           <span class="cats-item-name">${this._esc(c.nome || 'Sem nome')}</span>
           <div class="cats-item-actions">
-            <button class="cats-btn-edit" data-id="${c.id}" title="Editar">✏️</button>
-            <button class="cats-btn-del"  data-id="${c.id}" title="Excluir">🗑️</button>
+            <button class="cats-btn-edit" data-id="${c.id}" title="Editar">Editar</button>
+            <button class="cats-btn-del" data-id="${c.id}" title="Excluir">Excluir</button>
           </div>
         </div>`;
       }).join('');
@@ -110,18 +112,19 @@ export const CategoriasModal = {
       });
     }
 
-    if (footer) footer.textContent = `${all.length} categoria${all.length !== 1 ? 's' : ''} · ${all.filter(c=>c.ficha||c.campos||c.copy).length} com exemplos`;
+    if (footer) footer.textContent = `${all.length} categoria${all.length !== 1 ? 's' : ''} - ${all.filter(hasCategoryDefinition).length} com estrutura`;
   },
 
   _openEditor(id) {
     const col = $('catsEditor');
     if (!col) return;
-    const cat = Categories.find(id);
-    if (!cat) return;
+    const rawCat = Categories.find(id);
+    if (!rawCat) return;
+    const cat = normalizeCategory(rawCat);
 
     AppState.categories.active = id;
     this._editingId = id;
-    this._render(); // atualiza item ativo na lista
+    this._render();
 
     col.innerHTML = `
       <div class="cats-editor-form">
@@ -129,23 +132,30 @@ export const CategoriasModal = {
           <input class="cats-nome-input" id="catEditNome" type="text" value="${this._esc(cat.nome || '')}" placeholder="Nome da categoria" autocomplete="off"/>
         </div>
         <div class="cats-field">
-          <label>Campos prioritários <span class="cats-field-hint">— liste os campos que o A1 deve priorizar</span></label>
-          <textarea id="catEditCampos" rows="4" placeholder="Ex: EAN, Marca, Tensão, Potência...">${this._esc(cat.campos || '')}</textarea>
+          <label>Campos obrigatorios <span class="cats-field-hint">- o A2 valida com mais rigor</span></label>
+          <textarea id="catEditObrigatorios" rows="4" placeholder="Ex: EAN, Marca, Tensao, Potencia...">${this._esc(fieldListToText(cat.camposObrigatorios))}</textarea>
         </div>
         <div class="cats-field">
-          <label>Exemplo de ficha ideal <span class="cats-field-hint">— referência para o formatador</span></label>
-          <textarea id="catEditFicha" rows="6" placeholder="Cole aqui um exemplo de ficha bem formatada...">${this._esc(cat.ficha || '')}</textarea>
+          <label>Campos opcionais <span class="cats-field-hint">- validam se aparecerem nos dados brutos</span></label>
+          <textarea id="catEditOpcionais" rows="4" placeholder="Ex: Cor, Peso, Dimensoes, Recursos extras...">${this._esc(fieldListToText(cat.camposOpcionais))}</textarea>
         </div>
         <div class="cats-field">
-          <label>Exemplo de conteúdo comercial <span class="cats-field-hint">— referência para o copywriter</span></label>
-          <textarea id="catEditCopy" rows="5" placeholder="Cole aqui um exemplo de descrição comercial...">${this._esc(cat.copy || '')}</textarea>
+          <label>Ficha ideal <span class="cats-field-hint">- referencia para o formatador</span></label>
+          <textarea id="catEditFichaIdeal" rows="6" placeholder="Cole aqui a estrutura ideal desta categoria...">${this._esc(cat.fichaIdeal || '')}</textarea>
+        </div>
+        <div class="cats-field">
+          <label>JSON de validacao <span class="cats-field-hint">- gerado automaticamente</span></label>
+          <pre class="exemplos-section-body" id="catEditQaPreview"></pre>
         </div>
       </div>`;
 
-    // Auto-save em todos os campos
-    ['catEditNome','catEditCampos','catEditFicha','catEditCopy'].forEach(fieldId => {
-      $(fieldId)?.addEventListener('input', () => this._scheduleSave());
+    ['catEditNome','catEditObrigatorios','catEditOpcionais','catEditFichaIdeal'].forEach(fieldId => {
+      $(fieldId)?.addEventListener('input', () => {
+        this._updateQaPreview();
+        this._scheduleSave();
+      });
     });
+    this._updateQaPreview();
   },
 
   _scheduleSave() {
@@ -156,41 +166,47 @@ export const CategoriasModal = {
   async _save() {
     const id = this._editingId;
     if (!id) return;
-    const nome   = $('catEditNome')?.value.trim()   || '';
-    const campos = $('catEditCampos')?.value || '';
-    const ficha  = $('catEditFicha')?.value  || '';
-    const copy   = $('catEditCopy')?.value   || '';
-    await Categories.update(id, { nome, campos, ficha, copy });
+    await Categories.update(id, this._getEditorDraft());
     this._showSaved();
-    // Disparar re-render global para outros módulos
     document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
+  },
+
+  _getEditorDraft() {
+    return {
+      nome: $('catEditNome')?.value.trim() || 'Sem nome',
+      camposObrigatorios: textToFieldList($('catEditObrigatorios')?.value || ''),
+      camposOpcionais: textToFieldList($('catEditOpcionais')?.value || ''),
+      fichaIdeal: $('catEditFichaIdeal')?.value || '',
+    };
+  },
+
+  _updateQaPreview() {
+    const preview = $('catEditQaPreview');
+    if (!preview) return;
+    preview.textContent = JSON.stringify(createQaSchemaFromCategory(this._getEditorDraft()), null, 2);
   },
 
   async _createNew() {
     const nova = await Categories.create();
     AppState.categories.active = nova.id;
-    // Atualiza o cache local imediatamente com o novo item,
-    // sem esperar o listener do Firestore chegar de forma assíncrona.
-    // Isso garante que _openEditor encontre o objeto via Categories.find().
     if (!Categories.find(nova.id)) {
       Categories._writeCache([...Categories.getAll(), nova]);
     }
     this._render();
     this._openEditor(nova.id);
-    // Focar no nome
     setTimeout(() => { $('catEditNome')?.focus(); $('catEditNome')?.select(); }, 50);
   },
 
   async _delete(id) {
     const cat = Categories.find(id);
     if (!cat) return;
-    if (!confirm(`Excluir a categoria "${cat.nome}"? Esta ação não pode ser desfeita.`)) return;
+    if (!confirm(`Excluir a categoria "${cat.nome}"? Esta acao nao pode ser desfeita.`)) return;
     await Categories.delete(id);
     if (AppState.categories.active === id) {
       AppState.categories.active = null;
       this._editingId = null;
       const col = $('catsEditor');
-      if (col) col.innerHTML = `<div class="cats-editor-empty"><span style="font-size:32px;opacity:.2">🧠</span><p>Selecione ou crie uma categoria para editar</p></div>`;
+      if (col) col.innerHTML = `<div class="cats-editor-empty"><span style="font-size:32px;opacity:.2">CAT</span><p>Selecione ou crie uma categoria para editar</p></div>`;
     }
     this._render();
   },
@@ -216,6 +232,5 @@ export const CategoriasModal = {
 
   _escHandler(e) { if (e.key === 'Escape') CategoriasModal.close(); },
 
-  // Chamado pelo categories.js quando dados mudam (via evento)
   onCatsChanged() { this._render(); },
 };

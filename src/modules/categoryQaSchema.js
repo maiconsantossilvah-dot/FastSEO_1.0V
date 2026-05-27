@@ -1,0 +1,154 @@
+const DEFAULT_FORBIDDEN_INVENTIONS = [
+  'EAN',
+  'codigo',
+  'fornecedor',
+  'marca',
+  'modelo',
+  'voltagem',
+  'dimensoes',
+  'garantia',
+  'compatibilidade',
+  'material',
+];
+
+function hasOwn(obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj || {}, key);
+}
+
+function text(value) {
+  if (value == null) return '';
+  return String(value).trim();
+}
+
+export function textToFieldList(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map(item => typeof item === 'string' ? item : item?.field || item?.nome || item?.name || '')
+      .map(text)
+      .filter(Boolean);
+  }
+
+  return String(value || '')
+    .split(/\r?\n|;|,/)
+    .map(text)
+    .filter(Boolean);
+}
+
+export function fieldListToText(value) {
+  return textToFieldList(value).join('\n');
+}
+
+export function createQaSchemaFromCategory(category = {}) {
+  const nome = text(category.nome) || 'Sem nome';
+  const requiredFields = textToFieldList(category.camposObrigatorios);
+  const optionalFields = textToFieldList(category.camposOpcionais);
+  const idealStructure = text(category.fichaIdeal);
+
+  return {
+    version: 1,
+    category: nome,
+    ideal_structure: idealStructure,
+    required_fields: requiredFields.map(field => ({
+      field,
+      required: true,
+      source: 'dados_brutos',
+      on_missing_from_raw: 'warn',
+      on_missing_from_ficha: 'reprove',
+    })),
+    optional_fields: optionalFields.map(field => ({
+      field,
+      required: false,
+      source: 'dados_brutos',
+      on_missing_from_raw: 'ignore',
+      on_missing_from_ficha: 'warn_if_present_in_raw',
+    })),
+    format_rules: [
+      {
+        rule: 'Fornecedor deve ser copiado exatamente como aparece nos dados brutos.',
+        severity: 'reprove',
+      },
+      {
+        rule: 'A ficha nao pode inventar especificacoes tecnicas ausentes nos dados brutos.',
+        severity: 'reprove',
+      },
+      {
+        rule: 'Campos obrigatorios sem dado nos brutos podem aparecer como Nao informado.',
+        severity: 'warn',
+      },
+    ],
+    forbidden_inventions: DEFAULT_FORBIDDEN_INVENTIONS,
+    seo_rules: {
+      must_not_invent: true,
+      can_use_natural_keywords: true,
+    },
+  };
+}
+
+export function normalizeCategory(category = {}) {
+  const camposObrigatorios = hasOwn(category, 'camposObrigatorios')
+    ? textToFieldList(category.camposObrigatorios)
+    : textToFieldList(category.campos);
+
+  const camposOpcionais = hasOwn(category, 'camposOpcionais')
+    ? textToFieldList(category.camposOpcionais)
+    : [];
+
+  const fichaIdeal = hasOwn(category, 'fichaIdeal')
+    ? text(category.fichaIdeal)
+    : text(category.ficha);
+
+  const normalized = {
+    ...category,
+    nome: text(category.nome) || 'Sem nome',
+    camposObrigatorios,
+    camposOpcionais,
+    fichaIdeal,
+  };
+
+  normalized.qaSchema = category.qaSchema && typeof category.qaSchema === 'object'
+    ? category.qaSchema
+    : createQaSchemaFromCategory(normalized);
+
+  return normalized;
+}
+
+export function buildCategoryPayload(input = {}, previous = {}) {
+  const merged = normalizeCategory({ ...previous, ...input });
+
+  return {
+    nome: merged.nome,
+    camposObrigatorios: textToFieldList(merged.camposObrigatorios),
+    camposOpcionais: textToFieldList(merged.camposOpcionais),
+    fichaIdeal: text(merged.fichaIdeal),
+    qaSchema: createQaSchemaFromCategory(merged),
+  };
+}
+
+export function hasCategoryDefinition(category = {}) {
+  const normalized = normalizeCategory(category);
+  return Boolean(
+    normalized.camposObrigatorios.length ||
+    normalized.camposOpcionais.length ||
+    normalized.fichaIdeal
+  );
+}
+
+export function needsCategoryMigration(category = {}) {
+  return !hasOwn(category, 'camposObrigatorios') ||
+    !hasOwn(category, 'camposOpcionais') ||
+    !hasOwn(category, 'fichaIdeal') ||
+    !category.qaSchema;
+}
+
+export function buildCategoryQaSchemaPrompt(categories = []) {
+  const schemas = categories
+    .filter(Boolean)
+    .map(normalizeCategory)
+    .map(category => category.qaSchema || createQaSchemaFromCategory(category));
+
+  if (!schemas.length) return '';
+
+  return JSON.stringify({
+    category_validation_schemas: schemas,
+  }, null, 2);
+}
