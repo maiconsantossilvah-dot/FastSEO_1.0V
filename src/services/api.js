@@ -78,17 +78,18 @@ async function _requestWithAutoWait(provider, fetcher, signal, attempt = 1) {
   const res = await _queuedFetch(provider, fetcher, signal);
 
   if (res.status === 429) {
+    const maxRetries = provider === 'gemini' ? 2 : 5;
     const retryAfter = _retryAfterMs(res);
     const body = await res.json().catch(() => ({}));
     const msg = body?.error?.message || body?.message || '';
 
     if (_isDailyQuota(msg)) {
-      throw Object.assign(new Error('cota_esgotada'), { cotaEsgotada: true, dailyQuota: true });
+      throw Object.assign(new Error('cota_esgotada'), { cotaEsgotada: true, dailyQuota: true, provider });
     }
 
-    if (attempt <= 5) {
+    if (attempt <= maxRetries) {
       const waitMs = retryAfter || Math.min(90000, attempt * 15000);
-      PipelineUI.log(`Limite por minuto (${provider}). Continuando automaticamente em ${Math.ceil(waitMs / 1000)}s...`, 'w');
+      PipelineUI.log(`Limite por minuto (${provider}). Tentativa ${attempt}/${maxRetries} em ${Math.ceil(waitMs / 1000)}s...`, 'w');
       await _sleep(waitMs, signal);
       return _requestWithAutoWait(provider, fetcher, signal, attempt + 1);
     }
@@ -96,6 +97,8 @@ async function _requestWithAutoWait(provider, fetcher, signal, attempt = 1) {
     throw Object.assign(new Error(`Limite por minuto persistente (${provider}).`), {
       cotaEsgotada: true,
       rateLimit: true,
+      fallbackEligible: provider === 'gemini',
+      provider,
     });
   }
 
@@ -150,6 +153,7 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
     } catch (err) {
       lastErr = err;
       if (err.name === 'AbortError') throw err;
+      if (err.provider === 'gemini' && (err.rateLimit || err.dailyQuota)) throw err;
       if ((err.dailyQuota || err.fallbackEligible || err.rateLimit || err.invalidKey) && i < keys.length - 1) {
         PipelineUI.log(`Gemini chave ${i + 1} indisponivel. Tentando chave ${i + 2}...`, 'w');
         continue;
