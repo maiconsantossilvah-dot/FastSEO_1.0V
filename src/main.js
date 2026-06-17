@@ -161,13 +161,21 @@ function showMainView(view) {
   const faqBtn = document.getElementById('showFaqViewBtn');
   const isFaq = view === 'faq';
 
-  if (ficha) ficha.hidden = isFaq;
-  if (faq) faq.hidden = !isFaq;
+  const swapView = () => {
+    if (ficha) ficha.hidden = isFaq;
+    if (faq) faq.hidden = !isFaq;
 
-  fichaBtn?.classList.toggle('active', !isFaq);
-  faqBtn?.classList.toggle('active', isFaq);
-  fichaBtn?.toggleAttribute('aria-current', !isFaq);
-  faqBtn?.toggleAttribute('aria-current', isFaq);
+    fichaBtn?.classList.toggle('active', !isFaq);
+    faqBtn?.classList.toggle('active', isFaq);
+    fichaBtn?.toggleAttribute('aria-current', !isFaq);
+    faqBtn?.toggleAttribute('aria-current', isFaq);
+  };
+
+  if (document.startViewTransition) {
+    document.startViewTransition(swapView);
+  } else {
+    swapView();
+  }
 }
 
 document.getElementById('showFichaViewBtn')?.addEventListener('click', () => showMainView('ficha'));
