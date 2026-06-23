@@ -5196,6 +5196,15 @@ select:focus,
   white-space: pre;
 }
 
+.compiler-workspace .faq-output {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.compiler-workspace #compilerOutput {
+  height: 100%;
+  min-height: 0;
+}
+
 .faq-preview-shell {
   display: flex;
   flex-direction: column;
