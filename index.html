@@ -524,21 +524,95 @@ Sim. A apresentação líquida facilita a diluição e ajuda no uso em bebidas q
           </div>
         </section>
       </div>
+
+      <div class="faq-workspace compiler-workspace" id="compilerWorkspace" hidden>
+        <div class="faq-topbar">
+          <div class="faq-brand">
+            <h1>Compilador de Dados</h1>
+            <p>Monte o arquivo TXT com as fontes preenchidas.</p>
+          </div>
+          <div class="faq-actions">
+            <button class="copy-btn" id="compilerGenerateBtn" type="button">Gerar TXT</button>
+            <button class="copy-btn" id="compilerCopyBtn" type="button">Copiar TXT</button>
+            <button class="copy-btn" id="compilerDownloadBtn" type="button">Baixar .txt</button>
+            <button class="copy-btn" id="compilerClearBtn" type="button">Limpar</button>
+          </div>
+        </div>
+
+        <section class="faq-layout" aria-label="Compilador de Dados">
+          <div class="faq-panel faq-editor-panel">
+            <div class="faq-panel__head">
+              <h2>Dados do produto</h2>
+            </div>
+            <div class="faq-panel__body">
+              <div class="faq-editor">
+                <article class="faq-editor__item">
+                  <div class="faq-editor__bar">
+                    <strong>Obrigatorios</strong>
+                  </div>
+                  <div class="faq-editor__fields">
+                    <label class="faq-field">
+                      <span>Codigo do Produto</span>
+                      <input id="compilerCodigo" data-compiler-field type="text" autocomplete="off" required>
+                    </label>
+                    <label class="faq-field">
+                      <span>Titulo</span>
+                      <input id="compilerTitulo" data-compiler-field type="text" autocomplete="off" required>
+                    </label>
+                    <label class="faq-field">
+                      <span>EAN</span>
+                      <input id="compilerEan" data-compiler-field type="text" autocomplete="off" required>
+                    </label>
+                    <label class="faq-field">
+                      <span>Fornecedor</span>
+                      <input id="compilerFornecedor" data-compiler-field type="text" autocomplete="off" required>
+                    </label>
+                  </div>
+                </article>
+
+                <article class="faq-editor__item">
+                  <div class="faq-editor__bar">
+                    <strong>Fontes opcionais</strong>
+                  </div>
+                  <div class="faq-editor__fields">
+                    <label class="faq-field">
+                      <span>Ficha M3</span>
+                      <textarea id="compilerFichaM3" data-compiler-field spellcheck="false"></textarea>
+                    </label>
+                    <label class="faq-field">
+                      <span>Site do Fornecedor</span>
+                      <textarea id="compilerSiteFornecedor" data-compiler-field spellcheck="false"></textarea>
+                    </label>
+                    <label class="faq-field">
+                      <span>Placeholder</span>
+                      <textarea id="compilerPlaceholder" data-compiler-field spellcheck="false"></textarea>
+                    </label>
+                    <label class="faq-field">
+                      <span>Simplus</span>
+                      <textarea id="compilerSimplus" data-compiler-field spellcheck="false"></textarea>
+                    </label>
+                    <label class="faq-field">
+                      <span>E-mail do Fornecedor</span>
+                      <textarea id="compilerEmailFornecedor" data-compiler-field spellcheck="false"></textarea>
+                    </label>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-panel faq-output-panel">
+            <div class="faq-panel__head">
+              <h2>TXT pronto</h2>
+            </div>
+            <div class="faq-panel__body faq-output">
+              <div class="faq-status" id="compilerStatus" aria-live="polite"></div>
+              <textarea id="compilerOutput" readonly spellcheck="false" aria-label="TXT gerado"></textarea>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
-
-  </div>
-
-  <div class="compiler-workspace" id="compilerWorkspace" hidden>
-    <input id="compilerCodigo" type="text">
-    <input id="compilerTitulo" type="text">
-    <input id="compilerEan" type="text">
-    <input id="compilerFornecedor" type="text">
-
-    <textarea id="compilerFichaM3"></textarea>
-    <textarea id="compilerSiteFornecedor"></textarea>
-    <textarea id="compilerPlaceholder"></textarea>
-    <textarea id="compilerSimplus"></textarea>
-    <textarea id="compilerEmailFornecedor"></textarea>
 
   </div>
 

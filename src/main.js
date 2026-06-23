@@ -181,11 +181,6 @@ function showMainView(view) {
     compilerBtn?.toggleAttribute('aria-current', isCompiler);
   };
 
-  document.getElementById('showCompilerViewBtn')?.addEventListener('click', () => {
-    DataCompiler.init();
-    showMainView('compiler');
-  });
-
   if (document.startViewTransition) {
     document.startViewTransition(swapView);
   } else {
@@ -197,6 +192,10 @@ document.getElementById('showFichaViewBtn')?.addEventListener('click', () => sho
 document.getElementById('showFaqViewBtn')?.addEventListener('click', () => {
   FAQCreator.init();
   showMainView('faq');
+});
+document.getElementById('showCompilerViewBtn')?.addEventListener('click', () => {
+  DataCompiler.init();
+  showMainView('compiler');
 });
 
 document.getElementById('openPromptsBtn')?.addEventListener('click', async () => {
