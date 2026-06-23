@@ -1,14 +1,14 @@
-import { Auth }         from './services/auth.js';
-import { Categories }   from './modules/categories.js';
-import { History }      from './modules/history.js';
-import { Prompts }      from './modules/prompts.js';
+import { Auth } from './services/auth.js';
+import { Categories } from './modules/categories.js';
+import { History } from './modules/history.js';
+import { Prompts } from './modules/prompts.js';
 import { SubcatModule } from './modules/subcategories.js';
-import { Pipeline }     from './modules/pipeline.js';
-import { FAQCreator }   from './modules/faqCreator.js';
-
-import { SidebarUI }      from './components/SidebarUI.js';
-import { PipelineUI }     from './components/PipelineUI.js';
-import { HistoryUI }      from './components/HistoryUI.js';
+import { Pipeline } from './modules/pipeline.js';
+import { FAQCreator } from './modules/faqCreator.js';
+import { DataCompiler } from './modules/dataCompiler.js';
+import { SidebarUI } from './components/SidebarUI.js';
+import { PipelineUI } from './components/PipelineUI.js';
+import { HistoryUI } from './components/HistoryUI.js';
 import { ConfigModal, ConfigUI } from './components/ConfigUI.js';
 
 // ── Export — copia e baixa os resultados gerados ──────────────
@@ -21,9 +21,9 @@ const Export = {
    * @param {'ficha'|'conteudo'} which
    */
   async copy(which) {
-    const elId   = which === 'ficha' ? 'fichaOut' : 'conteudoOut';
-    const btnId  = which === 'ficha' ? 'copyFichaBtn' : 'copyConteudoBtn';
-    const text   = document.getElementById(elId)?.innerText?.trim() || '';
+    const elId = which === 'ficha' ? 'fichaOut' : 'conteudoOut';
+    const btnId = which === 'ficha' ? 'copyFichaBtn' : 'copyConteudoBtn';
+    const text = document.getElementById(elId)?.innerText?.trim() || '';
 
     if (!text || text === 'Conteudo comercial ainda nao gerado.') {
       PipelineUI.toast('Nada para copiar ainda.', 'warn');
@@ -56,9 +56,9 @@ const Export = {
     }
 
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
     // Nome do arquivo: primeiras palavras do texto ou fallback
     const slug = text.split('\n')[0].slice(0, 40).trim().replace(/[^a-zA-Z0-9À-ú\s]/g, '').trim().replace(/\s+/g, '_') || 'ficha';
     a.download = `${slug}.txt`;
@@ -72,17 +72,17 @@ const Export = {
 
 // ── Tela de login ─────────────────────────────────────────────
 function showLogin() {
-  document.getElementById('appLoading').style.display   = 'none';
-  document.getElementById('loginScreen').style.display  = 'flex';
-  document.getElementById('appHeader').style.display    = 'none';
-  document.getElementById('appLayout').style.display    = 'none';
+  document.getElementById('appLoading').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appHeader').style.display = 'none';
+  document.getElementById('appLayout').style.display = 'none';
 }
 
 function showApp(user) {
-  document.getElementById('appLoading').style.display   = 'none';
-  document.getElementById('loginScreen').style.display  = 'none';
-  document.getElementById('appHeader').style.display    = '';
-  document.getElementById('appLayout').style.display    = '';
+  document.getElementById('appLoading').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appHeader').style.display = '';
+  document.getElementById('appLayout').style.display = '';
 
   // Mostra nome do usuário no header
   const nameEl = document.getElementById('userDisplayName');
@@ -104,9 +104,9 @@ async function init() {
   ConfigUI.updateCharCount();
   ConfigUI.updateQuotaInfo();
   FAQCreator.init();
-  const _unsubCategories    = Categories.startSync();
-  const _unsubHistory       = History.startSync();
-  const _unsubPrompts       = Prompts.startSync();
+  const _unsubCategories = Categories.startSync();
+  const _unsubHistory = History.startSync();
+  const _unsubPrompts = Prompts.startSync();
   const _unsubSubcategories = SubcatModule.startSync();
   SubcatModule.migrateDefaultsToFirestore().catch(console.warn);
   SidebarUI.render();
@@ -131,20 +131,20 @@ Auth.onChange(user => {
 });
 
 // ── Botão de login ────────────────────────────────────────────
-const _loginBtn     = document.getElementById('loginGoogleBtn');
+const _loginBtn = document.getElementById('loginGoogleBtn');
 const _loginBtnHTML = _loginBtn?.innerHTML; // guarda o HTML original com o ícone
 
 _loginBtn?.addEventListener('click', async () => {
   const btn = document.getElementById('loginGoogleBtn');
   const err = document.getElementById('loginError');
-  btn.disabled   = true;
-  btn.innerHTML  = 'Entrando...';
+  btn.disabled = true;
+  btn.innerHTML = 'Entrando...';
   err.textContent = '';
 
   try {
     await Auth.login();
   } catch (e) {
-    btn.disabled  = false;
+    btn.disabled = false;
     btn.innerHTML = _loginBtnHTML; // restaura ícone + texto originais
     err.textContent = e.message;
   }
@@ -157,19 +157,34 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logou
 function showMainView(view) {
   const ficha = document.getElementById('fastseoWorkspace');
   const faq = document.getElementById('faqWorkspace');
+  const compiler = document.getElementById('compilerWorkspace');
+
   const fichaBtn = document.getElementById('showFichaViewBtn');
   const faqBtn = document.getElementById('showFaqViewBtn');
+  const compilerBtn = document.getElementById('showCompilerViewBtn');
+
+  const isFicha = view === 'ficha';
   const isFaq = view === 'faq';
+  const isCompiler = view === 'compiler';
 
   const swapView = () => {
-    if (ficha) ficha.hidden = isFaq;
+    if (ficha) ficha.hidden = !isFicha;
     if (faq) faq.hidden = !isFaq;
+    if (compiler) compiler.hidden = !isCompiler;
 
-    fichaBtn?.classList.toggle('active', !isFaq);
+    fichaBtn?.classList.toggle('active', isFicha);
     faqBtn?.classList.toggle('active', isFaq);
-    fichaBtn?.toggleAttribute('aria-current', !isFaq);
+    compilerBtn?.classList.toggle('active', isCompiler);
+
+    fichaBtn?.toggleAttribute('aria-current', isFicha);
     faqBtn?.toggleAttribute('aria-current', isFaq);
+    compilerBtn?.toggleAttribute('aria-current', isCompiler);
   };
+
+  document.getElementById('showCompilerViewBtn')?.addEventListener('click', () => {
+    DataCompiler.init();
+    showMainView('compiler');
+  });
 
   if (document.startViewTransition) {
     document.startViewTransition(swapView);
@@ -217,7 +232,7 @@ function updateRunReadiness() {
   btn.title = ready ? 'Processar ficha tecnica' : 'Cole os dados do produto para processar';
 }
 
-document.getElementById('inputText')?.addEventListener('input',  () => {
+document.getElementById('inputText')?.addEventListener('input', () => {
   ConfigUI.updateCharCount();
   updateRunReadiness();
 });
@@ -247,9 +262,9 @@ document.getElementById('importFileBtn')?.addEventListener('click', async () => 
 });
 
 // ── Botões de exportação (CORRIGIDOS: Export agora está definido) ──
-document.getElementById('copyFichaBtn')?.addEventListener('click',    () => Export.copy('ficha'));
+document.getElementById('copyFichaBtn')?.addEventListener('click', () => Export.copy('ficha'));
 document.getElementById('copyConteudoBtn')?.addEventListener('click', () => Export.copy('conteudo'));
-document.getElementById('exportTxtBtn')?.addEventListener('click',    () => Export.txt());
+document.getElementById('exportTxtBtn')?.addEventListener('click', () => Export.txt());
 
 // ── NOVO: Botão Regenerar — reexecuta só o A3 (Copywriter) ───
 // Lê ficha e validação já geradas, chama Pipeline.rerunCopywriter()
