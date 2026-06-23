@@ -69,6 +69,10 @@ async function _extractText(file) {
 }
 
 export const PDFReader = {
+  extractText(file) {
+    return _extractText(file);
+  },
+
   open() {
     // Cria input file invisível e aciona
     let input = document.getElementById('_pdfInput');
