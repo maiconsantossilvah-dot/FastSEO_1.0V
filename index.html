@@ -291,6 +291,14 @@
             <small>Gerar TXT por fontes</small>
           </span>
         </button>
+
+        <button id="showDocsViewBtn" class="app-nav-item" type="button">
+          <span class="app-nav-index">04</span>
+          <span>
+            <strong>Guia Interno</strong>
+            <small>Regras e documentação</small>
+          </span>
+        </button>
       </div>
 
       <div class="app-sidebar-section sidebar-run-panel">
@@ -616,6 +624,35 @@ Sim. A apresentação líquida facilita a diluição e ajuda no uso em bebidas q
             </div>
           </div>
         </section>
+      </div>
+
+      <div class="docs-workspace" id="docsWorkspace" hidden>
+        <div class="docs-shell">
+          <header class="docs-header">
+            <div>
+              <span>Guia interno</span>
+              <h1>Documentação do FastSEO</h1>
+              <p>Arquitetura, regras rápidas, limites de mudança e cuidados do projeto.</p>
+            </div>
+          </header>
+
+          <div class="docs-searchbar">
+            <label class="docs-search">
+              <span aria-hidden="true">⌕</span>
+              <input id="docsSearch" type="search" autocomplete="off" placeholder="Buscar por pipeline, Firebase, TXT, FAQ, regras...">
+            </label>
+            <strong id="docsResultCount">0 resultados</strong>
+          </div>
+
+          <section class="docs-layout" aria-label="Documentação interna">
+            <aside class="docs-sidebar">
+              <span class="docs-sidebar__label">Categorias</span>
+              <div class="docs-categories" id="docsCategories"></div>
+            </aside>
+
+            <div class="docs-content" id="docsContent"></div>
+          </section>
+        </div>
       </div>
     </main>
 

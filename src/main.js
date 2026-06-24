@@ -6,6 +6,7 @@ import { SubcatModule } from './modules/subcategories.js';
 import { Pipeline } from './modules/pipeline.js';
 import { FAQCreator } from './modules/faqCreator.js';
 import { DataCompiler } from './modules/dataCompiler.js';
+import { InternalDocs } from './modules/internalDocs.js';
 import { SidebarUI } from './components/SidebarUI.js';
 import { PipelineUI } from './components/PipelineUI.js';
 import { HistoryUI } from './components/HistoryUI.js';
@@ -158,27 +159,33 @@ function showMainView(view) {
   const ficha = document.getElementById('fastseoWorkspace');
   const faq = document.getElementById('faqWorkspace');
   const compiler = document.getElementById('compilerWorkspace');
+  const docs = document.getElementById('docsWorkspace');
 
   const fichaBtn = document.getElementById('showFichaViewBtn');
   const faqBtn = document.getElementById('showFaqViewBtn');
   const compilerBtn = document.getElementById('showCompilerViewBtn');
+  const docsBtn = document.getElementById('showDocsViewBtn');
 
   const isFicha = view === 'ficha';
   const isFaq = view === 'faq';
   const isCompiler = view === 'compiler';
+  const isDocs = view === 'docs';
 
   const swapView = () => {
     if (ficha) ficha.hidden = !isFicha;
     if (faq) faq.hidden = !isFaq;
     if (compiler) compiler.hidden = !isCompiler;
+    if (docs) docs.hidden = !isDocs;
 
     fichaBtn?.classList.toggle('active', isFicha);
     faqBtn?.classList.toggle('active', isFaq);
     compilerBtn?.classList.toggle('active', isCompiler);
+    docsBtn?.classList.toggle('active', isDocs);
 
     fichaBtn?.toggleAttribute('aria-current', isFicha);
     faqBtn?.toggleAttribute('aria-current', isFaq);
     compilerBtn?.toggleAttribute('aria-current', isCompiler);
+    docsBtn?.toggleAttribute('aria-current', isDocs);
   };
 
   if (document.startViewTransition) {
@@ -196,6 +203,10 @@ document.getElementById('showFaqViewBtn')?.addEventListener('click', () => {
 document.getElementById('showCompilerViewBtn')?.addEventListener('click', () => {
   DataCompiler.init();
   showMainView('compiler');
+});
+document.getElementById('showDocsViewBtn')?.addEventListener('click', () => {
+  InternalDocs.init();
+  showMainView('docs');
 });
 
 document.getElementById('openPromptsBtn')?.addEventListener('click', async () => {
