@@ -260,28 +260,18 @@ function addItem() {
 
 function parseBulkFaq(value = '') {
   const normalized = value.replace(/\r\n?/g, '\n');
-  const questionPattern = /(?:^|\n)\s*(?:\d+|[A-Za-z])\.\s*([\s\S]*?\?)/g;
-  const matches = [];
   const items = [];
+  const pattern = /<Q>([\s\S]*?)<\/Q>[\s\S]*?<A>([\s\S]*?)<\/A>/gi;
   let match;
 
-  while ((match = questionPattern.exec(normalized)) !== null) {
-    matches.push({
-      start: match.index,
-      end: match.index + match[0].length,
-      question: match[1].replace(/\s+/g, ' ').trim(),
-    });
-  }
+  while ((match = pattern.exec(normalized)) !== null) {
+    const question = match[1].replace(/\s+/g, ' ').trim();
+    const answer = match[2].trim();
 
-  matches.forEach((item, index) => {
-    const nextItem = matches[index + 1];
-    const answerEnd = nextItem ? nextItem.start : normalized.length;
-    const answer = normalized.slice(item.end, answerEnd).trim();
-
-    if (item.question || answer) {
-      items.push({ question: item.question, answer });
+    if (question || answer) {
+      items.push({ question, answer });
     }
-  });
+  }
 
   return items;
 }
@@ -294,14 +284,18 @@ function fillFromBulk() {
   const parsedItems = parseBulkFaq(bulkInput.value);
 
   if (!parsedItems.length) {
-    if (bulkStatus) bulkStatus.textContent = 'Não encontrei perguntas no formato 1. Pergunta?';
+    if (bulkStatus) {
+      bulkStatus.textContent = 'Não encontrei perguntas no formato <Q>Pergunta</Q> <A>Resposta</A>';
+    }
     return;
   }
 
   state.items = parsedItems;
+
   if (bulkStatus) {
     bulkStatus.textContent = `${parsedItems.length} pergunta${parsedItems.length === 1 ? '' : 's'} preenchida${parsedItems.length === 1 ? '' : 's'}.`;
   }
+
   renderEditor();
 }
 
