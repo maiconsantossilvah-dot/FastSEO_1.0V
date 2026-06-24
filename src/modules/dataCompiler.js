@@ -3,8 +3,8 @@ const $ = id => document.getElementById(id);
 let initialized = false;
 
 const requiredFields = [
-  { id: 'compilerCodigo', label: 'Codigo do Produto' },
-  { id: 'compilerTitulo', label: 'Titulo' },
+  { id: 'compilerCodigo', label: 'Código do Produto' },
+  { id: 'compilerTitulo', label: 'Título' },
   { id: 'compilerEan', label: 'EAN' },
   { id: 'compilerFornecedor', label: 'Fornecedor' },
 ];
@@ -108,7 +108,7 @@ function updateOutputAfterImport(message) {
   if (missing.length) {
     const output = $('compilerOutput');
     if (output) output.value = '';
-    setStatus(`${message} Preencha os obrigatorios para gerar o TXT.`, 'ok');
+    setStatus(`${message} Preencha os obrigatórios para gerar o TXT.`, 'ok');
     return;
   }
 
@@ -170,7 +170,7 @@ async function importPdf(file) {
     const text = await PDFReader.extractText(file);
 
     if (!text || text.length < 30) {
-      setStatus('PDF sem texto extraivel. Pode ser um arquivo escaneado.', 'error');
+      setStatus('PDF sem texto extraível. Pode ser um arquivo escaneado.', 'error');
       return;
     }
 
