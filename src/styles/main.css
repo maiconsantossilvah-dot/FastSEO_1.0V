@@ -5177,9 +5177,31 @@ select:focus,
 .faq-output {
   display: grid;
   flex: 1;
-  grid-template-rows: auto 170px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
   overflow: hidden;
+}
+
+#faqWorkspace .faq-output {
+  position: relative;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+#faqWorkspace .faq-status {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  z-index: 2;
+  min-height: 0;
+  padding: 6px 9px;
+  background: rgba(3, 7, 13, .82);
+  border: 1px solid rgba(88, 166, 255, .22);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+#faqWorkspace .faq-status:empty {
+  display: none;
 }
 
 .faq-output textarea {
@@ -5208,6 +5230,7 @@ select:focus,
 .faq-preview-shell {
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-height: 0;
   padding: 12px;
   overflow: hidden;

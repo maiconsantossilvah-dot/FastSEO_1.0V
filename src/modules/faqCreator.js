@@ -217,10 +217,10 @@ function updateOutput() {
   const generatedHtml = $('faqGeneratedHtml');
   const previewFrame = $('faqPreviewFrame');
   const copyStatus = $('faqCopyStatus');
-  if (!generatedHtml || !previewFrame) return;
+  if (!previewFrame) return;
 
   const html = buildFaqHtml();
-  generatedHtml.value = html;
+  if (generatedHtml) generatedHtml.value = html;
   if ('srcdoc' in previewFrame) previewFrame.srcdoc = html;
   else previewFrame.innerHTML = html;
   if (copyStatus) copyStatus.textContent = '';
@@ -302,15 +302,22 @@ function fillFromBulk() {
 async function copyGeneratedHtml() {
   const generatedHtml = $('faqGeneratedHtml');
   const copyStatus = $('faqCopyStatus');
-  if (!generatedHtml) return;
-
-  generatedHtml.focus();
-  generatedHtml.select();
+  const html = generatedHtml?.value || buildFaqHtml();
 
   try {
-    await navigator.clipboard.writeText(generatedHtml.value);
+    await navigator.clipboard.writeText(html);
   } catch {
+    const fallback = document.createElement('textarea');
+    fallback.value = html;
+    fallback.setAttribute('readonly', '');
+    fallback.style.position = 'fixed';
+    fallback.style.left = '-9999px';
+    fallback.style.top = '0';
+    document.body.appendChild(fallback);
+    fallback.focus();
+    fallback.select();
     document.execCommand('copy');
+    fallback.remove();
   }
 
   if (copyStatus) {
