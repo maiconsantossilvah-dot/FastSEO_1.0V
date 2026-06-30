@@ -1,7 +1,7 @@
 /**
  * modules/FileImporter.js
  * -----------------------
- * Entrada unica para importar arquivos no input principal.
+ * Entrada única para importar arquivos no input principal.
  */
 
 import { Utils } from '../utils/index.js';
@@ -22,6 +22,7 @@ const spreadsheetHandler = async file => {
   return SpreadsheetReader.process(file);
 };
 
+// Para suportar um novo tipo de arquivo, adicione a extensão aqui e implemente o leitor correspondente.
 const FILE_HANDLERS = {
   pdf: async file => {
     const { PDFReader } = await import('./PDFReader.js');
@@ -55,7 +56,7 @@ function setButtonBusy(on) {
 
 function unsupportedFile(file) {
   const ext = getExtension(file) || 'arquivo';
-  Utils.showToast(`Formato nao suportado: ${ext}`, '#DC2626');
+  Utils.showToast(`Formato não suportado: ${ext}`, '#DC2626');
   return false;
 }
 

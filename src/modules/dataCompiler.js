@@ -2,6 +2,7 @@ const $ = id => document.getElementById(id);
 
 let initialized = false;
 
+// Campos mínimos para gerar o TXT sem deixar dados essenciais de fora.
 const requiredFields = [
   { id: 'compilerCodigo', label: 'Código do Produto' },
   { id: 'compilerTitulo', label: 'Título' },
@@ -51,6 +52,7 @@ function buildTxt() {
     `Fornecedor: ${fornecedor}`,
   ];
 
+  // Fontes opcionais só entram quando o campo correspondente tem conteúdo.
   addSection(parts, 'Ficha M3', getValue('compilerFichaM3'));
   addSection(parts, 'Site do Fornecedor', getValue('compilerSiteFornecedor'));
   addSection(parts, 'PDF', getValue('compilerPdf'));
@@ -69,6 +71,7 @@ function ensureValid() {
   return false;
 }
 
+// Atualiza a prévia e retorna o texto final para copiar/baixar.
 function updateOutput() {
   if (!ensureValid()) {
     const output = $('compilerOutput');
@@ -142,6 +145,7 @@ function ensurePdfInput() {
     document.body.appendChild(input);
   }
 
+  // Clona o input para limpar a seleção anterior e permitir importar o mesmo arquivo de novo.
   input.accept = PDF_ACCEPT;
   const fresh = input.cloneNode();
   input.replaceWith(fresh);

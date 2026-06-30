@@ -38,7 +38,7 @@ export const SidebarUI = {
     this._lastFingerprint = fp;
 
     if (cats.length === 0) {
-      sbContent.innerHTML = `<div class="sb-empty"><strong>CAT</strong>Nenhuma categoria ainda.<br>Clique em <strong>Nova Categoria</strong> para comecar.</div>`;
+      sbContent.innerHTML = `<div class="sb-empty"><strong>CAT</strong>Nenhuma categoria ainda.<br>Clique em <strong>Nova Categoria</strong> para começar.</div>`;
       if (sbFooter) sbFooter.textContent = '';
     } else {
       const items = cats.map(cat => {
@@ -65,7 +65,7 @@ export const SidebarUI = {
     if (!el || !txt) return;
     if (cats.length === 0) {
       el.className = 'learn-indicator empty';
-      txt.textContent = 'Nenhuma categoria estruturada - abra Categorias para adicionar referencias';
+      txt.textContent = 'Nenhuma categoria estruturada - abra Categorias para adicionar referências';
     } else {
       el.className = 'learn-indicator';
       txt.textContent = `${cats.length} categoria${cats.length > 1 ? 's' : ''} estruturada${cats.length > 1 ? 's' : ''} ativa${cats.length > 1 ? 's' : ''}`;

@@ -1935,7 +1935,7 @@ textarea#inputText {
   min-height: 400px;
 }
 
-/* Placeholder quando nao ha resultados */
+/* Placeholder quando não há resultados */
 .results-placeholder {
   display: flex;
   flex-direction: column;
@@ -1982,7 +1982,7 @@ textarea#inputText {
   display: flex;
 }
 
-/* Responsivo: volta pra coluna unica em telas menores */
+/* Responsivo: volta para coluna única em telas menores */
 @media (max-width: 900px) {
   .page--wide {
     grid-template-columns: 1fr;
@@ -3131,7 +3131,7 @@ body.theme-seinen .learn-indicator-dot {
   backdrop-filter: blur(14px) !important;
 }
 
-/* LAST RITE - botao de gelo PNG */
+/* LAST RITE - botão de gelo PNG */
 
 /* Container do card de input - overflow visible para cristais extravasarem */
 [data-theme-id="anime-last-rite"] .col-input .card {
@@ -3142,14 +3142,14 @@ body.theme-seinen .learn-indicator-dot {
   overflow: visible !important;
 }
 
-/* Wrapper dos steps + botao - overflow visible */
+/* Wrapper dos steps + botão - overflow visible */
 [data-theme-id="anime-last-rite"] .pipeline-wrap,
 [data-theme-id="anime-last-rite"] .steps-wrap,
 [data-theme-id="anime-last-rite"] .card>div {
   overflow: visible !important;
 }
 
-/* O botao em si */
+/* O botão em si */
 [data-theme-id="anime-last-rite"] .run-btn {
   position: relative !important;
   background: transparent !important;
@@ -3160,7 +3160,7 @@ body.theme-seinen .learn-indicator-dot {
   padding: 20px 32px !important;
   min-height: 64px !important;
   width: 100% !important;
-  /* Texto centralizado no miolo do botao */
+  /* Texto centralizado no miolo do botão */
   color: #d8f0ff !important;
   font-family: Georgia, 'Times New Roman', serif !important;
   font-size: 12px !important;
@@ -3186,7 +3186,7 @@ body.theme-seinen .learn-indicator-dot {
 [data-theme-id="anime-last-rite"] .run-btn::before {
   content: '' !important;
   position: absolute !important;
-  /* Centralizado verticalmente, mas muito mais largo que o botao */
+  /* Centralizado verticalmente, mas muito mais largo que o botão */
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
@@ -4014,9 +4014,9 @@ body.theme-seinen .run-btn:hover:not(:disabled) {
   box-shadow: 4px 4px 0 rgba(0, 0, 0, .85) !important;
 }
 
-/* SerpAPI - painel de configuracao no ConfigModal */
+/* SerpAPI - painel de configuração no ConfigModal */
 
-/* Linha do input: campo + botao olho + botao salvar lado a lado */
+/* Linha do input: campo + botão olho + botão salvar lado a lado */
 .serp-key-row {
   display: flex;
   gap: 6px;
@@ -4158,7 +4158,7 @@ body.theme-seinen .run-btn:hover:not(:disabled) {
   color: var(--color-text-muted);
 }
 
-/* ANALYTICS - botao limpar logs */
+/* ANALYTICS - botão limpar logs */
 #clearLogsBtn {
   transition: color .15s;
 }

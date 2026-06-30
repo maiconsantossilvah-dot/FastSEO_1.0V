@@ -1,11 +1,11 @@
 const DEFAULT_FORBIDDEN_INVENTIONS = [
   'EAN',
-  'codigo',
+  'código',
   'fornecedor',
   'marca',
   'modelo',
   'voltagem',
-  'dimensoes',
+  'dimensões',
   'garantia',
   'compatibilidade',
   'material',
@@ -68,11 +68,11 @@ export function createQaSchemaFromCategory(category = {}) {
         severity: 'reprove',
       },
       {
-        rule: 'A ficha nao pode inventar especificacoes tecnicas ausentes nos dados brutos.',
+        rule: 'A ficha não pode inventar especificações técnicas ausentes nos dados brutos.',
         severity: 'reprove',
       },
       {
-        rule: 'Campos obrigatorios sem dado nos brutos podem aparecer como Nao informado.',
+        rule: 'Campos obrigatórios sem dado nos brutos podem aparecer como Não informado.',
         severity: 'warn',
       },
     ],

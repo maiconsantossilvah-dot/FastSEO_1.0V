@@ -1,6 +1,7 @@
 /**
  * components/CategoriasModal.js
  * Modal completo de gerenciamento de categorias.
+ * Mantém o cadastro que orienta exemplos, campos obrigatórios e validação do A2.
  */
 
 import { Categories } from '../modules/categories.js';
@@ -28,7 +29,7 @@ export const CategoriasModal = {
     overlay.innerHTML = `
       <div class="modal modal--cats">
         <div class="modal-hdr">
-          <span class="modal-title">Categorias de Referencia</span>
+          <span class="modal-title">Categorias de Referência</span>
           <button class="modal-close" id="catsModalClose">x</button>
         </div>
 
@@ -133,19 +134,19 @@ export const CategoriasModal = {
           <input class="cats-nome-input" id="catEditNome" type="text" value="${this._esc(cat.nome || '')}" placeholder="Nome da categoria" autocomplete="off"/>
         </div>
         <div class="cats-field">
-          <label>Campos obrigatorios <span class="cats-field-hint">- o A2 valida com mais rigor</span></label>
-          <textarea id="catEditObrigatorios" rows="4" placeholder="Ex: EAN, Marca, Tensao, Potencia...">${this._esc(fieldListToText(cat.camposObrigatorios))}</textarea>
+          <label>Campos obrigatórios <span class="cats-field-hint">- o A2 valida com mais rigor</span></label>
+          <textarea id="catEditObrigatorios" rows="4" placeholder="Ex: EAN, Marca, Tensão, Potência...">${this._esc(fieldListToText(cat.camposObrigatorios))}</textarea>
         </div>
         <div class="cats-field">
           <label>Campos opcionais <span class="cats-field-hint">- validam se aparecerem nos dados brutos</span></label>
-          <textarea id="catEditOpcionais" rows="4" placeholder="Ex: Cor, Peso, Dimensoes, Recursos extras...">${this._esc(fieldListToText(cat.camposOpcionais))}</textarea>
+          <textarea id="catEditOpcionais" rows="4" placeholder="Ex: Cor, Peso, Dimensões, Recursos extras...">${this._esc(fieldListToText(cat.camposOpcionais))}</textarea>
         </div>
         <div class="cats-field">
-          <label>Ficha ideal <span class="cats-field-hint">- referencia para o formatador</span></label>
+          <label>Ficha ideal <span class="cats-field-hint">- referência para o formatador</span></label>
           <textarea id="catEditFichaIdeal" rows="6" placeholder="Cole aqui a estrutura ideal desta categoria...">${this._esc(cat.fichaIdeal || '')}</textarea>
         </div>
         <div class="cats-field">
-          <label>JSON de validacao <span class="cats-field-hint">- gerado automaticamente</span></label>
+          <label>JSON de validação <span class="cats-field-hint">- gerado automaticamente</span></label>
           <pre class="exemplos-section-body" id="catEditQaPreview"></pre>
         </div>
       </div>`;
@@ -197,7 +198,7 @@ export const CategoriasModal = {
   async _delete(id) {
     const cat = Categories.find(id);
     if (!cat) return;
-    if (!confirm(`Excluir a categoria "${cat.nome}"? Esta acao nao pode ser desfeita.`)) return;
+    if (!confirm(`Excluir a categoria "${cat.nome}"? Esta ação não pode ser desfeita.`)) return;
     await Categories.delete(id);
     if (AppState.categories.active === id) {
       AppState.categories.active = null;

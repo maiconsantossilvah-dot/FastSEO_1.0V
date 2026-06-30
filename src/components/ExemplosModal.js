@@ -107,11 +107,11 @@ export const ExemplosModal = {
       <div class="exemplos-cat-header">
         <span class="exemplos-cat-title">${this._esc_html(cat.nome || 'Sem nome')}</span>
       </div>
-      ${section('Campos obrigatorios', cat.camposObrigatorios)}
+      ${section('Campos obrigatórios', cat.camposObrigatorios)}
       ${section('Campos opcionais', cat.camposOpcionais)}
       ${section('Ficha ideal', cat.fichaIdeal)}
-      ${section('JSON de validacao', JSON.stringify(cat.qaSchema, null, 2))}
-      ${!hasCategoryDefinition(cat) ? '<div class="exemplos-empty"><span style="font-size:28px;opacity:.3">CAT</span><p>Esta categoria ainda nao tem estrutura configurada.</p></div>' : ''}
+      ${section('JSON de validação', JSON.stringify(cat.qaSchema, null, 2))}
+      ${!hasCategoryDefinition(cat) ? '<div class="exemplos-empty"><span style="font-size:28px;opacity:.3">CAT</span><p>Esta categoria ainda não tem estrutura configurada.</p></div>' : ''}
     `;
   },
 

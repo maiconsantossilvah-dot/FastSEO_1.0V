@@ -1,7 +1,7 @@
 /**
  * services/api.js
- * Camada de servico para chamadas as APIs de IA.
- * Inclui fila por provedor, espera automatica em limite por minuto e fallback.
+ * Camada de serviço para chamadas às APIs de IA.
+ * Inclui fila por provedor, espera automática em limite por minuto e fallback.
  */
 
 import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from '../config.js';
@@ -22,6 +22,7 @@ function _getGeminiKey()  { return document.getElementById('apiKey')?.value.trim
 function _getMistralKey() { return document.getElementById('mistralKey')?.value.trim() || ''; }
 function _getModel()      { return document.getElementById('modelSel')?.value || GEMINI_DEFAULT_MODEL; }
 
+// Reúne a chave principal e as chaves de fallback, removendo duplicadas.
 function _getGeminiKeys() {
   return [_getGeminiKey(), _ls('fastseo_apiKey2'), _ls('fastseo_apiKey3')]
     .map(k => k.trim())
@@ -34,6 +35,7 @@ function _getMistralKeys() {
     .filter((k, i, arr) => k.length > 20 && arr.indexOf(k) === i);
 }
 
+// Cada provedor tem uma fila própria para reduzir erro por excesso de chamadas por minuto.
 const _queue = {
   gemini:  { chain: Promise.resolve(), nextAt: 0, minDelay: 4500 },
   mistral: { chain: Promise.resolve(), nextAt: 0, minDelay: 4500 },
@@ -77,6 +79,7 @@ async function _queuedFetch(provider, fetcher, signal) {
 async function _requestWithAutoWait(provider, fetcher, signal, attempt = 1) {
   const res = await _queuedFetch(provider, fetcher, signal);
 
+  // HTTP 429 indica limite de requisições; quando possível, aguarda e tenta novamente.
   if (res.status === 429) {
     const maxRetries = provider === 'gemini' ? 2 : 5;
     const retryAfter = _retryAfterMs(res);
@@ -108,7 +111,7 @@ async function _requestWithAutoWait(provider, fetcher, signal, attempt = 1) {
 export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal = null, options = {}) {
   const model = _getModel();
   const keys = _getGeminiKeys();
-  if (!keys.length) throw new Error('API Key do Gemini nao configurada.');
+  if (!keys.length) throw new Error('API Key do Gemini não configurada.');
   const generationConfig = {
     maxOutputTokens: maxTokens,
     temperature: options.jsonMode ? 0 : 0.3,
@@ -142,7 +145,7 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
         const e = await res.json().catch(() => ({}));
         const msg = e?.error?.message || '';
         if (_isOverloaded(msg)) throw Object.assign(new Error(msg), { cotaEsgotada: true, fallbackEligible: true });
-        if (res.status === 400) throw Object.assign(new Error('API Key do Gemini invalida. Verifique em aistudio.google.com'), { invalidKey: true });
+        if (res.status === 400) throw Object.assign(new Error('API Key do Gemini inválida. Verifique em aistudio.google.com'), { invalidKey: true });
         throw new Error(`Gemini: ${msg || 'HTTP ' + res.status}`);
       }
 
@@ -155,19 +158,19 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
       if (err.name === 'AbortError') throw err;
       if (err.provider === 'gemini' && (err.rateLimit || err.dailyQuota)) throw err;
       if ((err.dailyQuota || err.fallbackEligible || err.rateLimit || err.invalidKey) && i < keys.length - 1) {
-        PipelineUI.log(`Gemini chave ${i + 1} indisponivel. Tentando chave ${i + 2}...`, 'w');
+        PipelineUI.log(`Gemini chave ${i + 1} indisponível. Tentando chave ${i + 2}...`, 'w');
         continue;
       }
       throw err;
     }
   }
 
-  throw lastErr || new Error('Gemini indisponivel.');
+  throw lastErr || new Error('Gemini indisponível.');
 }
 
 export async function callMistral(system, userMsg, maxTokens, signal = null, attempt = 0, options = {}) {
   const keys = _getMistralKeys();
-  if (!keys.length) throw new Error('API Key da Mistral nao configurada.');
+  if (!keys.length) throw new Error('API Key da Mistral não configurada.');
 
   let lastErr = null;
   for (let i = 0; i < keys.length; i++) {
@@ -204,7 +207,7 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
         const msg = e?.message || '';
         if (_isDailyQuota(msg)) throw Object.assign(new Error('cota_esgotada'), { cotaEsgotada: true, dailyQuota: true });
         if (_isOverloaded(msg)) throw Object.assign(new Error(msg), { cotaEsgotada: true, fallbackEligible: true });
-        if (res.status === 401) throw Object.assign(new Error('API Key da Mistral invalida. Verifique em console.mistral.ai'), { invalidKey: true });
+        if (res.status === 401) throw Object.assign(new Error('API Key da Mistral inválida. Verifique em console.mistral.ai'), { invalidKey: true });
         throw new Error(`Mistral: ${msg || 'HTTP ' + res.status}`);
       }
 
@@ -216,14 +219,14 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
       lastErr = err;
       if (err.name === 'AbortError') throw err;
       if ((err.dailyQuota || err.fallbackEligible || err.rateLimit || err.invalidKey) && i < keys.length - 1) {
-        PipelineUI.log(`Mistral chave ${i + 1} indisponivel. Tentando chave ${i + 2}...`, 'w');
+        PipelineUI.log(`Mistral chave ${i + 1} indisponível. Tentando chave ${i + 2}...`, 'w');
         continue;
       }
       throw err;
     }
   }
 
-  throw lastErr || new Error('Mistral indisponivel.');
+  throw lastErr || new Error('Mistral indisponível.');
 }
 
 export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
@@ -231,13 +234,14 @@ export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
   const geminiOk  = _getGeminiKeys().length > 0;
   const options = { jsonMode: agentNum === 2 };
 
+  // Decide a melhor API para cada agente e só troca de provedor quando há falha recuperável.
   const tryFallback = async (skipApi, label) => {
     if (skipApi !== 'mistral' && mistralOk) {
       PipelineUI.log(`${label} - usando Mistral como fallback...`, 'w');
       try { return await callMistral(system, userMsg, maxTokens, signal, 0, options); }
       catch (e2) {
         if (!e2.cotaEsgotada) throw e2;
-        PipelineUI.log('Mistral tambem indisponivel no fallback.', 'w');
+        PipelineUI.log('Mistral também indisponível no fallback.', 'w');
       }
     }
     if (skipApi !== 'gemini' && geminiOk) {
@@ -249,23 +253,23 @@ export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
 
   if (agentNum === 1) {
     if (!mistralOk) {
-      PipelineUI.log('Mistral nao configurada no A1 - usando Gemini como fallback...', 'w');
+      PipelineUI.log('Mistral não configurada no A1 - usando Gemini como fallback...', 'w');
       return tryFallback('mistral', 'A1 sem Mistral');
     }
     try { return await callMistral(system, userMsg, maxTokens, signal, 0, options); }
     catch (err) {
-      if (err.cotaEsgotada) return tryFallback('mistral', 'Mistral indisponivel no A1');
+      if (err.cotaEsgotada) return tryFallback('mistral', 'Mistral indisponível no A1');
       throw err;
     }
   }
 
   if (!geminiOk) {
-    PipelineUI.log(`Gemini nao configurada no A${agentNum} - usando Mistral como fallback...`, 'w');
+    PipelineUI.log(`Gemini não configurada no A${agentNum} - usando Mistral como fallback...`, 'w');
     return tryFallback('gemini', `A${agentNum} sem Gemini`);
   }
   try { return await callGemini(system, userMsg, maxTokens, 1, signal, options); }
   catch (err) {
-    if (err.cotaEsgotada) return tryFallback('gemini', `Gemini indisponivel no A${agentNum}`);
+    if (err.cotaEsgotada) return tryFallback('gemini', `Gemini indisponível no A${agentNum}`);
     throw err;
   }
 }

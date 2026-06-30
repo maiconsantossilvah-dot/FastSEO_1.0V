@@ -35,10 +35,10 @@ export const CategoryModal = {
         <div class="modal-body">
           <div class="m-field"><label>Nome</label>
             <input type="text" id="catNome" value="${Utils.escHtml(cat.nome || '')}" placeholder="Ex: Disjuntor, Ar-Condicionado..."/></div>
-          <div class="m-field"><label>Campos obrigatorios</label>
-            <textarea id="catCamposObrigatorios" placeholder="Ex: EAN, Marca, Tensao...">${Utils.escHtml(fieldListToText(cat.camposObrigatorios))}</textarea></div>
+          <div class="m-field"><label>Campos obrigatórios</label>
+            <textarea id="catCamposObrigatorios" placeholder="Ex: EAN, Marca, Tensão...">${Utils.escHtml(fieldListToText(cat.camposObrigatorios))}</textarea></div>
           <div class="m-field"><label>Campos opcionais</label>
-            <textarea id="catCamposOpcionais" placeholder="Ex: Cor, Peso, Dimensoes...">${Utils.escHtml(fieldListToText(cat.camposOpcionais))}</textarea></div>
+            <textarea id="catCamposOpcionais" placeholder="Ex: Cor, Peso, Dimensões...">${Utils.escHtml(fieldListToText(cat.camposOpcionais))}</textarea></div>
           <div class="m-field"><label>Ficha ideal</label>
             <textarea id="catFichaIdeal" class="tall" placeholder="Cole a estrutura ideal desta categoria...">${Utils.escHtml(cat.fichaIdeal || '')}</textarea></div>
         </div>

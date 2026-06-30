@@ -1,7 +1,7 @@
 ﻿/**
  * utils/index.js
  * ---------------
- * Funcoes utilitarias puras (sem efeitos colaterais nem dependencias de modulos do app).
+ * Funções utilitárias puras (sem efeitos colaterais nem dependências de módulos do app).
  */
 
 import { APP_CONFIG } from '../config.js';
@@ -13,7 +13,7 @@ import {
 import { rankMatches } from './matching.js';
 
 export const Utils = {
-  // Seguranca / sanitizacao
+  // Segurança / sanitização
   escHtml(s) {
     return String(s)
       .replace(/&/g, '&amp;')
@@ -30,28 +30,28 @@ export const Utils = {
       .replace(/ {3,}/g, '  ')
       .trim();
     if (t.length > APP_CONFIG.inputMaxChars) {
-      // PipelineUI.log e importado circularmente; usa console para evitar ciclo
+      // PipelineUI.log é importado circularmente; usa console para evitar ciclo.
       console.warn(`Input truncado para ${APP_CONFIG.inputMaxChars} caracteres.`);
       t = t.slice(0, APP_CONFIG.inputMaxChars);
     }
     return t;
   },
 
-  // Deteccao de bivolt
+  // Detecção de bivolt
   detectBivolt(text) {
     return /(?<!\d)(110|127)\s*[vV](?!\d)/.test(text)
         && /(?<!\d)(220|240)\s*[vV](?!\d)/.test(text);
   },
 
-  // Validacao de input
+  // Validação leve: só alerta o usuário; não bloqueia quando ele escolhe "processar mesmo assim".
   validateInput(text) {
     const alerts = [];
     if (text.length < 80)
-      alerts.push('Atencao: input muito curto - verifique se os dados foram colados corretamente.');
+      alerts.push('Atenção: input muito curto - verifique se os dados foram colados corretamente.');
     if (!/\d/.test(text))
-      alerts.push('Atencao: nenhum dado numerico encontrado - fichas tecnicas geralmente tem codigos ou medidas.');
+      alerts.push('Atenção: nenhum dado numérico encontrado - fichas técnicas geralmente têm códigos ou medidas.');
     if (text.split('\n').filter(l => l.trim()).length < 3)
-      alerts.push('Atencao: poucas linhas de dados - o conteudo pode estar incompleto.');
+      alerts.push('Atenção: poucas linhas de dados - o conteúdo pode estar incompleto.');
     return alerts;
   },
 
@@ -61,7 +61,7 @@ export const Utils = {
     const validCats   = (cats || []).filter(hasCategoryDefinition).map(normalizeCategory);
     if (!validCats.length) return '';
 
-    const header = '\n\n-- EXEMPLOS E PADROES DA EMPRESA --\nUse os exemplos abaixo como referencia de formato e campos da categoria. Adapte ao produto atual.\n\n';
+    const header = '\n\n-- EXEMPLOS E PADRÕES DA EMPRESA --\nUse os exemplos abaixo como referência de formato e campos da categoria. Adapte ao produto atual.\n\n';
     let bloco = header, len = 0;
     const limit = MAX_CHARS - header.length;
 
@@ -69,7 +69,7 @@ export const Utils = {
       let parte = `=== CATEGORIA: ${cat.nome} ===\n`;
       const obrigatorios = fieldListToText(cat.camposObrigatorios);
       const opcionais = fieldListToText(cat.camposOpcionais);
-      if (obrigatorios) parte += `Campos obrigatorios/prioritarios:\n${obrigatorios}\n\n`;
+      if (obrigatorios) parte += `Campos obrigatórios/prioritários:\n${obrigatorios}\n\n`;
       if (opcionais) parte += `Campos opcionais:\n${opcionais}\n\n`;
       if (cat.fichaIdeal) parte += `Ficha ideal:\n${cat.fichaIdeal}\n\n`;
       parte += '---\n';
@@ -85,7 +85,7 @@ export const Utils = {
 
   // Matching de categorias
   /**
-   * Pontua categorias pelo produto principal, nao pelo contexto de uso.
+   * Pontua categorias pelo produto principal, não pelo contexto de uso.
    * Ex: "Tela plastica para ar condicionado" deve priorizar "Tela",
    * enquanto "Ar Condicionado Split Philco" deve priorizar "Ar Condicionado".
    */

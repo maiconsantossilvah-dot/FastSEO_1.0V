@@ -1,6 +1,6 @@
 ﻿/**
  * components/ConfigUI.js
- * Gerencia a UI de configuracao: API keys, modelo e contador de caracteres.
+ * Gerencia a UI de configuração: API keys, modelo e contador de caracteres.
  */
 
 import { Quota } from '../modules/quota.js';
@@ -51,9 +51,9 @@ export const ConfigUI = {
 
   updateQuotaInfo() {
     const hints = {
-      'gemini-2.5-flash-lite': 'Recomendado - maior cota diaria gratuita',
-      'gemini-2.5-flash':      'Boa qualidade, cota intermediaria',
-      'gemini-2.5-pro':        'Apenas 100 req/dia - use para tarefas que exigem mais raciocinio',
+      'gemini-2.5-flash-lite': 'Recomendado - maior cota diária gratuita',
+      'gemini-2.5-flash':      'Boa qualidade, cota intermediária',
+      'gemini-2.5-pro':        'Apenas 100 req/dia - use para tarefas que exigem mais raciocínio',
     };
     const hint = $('modelHint');
     if (hint) hint.textContent = hints[$('modelSel')?.value] || 'Modelo gratuito';
@@ -81,8 +81,8 @@ export const ConfigUI = {
   },
   
 };
-// initSerpConfig - ativa os eventos da secao SerpAPI no modal.
-// Chamada dentro de ConfigModal.open(), apos appendChild(overlay).
+// initSerpConfig - ativa os eventos da seção SerpAPI no modal.
+// Chamada dentro de ConfigModal.open(), após appendChild(overlay).
 export function initSerpConfig() {
   const apiKeyInput   = document.getElementById('serp-api-key-input');
   const cxInput       = document.getElementById('serp-cx-input');
@@ -93,9 +93,9 @@ export function initSerpConfig() {
   const quotaFill     = document.getElementById('serp-quota-fill');
   const clearCacheBtn = document.getElementById('serp-cache-clear');
 
-  if (!apiKeyInput) return; // secao ainda nao foi renderizada no modal
+  if (!apiKeyInput) return; // Seção ainda não foi renderizada no modal.
 
-  // Preenche com valores ja salvos
+  // Preenche com valores já salvos.
   const apiKeySalva = getGoogleApiKey();
   const cxSalvo     = getGoogleCx();
   if (apiKeySalva) { apiKeyInput.value = apiKeySalva; }
@@ -144,7 +144,7 @@ function _serpQuota(labelEl, fillEl) {
   const mes   = new Date().toISOString().slice(0, 7);
   const count = parseInt(localStorage.getItem(`fastseo_serp_count_${mes}`) || '0');
   const pct   = Math.min((count / 100) * 100, 100);
-  if (labelEl) labelEl.textContent = `${count} / 100 buscas este mes`;
+  if (labelEl) labelEl.textContent = `${count} / 100 buscas este mês`;
   if (fillEl) {
     fillEl.style.width      = `${pct}%`;
     fillEl.style.background = pct > 80 ? 'var(--color-warn)' : 'var(--color-success)';
@@ -166,7 +166,7 @@ const GOKU_PH_IMG = '../assets/img/goku-placeholder.png';
 
 const ZHUANG_BG ="../assets/img/zhuang-fangyi.jpg";
 // Cada tema pode ter: accent, orb1, orb2, bg, surface, border, text
-// Campos omitidos usam os valores padrao do CSS.
+// Campos omitidos usam os valores padrão do CSS.
 const THEMES = [
   {
     id: 'glass-indigo',
@@ -181,16 +181,16 @@ const THEMES = [
     id: 'glass-cyan',
     group: 'Glassmorphism',
     name: 'Cyan Glass',
-    desc: 'Orbs em verde-agua',
+    desc: 'Orbs em verde-água',
     preview: ['#050e12', '#06b6d4', '#34d399'],
     accent: '#06b6d4', orb1: '#0e7490', orb2: '#065f46',
     bg: '#050e12',
   },
   {
     id: 'solid-charcoal',
-    group: 'Solido escuro',
+    group: 'Sólido escuro',
     name: 'Charcoal',
-    desc: 'Cinza carvao, acento azul',
+    desc: 'Cinza carvão, acento azul',
     preview: ['#1a1b1e', '#3b82f6', '#60a5fa'],
     accent: '#3b82f6', orb1: 'transparent', orb2: 'transparent',
     bg: '#141517', surface: 'rgba(255,255,255,.05)',
@@ -198,7 +198,7 @@ const THEMES = [
   },
   {
     id: 'solid-graphite',
-    group: 'Solido escuro',
+    group: 'Sólido escuro',
     name: 'Graphite',
     desc: 'Quase preto, acento verde',
     preview: ['#111111', '#22c55e', '#4ade80'],
@@ -208,7 +208,7 @@ const THEMES = [
   },
   {
     id: 'solid-navy',
-    group: 'Solido escuro',
+    group: 'Sólido escuro',
     name: 'Navy',
     desc: 'Azul marinho profundo',
     preview: ['#0d1117', '#58a6ff', '#79c0ff'],
@@ -218,9 +218,9 @@ const THEMES = [
   },
   {
     id: 'solid-espresso',
-    group: 'Solido escuro',
+    group: 'Sólido escuro',
     name: 'Espresso',
-    desc: 'Marrom escuro, acento ambar',
+    desc: 'Marrom escuro, acento âmbar',
     preview: ['#1a1208', '#d97706', '#fbbf24'],
     accent: '#d97706', orb1: 'transparent', orb2: 'transparent',
     bg: '#130e06', surface: 'rgba(255,255,255,.05)',
@@ -250,7 +250,7 @@ const THEMES = [
     id: 'neutral-void',
     group: 'Neutro',
     name: 'Void',
-    desc: 'Preto puro, minimo absoluto',
+    desc: 'Preto puro, mínimo absoluto',
     preview: ['#000000', '#404040', '#737373'],
     accent: '#525252', orb1: 'transparent', orb2: 'transparent',
     bg: '#000000', surface: 'rgba(255,255,255,.03)',
@@ -415,7 +415,7 @@ function applyTheme(t) {
   root.style.setProperty('--orb1-color', t.orb1 || 'transparent');
   root.style.setProperty('--orb2-color', t.orb2 || 'transparent');
 
-  // Fundo e superficie
+  // Fundo e superfície.
   root.style.setProperty('--color-bg-page',  t.bg      || '#07080f');
   root.style.setProperty('--color-surface',  t.surface || 'rgba(255,255,255,.04)');
   root.style.setProperty('--color-border',   t.border  || 'rgba(255,255,255,.08)');
@@ -537,7 +537,7 @@ function applyTheme(t) {
   try { localStorage.setItem(LS_THEME, t.id); } catch {}
 }
 
-// Aplicado separadamente para nao bloquear o restore() antes do DOM carregar
+// Aplicado separadamente para não bloquear o restore() antes do DOM carregar.
 function _applyDomTheme(t) {
   // Logo icon
   const logoEl = document.querySelector('.logo-icon');
@@ -619,7 +619,7 @@ export const ThemeModal = {
     overlay.innerHTML = `
       <div class="modal modal--theme">
         <div class="modal-hdr">
-          <span class="modal-title">&#127912; Aparencia do site</span>
+          <span class="modal-title">&#127912; Aparência do site</span>
           <button class="modal-close" id="themeModalClose">&times;</button>
         </div>
         <div class="modal-body" id="themeModalBody">
@@ -707,7 +707,7 @@ export const ThemeModal = {
     } catch {}
   },
 
-  // Chamado apos o DOM do app estar visivel (apos login).
+  // Chamado após o DOM do app estar visível (após login).
   restoreDom() {
     try {
       const id = localStorage.getItem(LS_THEME) || 'dark-glass';
@@ -740,7 +740,7 @@ export const SidebarToggle = {
     try {
       const saved = localStorage.getItem('sb_open');
       if (saved === '0') {
-        // Comeca aberto por padrao; fechar se salvo como '0'
+        // Começa aberto por padrão; fecha se estiver salvo como '0'.
         this.toggle();
       } else {
         AppState.sidebar.open = true;
@@ -754,12 +754,12 @@ export const SidebarToggle = {
 };
 
 /**
- * ConfigModal - modal de configuracao de APIs e modelo
+ * ConfigModal - modal de configuração de APIs e modelo.
  *
- * Estrategia: os inputs #apiKey, #mistralKey e #modelSel vivem em
+ * Estratégia: os inputs #apiKey, #mistralKey e #modelSel vivem em
  * #hiddenApiInputs (fora da tela) para que api.js sempre os encontre.
- * Ao abrir o modal, os inputs sao MOVIDOS para dentro dele.
- * Ao fechar, sao DEVOLVIDOS ao container oculto.
+ * Ao abrir o modal, os inputs são MOVIDOS para dentro dele.
+ * Ao fechar, são DEVOLVIDOS ao container oculto.
  */
 export const ConfigModal = {
   open() {
@@ -892,7 +892,7 @@ export const ConfigModal = {
     // Ativa os eventos do painel SerpAPI.
     initSerpConfig();
 
-    // Mover inputs principais para dentro dos slots do modal
+    // Move os inputs reais para o modal sem duplicá-los; api.js continua encontrando os mesmos IDs.
     const moveToSlot = (inputId, slotId) => {
       const input = document.getElementById(inputId);
       const slot  = document.getElementById(slotId);
@@ -902,7 +902,7 @@ export const ConfigModal = {
     moveToSlot('mistralKey', 'mistralKeySlot');
     moveToSlot('modelSel',   'modelSelSlot');
 
-    // Criar e mover inputs de fallback (esses ficam so no modal)
+    // Cria e move inputs de fallback; eles ficam visíveis somente neste modal.
     this._ensureFallbackInputs();
     moveToSlot('apiKey2',    'apiKey2Slot');
     moveToSlot('apiKey3',    'apiKey3Slot');
@@ -910,9 +910,9 @@ export const ConfigModal = {
 
     // Atualizar hint do modelo
     const hints = {
-      'gemini-2.5-flash-lite': 'Recomendado - maior cota diaria gratuita',
-      'gemini-2.5-flash':      'Boa qualidade, cota intermediaria',
-      'gemini-2.5-pro':        'Apenas 100 req/dia - use para tarefas que exigem mais raciocinio',
+      'gemini-2.5-flash-lite': 'Recomendado - maior cota diária gratuita',
+      'gemini-2.5-flash':      'Boa qualidade, cota intermediária',
+      'gemini-2.5-pro':        'Apenas 100 req/dia - use para tarefas que exigem mais raciocínio',
     };
     const modelEl = document.getElementById('modelSel');
     const hintEl  = document.getElementById('modelHint');
@@ -969,9 +969,9 @@ export const ConfigModal = {
     const hidden = document.getElementById('hiddenApiInputs');
     if (!hidden) return;
     const fallbacks = [
-      { id: 'apiKey2',     placeholder: 'AIza... (secundaria)' },
-      { id: 'apiKey3',     placeholder: 'AIza... (terciaria)'  },
-      { id: 'mistralKey2', placeholder: '... (secundaria)'     },
+      { id: 'apiKey2',     placeholder: 'AIza... (secundária)' },
+      { id: 'apiKey3',     placeholder: 'AIza... (terciária)'  },
+      { id: 'mistralKey2', placeholder: '... (secundária)'     },
     ];
     fallbacks.forEach(({ id, placeholder }) => {
       if (!document.getElementById(id)) {

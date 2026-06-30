@@ -1,8 +1,8 @@
 ﻿/**
  * modules/state.js
  * -----------------
- * Estado global centralizado da aplicacao.
- * Todos os modulos importam daqui - nunca criam estado proprio.
+ * Estado global centralizado da aplicação.
+ * Todos os módulos importam daqui - nunca criam estado próprio.
  */
 
 import { bestMatch } from '../utils/matching.js';
@@ -23,8 +23,8 @@ export const AppState = {
   },
 
   /**
-   * subcatRules - referencia as regras de subcategoria em uso.
-   * Populado pelo SubcatModule na inicializacao.
+   * subcatRules - referência às regras de subcategoria em uso.
+   * Populado pelo SubcatModule na inicialização.
    * Exposto aqui para que o Pipeline acesse sem acoplamento circular.
    */
   subcatRules: {
@@ -38,10 +38,10 @@ export const AppState = {
     },
     buildSnippet(rule) {
       if (!rule) return '';
-      let s = `\n\n-- PADRAO DE TITULO PARA "${rule.nome}" --\n`;
-      s += `Estrutura do titulo: ${rule.formula}\n`;
+      let s = `\n\n-- PADRÃO DE TÍTULO PARA "${rule.nome}" --\n`;
+      s += `Estrutura do título: ${rule.formula}\n`;
       if (rule.ex) s += `Exemplo: ${rule.ex}\n`;
-      s += 'Siga exatamente essa estrutura ao gerar o TITULO SEO desta ficha.';
+      s += 'Siga exatamente essa estrutura ao gerar o TÍTULO SEO desta ficha.';
       return s;
     },
   },

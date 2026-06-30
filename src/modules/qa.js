@@ -101,8 +101,8 @@ export function parseQAJson(raw) {
   return normalizeQa({
     status: /STATUS\s*:\s*REPROVADO|REPROVADO/i.test(raw) ? 'REPROVADO' : 'APROVADO',
     confianca: 'BAIXA',
-    resumo: 'A resposta do A2 nao veio em JSON valido.',
-    avisos: ['JSON invalido retornado pelo A2. Foi usado fallback de compatibilidade.'],
+    resumo: 'A resposta do A2 não veio em JSON válido.',
+    avisos: ['JSON inválido retornado pelo A2. Foi usado fallback de compatibilidade.'],
   }, raw);
 }
 
@@ -138,7 +138,7 @@ export function formatQAReport(qa) {
   const normalized = normalizeQa(qa);
   const lines = [
     `STATUS: ${normalized.status}`,
-    `CONFIANCA: ${normalized.confianca}`,
+    `CONFIANÇA: ${normalized.confianca}`,
     '',
     'Resumo:',
     normalized.resumo,
@@ -153,7 +153,7 @@ export function formatQAReport(qa) {
   lines.push('', 'SEO:');
   lines.push(`Status: ${text(normalized.seo.status) || 'INDEFINIDO'}`);
   addList(lines, 'Avisos SEO', normalized.seo.avisos);
-  addList(lines, 'Termos Validos', normalized.seo.termos_validos);
+  addList(lines, 'Termos Válidos', normalized.seo.termos_validos);
   addList(lines, 'Termos Suspeitos', normalized.seo.termos_suspeitos);
 
   const categoryValidation = normalized.category_validation || {};
@@ -163,7 +163,7 @@ export function formatQAReport(qa) {
     arrayOrEmpty(categoryValidation.warnings).length;
 
   if (hasCategoryValidation) {
-    lines.push('', 'Validacao da Categoria:');
+    lines.push('', 'Validação da Categoria:');
     if (categoryValidation.category) lines.push(`Categoria: ${categoryValidation.category}`);
     if (categoryValidation.schema_version) lines.push(`Schema: ${categoryValidation.schema_version}`);
     addList(lines, 'Campos Checados', categoryValidation.checked_fields);

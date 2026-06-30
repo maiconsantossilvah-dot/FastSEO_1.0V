@@ -192,6 +192,7 @@ function renderFaqItem(item) {
         <!-------------------------->`;
 }
 
+// Monta o HTML final que será copiado para uso externo.
 function buildFaqHtml() {
   const items = state.items
     .filter(item => item.question.trim() || item.answer.trim())
@@ -261,6 +262,7 @@ function addItem() {
 function parseBulkFaq(value = '') {
   const normalized = value.replace(/\r\n?/g, '\n');
   const items = [];
+  // Aceita blocos no formato <Q>pergunta</Q><A>resposta</A>.
   const pattern = /<Q>([\s\S]*?)<\/Q>[\s\S]*?<A>([\s\S]*?)<\/A>/gi;
   let match;
 
@@ -307,6 +309,7 @@ async function copyGeneratedHtml() {
   try {
     await navigator.clipboard.writeText(html);
   } catch {
+    // Fallback para navegadores sem permissão direta de clipboard.
     const fallback = document.createElement('textarea');
     fallback.value = html;
     fallback.setAttribute('readonly', '');

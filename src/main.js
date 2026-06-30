@@ -26,7 +26,7 @@ const Export = {
     const btnId = which === 'ficha' ? 'copyFichaBtn' : 'copyConteudoBtn';
     const text = document.getElementById(elId)?.innerText?.trim() || '';
 
-    if (!text || text === 'Conteudo comercial ainda nao gerado.') {
+    if (!text || text === 'Conteúdo comercial ainda não gerado.') {
       PipelineUI.toast('Nada para copiar ainda.', 'warn');
       PipelineUI.log('Nada para copiar — execute o pipeline primeiro.', 'w');
       return;
@@ -41,7 +41,7 @@ const Export = {
       PipelineUI.toast('Resultado copiado.', 'ok');
     }).catch(err => {
       PipelineUI.log(`Erro ao copiar: ${err.message}`, 'e');
-      PipelineUI.toast('Nao foi possivel copiar.', 'error');
+      PipelineUI.toast('Não foi possível copiar.', 'error');
     });
   },
 
@@ -237,9 +237,11 @@ function updateRunReadiness() {
   const input = document.getElementById('inputText')?.value?.trim() || '';
   const btn = document.getElementById('runBtn');
   if (!btn) return;
+
+  // Evita iniciar o pipeline sem dados brutos no campo principal.
   const ready = input.length > 0;
   btn.disabled = !ready;
-  btn.title = ready ? 'Processar ficha tecnica' : 'Cole os dados do produto para processar';
+  btn.title = ready ? 'Processar ficha técnica' : 'Cole os dados do produto para processar';
 }
 
 document.getElementById('inputText')?.addEventListener('input', () => {
@@ -303,7 +305,7 @@ document.getElementById('openHistoricoBtn')?.addEventListener('click', async () 
 // clearHistoricoBtn é dinâmico (dentro do modal) — usar delegação no document
 document.addEventListener('click', async e => {
   if (e.target.id === 'clearHistoricoBtn') {
-    const ok = confirm('Limpar todo o historico salvo? Essa acao nao pode ser desfeita.');
+    const ok = confirm('Limpar todo o histórico salvo? Essa ação não pode ser desfeita.');
     if (!ok) return;
     const btn = e.target;
     btn.disabled = true;
@@ -311,10 +313,10 @@ document.addEventListener('click', async e => {
     try {
       await History.clear();
       HistoryUI.render();
-      PipelineUI.toast('Historico limpo.', 'ok');
+      PipelineUI.toast('Histórico limpo.', 'ok');
     } catch (err) {
-      PipelineUI.log(`Erro ao limpar historico: ${err.message}`, 'e');
-      PipelineUI.toast('Nao foi possivel limpar o historico.', 'error');
+      PipelineUI.log(`Erro ao limpar histórico: ${err.message}`, 'e');
+      PipelineUI.toast('Não foi possível limpar o histórico.', 'error');
     } finally {
       btn.disabled = false;
       btn.textContent = 'Limpar tudo';

@@ -1,6 +1,6 @@
 # FastSEO - Arquitetura do projeto
 
-Aplicacao frontend modular em JavaScript puro, com ES Modules carregados direto pelo navegador.
+Aplicação frontend modular em JavaScript puro, com ES Modules carregados direto pelo navegador.
 
 ## Estrutura de pastas
 
@@ -50,13 +50,13 @@ src/
 
 ## Responsabilidades
 
-- `src/main.js`: inicializacao do app, login, listeners globais e integracao entre modulos.
-- `src/config.js`: configuracoes Firebase, modelos e limites do app.
-- `src/firebase/`: inicializacao Firebase e CRUD/listeners do Firestore.
-- `src/services/`: chamadas externas e servicos de infraestrutura, como IA, auth, analytics e Google Custom Search.
-- `src/modules/`: regras de negocio, estado, pipeline, historico, cotas, prompts, categorias e leitura de PDF.
+- `src/main.js`: inicialização do app, login, listeners globais e integração entre módulos.
+- `src/config.js`: configurações Firebase, modelos e limites do app.
+- `src/firebase/`: inicialização Firebase e CRUD/listeners do Firestore.
+- `src/services/`: chamadas externas e serviços de infraestrutura, como IA, auth, analytics e Google Custom Search.
+- `src/modules/`: regras de negócio, estado, pipeline, histórico, cotas, prompts, categorias e leitura de PDF.
 - `src/components/`: modais e elementos de interface.
-- `src/utils/`: helpers puros de sanitizacao, matching e clipboard.
+- `src/utils/`: helpers puros de sanitização, matching e clipboard.
 - `src/styles/`: CSS principal.
 - `src/assets/img/`: imagens usadas por temas e placeholders.
 
@@ -76,11 +76,11 @@ http://localhost:5500
 
 ## Firebase
 
-A aplicacao usa:
+A aplicação usa:
 
 - Firebase Auth com Google.
 - Firestore para `categories`, `subcategories`, `prompts`, `history` e `usuarios_autorizados`.
 - `categories` usa `nome`, `camposObrigatorios`, `camposOpcionais`, `fichaIdeal` e `qaSchema`.
-- Categorias antigas com `campos` e `ficha` sao migradas automaticamente para o novo formato.
+- Categorias antigas com `campos` e `ficha` são migradas automaticamente para o novo formato.
 
-Para autorizar um usuario, crie um documento na colecao `usuarios_autorizados` usando o e-mail como ID do documento.
+Para autorizar um usuário, crie um documento na coleção `usuarios_autorizados` usando o e-mail como ID do documento.

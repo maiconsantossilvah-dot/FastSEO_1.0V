@@ -1,14 +1,14 @@
 /**
  * components/PipelineUI.js
- * Controls all pipeline UI: log, steps, results, run button.
+ * Controla a interface do pipeline: log, etapas, resultados e botão de execução.
  */
 
 const $ = id => document.getElementById(id);
 
-// Guarda timestamps de início por step para calcular duração
+// Guarda timestamps de início por etapa para calcular duração.
 const _stepStart = {};
 
-// Mapa de qual API cada step usa (pode ser sobrescrito por setStepApi)
+// Mapa de qual API cada etapa usa; pode mudar quando houver fallback.
 const _stepApiLabel = { 1: 'Mistral', 2: 'Gemini', 3: 'Gemini' };
 
 export const PipelineUI = {
@@ -39,11 +39,11 @@ export const PipelineUI = {
     const msgSpan = document.createElement('span'); msgSpan.className = 'log-msg'; msgSpan.textContent = msg;
     el.append(tsSpan, msgSpan);
     box.appendChild(el);
-    // rAF evita layout thrashing — lê scrollHeight fora do critical path
+    // rAF evita recálculo de layout no meio da escrita do log.
     requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
   },
 
-  // Atualiza label de API de um step (chamado pelo pipeline quando faz fallback)
+  // Atualiza o rótulo de API exibido em uma etapa.
   setStepApi(n, apiName) {
     _stepApiLabel[n] = apiName;
     const el = $(`ps${n}Api`);
@@ -79,7 +79,7 @@ export const PipelineUI = {
       if (apiEl)  apiEl.textContent  = '';
       if (timeEl) timeEl.textContent = '';
     });
-    // Reseta labels para padrão
+    // Reseta rótulos para o padrão.
     _stepApiLabel[1] = 'Mistral';
     _stepApiLabel[2] = 'Gemini';
     _stepApiLabel[3] = 'Gemini';
@@ -102,10 +102,10 @@ export const PipelineUI = {
     const sb = $('statusBadge');
     if (sb) { sb.textContent = reprovado ? 'REPROVADO' : 'APROVADO'; sb.className = `badge ${reprovado ? 'badge-fail' : 'badge-ok'}`; }
     if (!reprovado && $('conteudoOut') && $('copyBlock')) {
-      $('conteudoOut').textContent = conteudo || 'Conteudo comercial ainda nao gerado.';
+      $('conteudoOut').textContent = conteudo || 'Conteúdo comercial ainda não gerado.';
       $('copyBlock').style.display = 'block';
       const regenBtn = $('regenConteudoBtn');
-      if (regenBtn) regenBtn.textContent = conteudo ? 'Regenerar' : 'Gerar conteudo';
+      if (regenBtn) regenBtn.textContent = conteudo ? 'Regenerar' : 'Gerar conteúdo';
     }
     $('results')?.classList.add('vis');
   },
