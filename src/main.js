@@ -326,7 +326,7 @@ automaticamente pela interface, os números podem desaparecer durante a cópia, 
 quebra de estrutura, perda de referência e erros no processamento posterior do conteúdo.)
 Regras obrigatórias:
 * Não pode ser perguntas enumeradas.
-* Nunca utilize listas automáticas, bullets, ordered lists, `<ol>`, `<li>` ou equivalentes.
+* Nunca utilize listas automáticas, bullets, ordered lists, <ol>, <li> ou equivalentes.
 * Nunca utilize os termos "Pergunta:", "Resposta:", "Question:", "Answer:" ou qualquer variação
 semelhante.
 * Nunca estruture o conteúdo como:
