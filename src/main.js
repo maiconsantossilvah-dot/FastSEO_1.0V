@@ -359,8 +359,7 @@ META DESCRIPTION
 ───────────────────────────
 FAQ
 FORMATO DE SAÍDA OBRIGATÓRIO
-Confirmação de entendimento: responda apenas com "Pronto! Pode colar a primeira
-ficha técnica." — e aguarde.`;
+Utilize as informações da ficha abaixo:`;
   const ficha = document.getElementById('fichaOut')?.innerText?.trim() || '';
 
   if (!ficha) {
