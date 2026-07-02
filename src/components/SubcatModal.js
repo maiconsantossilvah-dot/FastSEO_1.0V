@@ -33,7 +33,6 @@ export const SubcatModal = {
           </div>
           <div class="subcat-list" id="subcatList"></div>
           <button class="btn btn-ghost" id="subcatAddToggleBtn" style="align-self:flex-start;font-size:12px">＋ Nova regra</button>
-          
           <button class="btn btn-ghost" id="subcatExportBtn" style="font-size:12px">Exportar planilha</button>
           <div class="subcat-add-panel" id="subcatAddPanel">
   <div class="sf-row"><label>Nome da categoria</label>
