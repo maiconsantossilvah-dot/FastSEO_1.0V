@@ -7,19 +7,6 @@
   <title>Fast SEO — Pipeline de Fichas Técnicas</title>
   <link rel="icon" type="image/svg+xml" href="src/assets/favicon.svg" />
 
-  <!-- ═══════════════════════════════════════════════════════
-     Google Analytics 4 — FastSEO
-     Substitua G-XXXXXXXXXX pelo seu Measurement ID real.
-     Obtenha em: analytics.google.com → Admin → Fluxos de dados → Web
-════════════════════════════════════════════════════════ -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5QMCX3H979"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-5QMCX3H979');
-  </script>
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -144,34 +131,6 @@
       padding: 4px 10px;
       cursor: pointer;
       transition: color .15s, border-color .15s;
-    }
-
-    /* ── Seção SerpAPI no Config ── */
-    .config-section {
-      border-top: 1px solid var(--color-border, #e2e8f0);
-      padding-top: 1.25rem;
-      margin-top: 1.25rem;
-    }
-
-    .config-section-title {
-      font-size: 0.875rem;
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-
-    .config-section-desc {
-      font-size: 0.75rem;
-      color: var(--color-text-muted);
-      margin-bottom: 0.75rem;
-    }
-
-    .config-section-desc a {
-      color: var(--color-accent);
-      text-decoration: none;
-    }
-
-    .config-section-desc a:hover {
-      text-decoration: underline;
     }
 
     .config-field-row {
@@ -447,13 +406,15 @@
               </div>
               <div class="result-content" id="fichaOut"></div>
             </div>
-            <div class="card">
-              <div class="result-hdr">
+
+            <details class="card result-details">
+              <summary class="result-hdr">
                 <span class="result-label">Output: conferência</span>
                 <span id="statusBadge" class="badge"></span>
-              </div>
+              </summary>
+
               <div class="result-content" id="validacaoOut"></div>
-            </div>
+            </details>
 
             <div class="card" id="copyBlock" style="display:none">
               <div class="result-hdr">

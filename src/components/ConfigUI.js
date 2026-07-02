@@ -828,63 +828,6 @@ export const ConfigModal = {
               <div class="key-wrap" id="apiKey3Slot"><span class="key-status" id="keyStatus3"></span></div>
             </div>
           </div>
-
-          <div class="config-section-divider">
-            <span>&#128269; Google Custom Search &mdash; Keywords do Google</span>
-            <div class="hint" style="margin-top:4px">
-              Cada usuário usa suas próprias chaves. Keywords buscadas automaticamente antes de processar cada ficha.
-              Cache de 24h para economizar cota. Gratuito: 100 buscas/dia.
-              <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Criar API Key &rarr;</a>
-              &nbsp;|&nbsp;
-              <a href="https://programmablesearchengine.google.com" target="_blank" rel="noopener">Criar Search Engine ID &rarr;</a>
-            </div>
-          </div>
-
-          <div class="setup-grid">
-            <div class="field" style="grid-column:1/-1">
-              <label for="serp-api-key-input">Google API Key</label>
-              <div class="key-wrap serp-key-row">
-                <input
-                  type="password"
-                  id="serp-api-key-input"
-                  placeholder="AIzaSy..."
-                  autocomplete="off"
-                  spellcheck="false"
-                />
-                <button id="serp-api-key-toggle" class="btn btn-ghost serp-eye-btn" title="Mostrar/ocultar">Mostrar</button>
-              </div>
-            </div>
-
-            <div class="field" style="grid-column:1/-1">
-              <label for="serp-cx-input">Search Engine ID (cx)</label>
-              <div class="key-wrap serp-key-row">
-                <input
-                  type="text"
-                  id="serp-cx-input"
-                  placeholder="ex: f11219cd767154cfd"
-                  autocomplete="off"
-                  spellcheck="false"
-                />
-                <button id="serp-api-key-save" class="btn btn-primary">Salvar</button>
-              </div>
-              <span id="serp-api-status" class="serp-status"></span>
-            </div>
-
-            <div class="field" style="grid-column:1/-1">
-              <label>Uso diário estimado</label>
-              <div class="serp-quota-bar">
-                <div id="serp-quota-fill" class="serp-quota-fill"></div>
-              </div>
-              <span id="serp-quota-label" class="hint">0 / 100 buscas hoje</span>
-              <button id="serp-cache-clear" class="btn btn-ghost serp-cache-btn">Limpar cache</button>
-            </div>
-          </div>
-
-        </div>
-        <div class="modal-ftr" style="justify-content:flex-end">
-          <span class="modal-saved" id="configSavedMsg">&#10003; Salvo</span>
-          <button class="btn btn-primary" id="configModalClose2">Fechar</button>
-        </div>
       </div>`;
 
     document.body.appendChild(overlay);
