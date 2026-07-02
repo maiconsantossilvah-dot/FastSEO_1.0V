@@ -18,7 +18,7 @@ export const SubcatModal = {
     overlay.innerHTML = `
       <div class="modal modal--lg" style="max-width:700px">
         <div class="modal-hdr">
-          <span class="modal-title">📐 Padronização de Títulos</span>
+          <span class="modal-title">Padronização de Títulos</span>
           <button class="modal-close" id="subcatCloseBtn">✕</button>
         </div>
         <div class="modal-body" style="gap:12px">
@@ -32,6 +32,7 @@ export const SubcatModal = {
             <button class="btn btn-ghost" id="subcatResetBtn" style="font-size:11px">↺ Restaurar padrão</button>
           </div>
           <div class="subcat-list" id="subcatList"></div>
+          <button class="btn btn-ghost" id="subcatAddToggleBtn" style="align-self:flex-start;font-size:12px">＋ Nova regra</button>
           <button class="btn btn-ghost" id="subcatAddToggleBtn" style="align-self:flex-start;font-size:12px">＋ Nova regra</button>
           <div class="subcat-add-panel" id="subcatAddPanel">
   <div class="sf-row"><label>Nome da categoria</label>
@@ -54,14 +55,14 @@ export const SubcatModal = {
       </div>`;
     document.body.appendChild(overlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) this.close(); });
-    $('subcatCloseBtn').addEventListener('click', () => this.close());
-    $('subcatCloseBtnFtr').addEventListener('click', () => this.close());
-    $('subcatSearch').addEventListener('input', e => { _search = e.target.value; this._render(); });
-    $('subcatResetBtn').addEventListener('click', () => this._resetAll());
-    $('subcatAddToggleBtn').addEventListener('click', () => this._toggleAddPanel());
-    $('subcatAddCancelBtn').addEventListener('click', () => this._closeAddPanel());
+    $('subcatCloseBtn')?.addEventListener('click', () => this.close());
+    $('subcatCloseBtnFtr')?.addEventListener('click', () => this.close());
+    $('subcatSearch')?.addEventListener('input', e => { _search = e.target.value; this._render(); });
+    $('subcatResetBtn')?.addEventListener('click', () => this._resetAll());
+    $('subcatAddToggleBtn')?.addEventListener('click', () => this._toggleAddPanel());
+    $('subcatAddCancelBtn')?.addEventListener('click', () => this._closeAddPanel());
     $('subcatAddSaveBtn').addEventListener('click', () => this._saveNew());
-    $('subcatExportBtn').addEventListener('click', () => this._exportXlsx());
+    $('subcatExportBtn')?.addEventListener('click', () => this._exportXlsx());
     document.addEventListener('keydown', this._escHandler);
     this._render();
   },
