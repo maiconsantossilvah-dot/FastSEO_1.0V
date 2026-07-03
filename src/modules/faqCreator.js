@@ -232,22 +232,23 @@ function renderEditor() {
   if (!editor) return;
 
   editor.innerHTML = state.items.map((item, index) => `
-    <article class="faq-editor__item" data-index="${index}">
-      <div class="faq-editor__bar">
-        <strong>Pergunta ${index + 1}</strong>
-        <button class="copy-btn faq-remove-btn" type="button" data-action="remove">Remover</button>
-      </div>
-      <div class="faq-editor__fields">
-        <label class="faq-field">
-          <span>Pergunta</span>
-          <input type="text" value="${escapeHtml(item.question)}" data-field="question" autocomplete="off">
-        </label>
-        <label class="faq-field">
-          <span>Resposta</span>
-          <textarea data-field="answer">${escapeHtml(item.answer)}</textarea>
-        </label>
-      </div>
-    </article>
+    <details class="faq-editor__item faq-editor__item--dropdown" data-index="${index}">
+  <summary class="faq-editor__bar">
+    <strong>Pergunta ${index + 1}</strong>
+    <button class="copy-btn faq-remove-btn" type="button" data-action="remove">Remover</button>
+  </summary>
+
+  <div class="faq-editor__fields">
+    <label class="faq-field">
+      <span>Pergunta</span>
+      <input type="text" value="${escapeHtml(item.question)}" data-field="question" autocomplete="off">
+    </label>
+    <label class="faq-field">
+      <span>Resposta</span>
+      <textarea data-field="answer">${escapeHtml(item.answer)}</textarea>
+    </label>
+  </div>
+</details>
   `).join('');
 
   updateOutput();
@@ -347,6 +348,8 @@ function bindEvents() {
   $('faqEditor')?.addEventListener('click', event => {
     const button = event.target.closest("[data-action='remove']");
     if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
 
     const itemElement = button.closest('.faq-editor__item');
     const index = Number(itemElement?.dataset.index);
