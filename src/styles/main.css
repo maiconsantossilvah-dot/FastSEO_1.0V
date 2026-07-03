@@ -83,42 +83,12 @@ body {
   font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.6;
-  color: var(--color-text-primary);
   background: var(--color-bg-page);
+  color: var(--color-text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   transition: background .2s, color .2s;
-}
-
-/* ORBS DE LUZ AMBIENTE */
-body::before,
-body::after {
-  content: '';
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(90px);
-  pointer-events: none;
-  z-index: 0;
-  opacity: .28;
-  will-change: transform;
-  contain: strict;
-}
-
-body::before {
-  width: 500px;
-  height: 500px;
-  background: #4f46e5;
-  top: -120px;
-  left: -60px;
-}
-
-body::after {
-  width: 400px;
-  height: 400px;
-  background: #7c3aed;
-  bottom: -80px;
-  right: -60px;
 }
 
 .header::after {
@@ -249,6 +219,7 @@ body::after {
   z-index: 200;
   height: 60px;
   background: var(--color-header-bg);
+  border-color: var(--color-border);
   border-bottom: 1px solid rgba(255, 255, 255, .07);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -828,10 +799,10 @@ select {
 .run-btn {
   width: 100%;
   padding: 14px 20px;
-  border: 1px solid rgba(99, 102, 241, .3);
+   border-color: var(--color-accent);
   border-radius: var(--radius);
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  color: #fff;
+  background: var(--color-accent);
+  color: #ffffff;
   font-size: 14px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -841,12 +812,12 @@ select {
   justify-content: center;
   gap: 8px;
   transition: box-shadow .2s, transform .1s;
-  box-shadow: 0 0 30px rgba(99, 102, 241, .25), 0 4px 20px rgba(0, 0, 0, .4);
+  box-shadow: 0 0 30px var(--color-accent-shadow), 0 4px 20px rgba(0, 0, 0, .4);
   will-change: transform;
 }
 
 .run-btn:hover:not(:disabled) {
-  box-shadow: 0 0 45px rgba(99, 102, 241, .4), 0 4px 24px rgba(0, 0, 0, .5);
+  box-shadow: 0 0 45px var(--color-accent-shadow), 0 4px 24px rgba(0, 0, 0, .5);
   transform: translateY(-1px);
 }
 
@@ -1267,9 +1238,9 @@ textarea#inputText {
 .sheet-toolbar select,
 .sheet-toolbar input {
   min-height: 36px;
-  border: 1px solid rgba(88, 166, 255, .22);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: rgba(2, 8, 23, .72);
+  background: var(--color-input-bg);
   color: var(--color-text-primary);
   font-family: var(--font-body);
   font-size: 12px;
@@ -1279,8 +1250,8 @@ textarea#inputText {
 
 .sheet-toolbar select:focus,
 .sheet-toolbar input:focus {
-  border-color: rgba(88, 166, 255, .58);
-  box-shadow: 0 0 0 3px rgba(88, 166, 255, .12);
+  border-color: var(--color-accent-hover);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .sheet-status {
@@ -1290,9 +1261,9 @@ textarea#inputText {
 }
 
 .sheet-preview-wrap {
-  border: 1px solid rgba(88, 166, 255, .16);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: rgba(2, 8, 23, .52);
+  background: var(--color-surface);
   max-height: 310px;
   overflow: auto;
 }
@@ -1306,7 +1277,7 @@ textarea#inputText {
 
 .sheet-preview-table th,
 .sheet-preview-table td {
-  border-bottom: 1px solid rgba(148, 163, 184, .1);
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-text-secondary);
   padding: 9px 10px;
   overflow: hidden;
@@ -1315,7 +1286,7 @@ textarea#inputText {
 }
 
 .sheet-preview-table th {
-  background: rgba(15, 23, 42, .96);
+  background: var(--color-card-header-bg);
   color: var(--color-text-primary);
   font-size: 11px;
   font-weight: 700;
@@ -1329,18 +1300,18 @@ textarea#inputText {
 }
 
 .sheet-preview-table .sheet-row:hover td {
-  background: rgba(88, 166, 255, .08);
+  background: var(--color-button-hover-bg);
   color: var(--color-text-primary);
 }
 
 .sheet-preview-table .sheet-row.is-selected td {
-  background: rgba(88, 166, 255, .14);
+  background: var(--color-accent-bg);
   color: var(--color-text-primary);
 }
 
 .sheet-row-index {
   width: 62px;
-  color: rgba(125, 211, 252, .78) !important;
+  color: var(--color-accent);
   font-family: var(--font-mono);
   font-size: 11px;
 }
@@ -1351,9 +1322,9 @@ textarea#inputText {
 }
 
 .sheet-line-box {
-  border: 1px solid rgba(88, 166, 255, .16);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: rgba(2, 8, 23, .38);
+  background: var(--color-surface);
   overflow: hidden;
 }
 
@@ -1935,7 +1906,7 @@ textarea#inputText {
   min-height: 400px;
 }
 
-/* Placeholder quando não há resultados */
+/* Placeholder quando nao ha resultados */
 .results-placeholder {
   display: flex;
   flex-direction: column;
@@ -1982,7 +1953,7 @@ textarea#inputText {
   display: flex;
 }
 
-/* Responsivo: volta para coluna única em telas menores */
+/* Responsivo: volta pra coluna unica em telas menores */
 @media (max-width: 900px) {
   .page--wide {
     grid-template-columns: 1fr;
@@ -2576,989 +2547,6 @@ textarea#inputText {
   margin: 6px 4px;
 }
 
-/* THEME MODAL */
-.modal--theme {
-  max-width: 640px;
-}
-
-.modal--theme .modal-body {
-  gap: 16px;
-  max-height: 65vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-
-.modal--theme .modal-body::-webkit-scrollbar {
-  width: 4px;
-}
-
-.modal--theme .modal-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, .1);
-  border-radius: 2px;
-}
-
-.theme-group-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, .3);
-  padding-bottom: 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, .06);
-}
-
-.theme-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 8px;
-}
-
-.theme-card {
-  border: 1px solid rgba(255, 255, 255, .08);
-  border-radius: var(--radius);
-  overflow: hidden;
-  cursor: pointer;
-  transition: border-color .15s, transform .15s;
-  background: rgba(255, 255, 255, .03);
-  position: relative;
-  will-change: transform;
-}
-
-.theme-card:hover {
-  border-color: rgba(255, 255, 255, .18);
-  transform: translateY(-2px);
-}
-
-.theme-card--active {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 1px var(--color-accent), 0 0 20px var(--color-accent-glow);
-}
-
-.theme-check {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 10px var(--color-accent-glow);
-}
-
-.theme-card--active .theme-check {
-  display: flex;
-}
-
-.theme-preview {
-  height: 80px;
-  overflow: hidden;
-  position: relative;
-}
-
-.theme-preview-bg {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-}
-
-.theme-preview-orb {
-  position: absolute;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  top: -20px;
-  left: -20px;
-  filter: blur(24px);
-  opacity: .55;
-}
-
-.theme-preview-card {
-  position: absolute;
-  bottom: 7px;
-  right: 7px;
-  left: 7px;
-  background: rgba(255, 255, 255, .08);
-  border: 1px solid rgba(255, 255, 255, .1);
-  border-radius: 6px;
-  padding: 6px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.theme-preview-bar {
-  height: 4px;
-  border-radius: 2px;
-  width: 80%;
-}
-
-.theme-preview-bar.short {
-  width: 50%;
-}
-
-.theme-preview-btn {
-  height: 10px;
-  border-radius: 3px;
-  width: 45%;
-  margin-top: 1px;
-}
-
-.theme-card-info {
-  padding: 8px 10px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.theme-card-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, .8);
-}
-
-.theme-card-desc {
-  font-size: 10px;
-  color: rgba(255, 255, 255, .3);
-  line-height: 1.4;
-}
-
-/* Orbs dinamicos via ThemeModal */
-body::before {
-  background: var(--orb1-color, #4f46e5);
-}
-
-body::after {
-  background: var(--orb2-color, #7c3aed);
-}
-
-/* TEMA SEINEN (manga/berserk) */
-body.theme-seinen {
-  background-image: repeating-linear-gradient(45deg,
-      rgba(0, 0, 0, .04) 0px, rgba(0, 0, 0, .04) 1px,
-      transparent 1px, transparent 6px);
-}
-
-body.theme-seinen .card {
-  border: 2px solid #111 !important;
-  border-radius: 4px !important;
-  box-shadow: 3px 3px 0 #111 !important;
-  backdrop-filter: none !important;
-}
-
-body.theme-seinen .card-hdr {
-  border-bottom: 2px solid #111 !important;
-  background: rgba(0, 0, 0, .04) !important;
-}
-
-body.theme-seinen .card-title {
-  color: #111 !important;
-  font-weight: 900 !important;
-  letter-spacing: .04em;
-}
-
-body.theme-seinen .run-btn {
-  background: #111 !important;
-  border: 2.5px solid #000 !important;
-  border-radius: 4px !important;
-  box-shadow: 4px 4px 0 #000 !important;
-  font-style: italic;
-  font-weight: 900 !important;
-  letter-spacing: .06em;
-  color: #f0ebe0 !important;
-}
-
-body.theme-seinen .run-btn:hover:not(:disabled) {
-  transform: translate(-1px, -1px) !important;
-  box-shadow: 5px 5px 0 #000 !important;
-}
-
-body.theme-seinen .step {
-  border: 2px solid #999 !important;
-  border-radius: 3px !important;
-  box-shadow: 2px 2px 0 #999 !important;
-  background: #fff !important;
-}
-
-body.theme-seinen .step.done {
-  border-color: #111 !important;
-  box-shadow: 2px 2px 0 #111 !important;
-}
-
-body.theme-seinen .step-name {
-  color: #777 !important;
-  font-weight: 700 !important;
-}
-
-body.theme-seinen .step.done .step-name {
-  color: #111 !important;
-}
-
-body.theme-seinen .step.done .step-num {
-  color: #111 !important;
-}
-
-body.theme-seinen .log-box {
-  background: #111 !important;
-  border: 2px solid #000 !important;
-  border-radius: 3px !important;
-  box-shadow: 3px 3px 0 #000 !important;
-}
-
-body.theme-seinen .logo-icon {
-  background: #111 !important;
-  border-radius: 4px !important;
-  box-shadow: none !important;
-}
-
-body.theme-seinen .btn-ghost {
-  border-color: rgba(0, 0, 0, .3) !important;
-  color: rgba(0, 0, 0, .6) !important;
-  background: rgba(0, 0, 0, .05) !important;
-}
-
-body.theme-seinen .sidebar {
-  background: rgba(240, 235, 224, .97) !important;
-  border-right: 2px solid #111 !important;
-}
-
-body.theme-seinen .sb-cat-item {
-  color: rgba(0, 0, 0, .5) !important;
-}
-
-body.theme-seinen .sb-cat-item.active {
-  background: rgba(0, 0, 0, .08) !important;
-  color: #111 !important;
-}
-
-body.theme-seinen .learn-indicator {
-  background: rgba(0, 0, 0, .06) !important;
-  border: 2px solid #111 !important;
-  color: #111 !important;
-  border-radius: 4px !important;
-}
-
-body.theme-seinen .learn-indicator-dot {
-  background: #111 !important;
-  box-shadow: none !important;
-}
-
-/* TEMAS ANIME: Logo icon container */
-[data-theme-id="anime-vegito-ssj"] .logo-icon,
-[data-theme-id="anime-vegito-blue"] .logo-icon {
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  width: 44px !important;
-  height: 44px !important;
-}
-
-/* Vegito SSJ - glow dourado */
-[data-theme-id="anime-vegito-ssj"] .logo-icon {
-  filter: drop-shadow(0 0 6px #f5a62399);
-}
-
-[data-theme-id="anime-vegito-ssj"] .run-btn {
-  background: linear-gradient(135deg, #cc6600, #f5a623) !important;
-  box-shadow: 0 0 28px #f5a62344, 0 4px 20px rgba(0, 0, 0, .4) !important;
-}
-
-/* Vegito Blue - glow azul eletrico */
-[data-theme-id="anime-vegito-blue"] .logo-icon {
-  filter: drop-shadow(0 0 8px #00bfff88);
-}
-
-[data-theme-id="anime-vegito-blue"] .run-btn {
-  background: linear-gradient(135deg, #0044aa, #00bfff) !important;
-  box-shadow: 0 0 30px #00bfff44, 0 4px 20px rgba(0, 0, 0, .4) !important;
-}
-
-/* VEGITO BLUE - fundo com imagem */
-[data-theme-id="anime-vegito-blue"] body::before,
-[data-theme-id="anime-vegito-blue"] body::after {
-  display: none;
-}
-
-[data-theme-id="anime-vegito-blue"] .header {
-  background: rgba(2, 5, 15, .88) !important;
-  border-bottom-color: rgba(0, 191, 255, .15) !important;
-}
-
-[data-theme-id="anime-vegito-blue"] .sidebar {
-  background: rgba(2, 5, 15, .85) !important;
-}
-
-[data-theme-id="anime-vegito-blue"] .card {
-  background: rgba(0, 5, 20, .6) !important;
-  border-color: rgba(0, 191, 255, .2) !important;
-  backdrop-filter: blur(20px) !important;
-}
-
-[data-theme-id="anime-vegito-blue"] .log-box {
-  background: rgba(0, 0, 0, .7) !important;
-  backdrop-filter: blur(16px) !important;
-}
-
-[data-theme-id="anime-vegito-blue"] .page--wide {
-  position: relative;
-  z-index: 1;
-}
-
-[data-theme-id="anime-vegito-blue"] .results-placeholder {
-  background: rgba(0, 5, 20, .5) !important;
-  border-color: rgba(0, 191, 255, .15) !important;
-  backdrop-filter: blur(12px) !important;
-}
-
-/* TEMA SERENITY (Sailor Moon) */
-[data-theme-id="anime-serenity"] .logo-icon {
-  background: linear-gradient(135deg, #7b5ea7, #c9a0dc) !important;
-  box-shadow: 0 0 16px rgba(201, 160, 220, .4) !important;
-}
-
-[data-theme-id="anime-serenity"] .run-btn {
-  background: linear-gradient(135deg, #7b5ea7, #c9a0dc) !important;
-  box-shadow: 0 0 28px rgba(201, 160, 220, .3), 0 4px 20px rgba(0, 0, 0, .4) !important;
-}
-
-[data-theme-id="anime-serenity"] .step.active {
-  background: rgba(201, 160, 220, .1) !important;
-  border-color: rgba(201, 160, 220, .3) !important;
-  color: #c9a0dc !important;
-  box-shadow: 0 0 16px rgba(201, 160, 220, .1) !important;
-}
-
-[data-theme-id="anime-serenity"] .step.done {
-  background: rgba(201, 160, 220, .07) !important;
-  border-color: rgba(201, 160, 220, .2) !important;
-  color: #d4b0e8 !important;
-}
-
-[data-theme-id="anime-serenity"] .learn-indicator {
-  background: rgba(201, 160, 220, .07) !important;
-  border-color: rgba(201, 160, 220, .18) !important;
-  color: rgba(212, 176, 232, .85) !important;
-}
-
-[data-theme-id="anime-serenity"] .learn-indicator-dot {
-  background: #c9a0dc !important;
-  box-shadow: 0 0 10px rgba(201, 160, 220, .6), 0 0 20px rgba(201, 160, 220, .3) !important;
-}
-
-[data-theme-id="anime-serenity"] .free-pill {
-  background: rgba(201, 160, 220, .1) !important;
-  border-color: rgba(201, 160, 220, .2) !important;
-  color: #d4b0e8 !important;
-}
-
-[data-theme-id="anime-serenity"] .badge-ok {
-  background: rgba(201, 160, 220, .1) !important;
-  color: #c9a0dc !important;
-  border-color: rgba(201, 160, 220, .25) !important;
-}
-
-/* VEGITO SSJ - fundo com imagem */
-[data-theme-id="anime-vegito-ssj"] body::before,
-[data-theme-id="anime-vegito-ssj"] body::after {
-  display: none;
-}
-
-[data-theme-id="anime-vegito-ssj"] .header {
-  background: rgba(15, 8, 0, .88) !important;
-  border-bottom-color: rgba(245, 166, 35, .18) !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] .sidebar {
-  background: rgba(15, 8, 0, .85) !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] .card {
-  background: rgba(20, 10, 0, .6) !important;
-  border-color: rgba(245, 166, 35, .22) !important;
-  backdrop-filter: blur(20px) !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] .log-box {
-  background: rgba(0, 0, 0, .7) !important;
-  backdrop-filter: blur(16px) !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] .results-placeholder {
-  background: rgba(20, 10, 0, .5) !important;
-  border-color: rgba(245, 166, 35, .18) !important;
-  backdrop-filter: blur(12px) !important;
-}
-
-/* TEMA LAST RITE (Arknights Endfield - Cryo) */
-[data-theme-id="anime-last-rite"] body {
-  background-color: #000 !important;
-}
-
-[data-theme-id="anime-last-rite"] body::before {
-  background: rgba(0, 0, 0, 0.55) !important;
-  opacity: 1 !important;
-  z-index: 0 !important;
-}
-
-[data-theme-id="anime-last-rite"] body::after {
-  background: rgba(5, 15, 40, 0.42) !important;
-  opacity: 1 !important;
-}
-
-[data-theme-id="anime-last-rite"] .header {
-  background: rgba(5, 10, 18, .85) !important;
-  border-bottom-color: rgba(74, 166, 255, .1) !important;
-}
-
-[data-theme-id="anime-last-rite"] .sidebar {
-  background: rgba(5, 10, 18, .88) !important;
-  border-right-color: rgba(74, 166, 255, .08) !important;
-}
-
-[data-theme-id="anime-last-rite"] .card {
-  background: rgba(5, 10, 20, .6) !important;
-  border-color: rgba(74, 166, 255, .1) !important;
-  backdrop-filter: blur(20px) !important;
-}
-
-[data-theme-id="anime-last-rite"] .card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(74, 166, 255, .04), transparent 60%);
-  pointer-events: none;
-}
-
-[data-theme-id="anime-last-rite"] .card {
-  position: relative;
-}
-
-[data-theme-id="anime-last-rite"] .log-box {
-  background: rgba(0, 0, 0, .65) !important;
-  border-color: rgba(74, 166, 255, .08) !important;
-}
-
-[data-theme-id="anime-last-rite"] .run-btn {
-  background: linear-gradient(135deg, #0a2255, #1a4daa, #0d2d6e) !important;
-  border: 1px solid rgba(74, 166, 255, .4) !important;
-  color: #a8d8ff !important;
-  box-shadow: 0 0 24px rgba(74, 166, 255, .2), inset 0 1px 0 rgba(168, 216, 255, .1) !important;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-}
-
-[data-theme-id="anime-last-rite"] .step.active {
-  background: rgba(192, 57, 77, .09) !important;
-  border-color: rgba(192, 57, 77, .35) !important;
-  box-shadow: 0 0 12px rgba(192, 57, 77, .15) !important;
-}
-
-[data-theme-id="anime-last-rite"] .step.done {
-  background: rgba(74, 166, 255, .09) !important;
-  border-color: rgba(74, 166, 255, .3) !important;
-}
-
-[data-theme-id="anime-last-rite"] .learn-indicator {
-  background: rgba(74, 166, 255, .07) !important;
-  border-color: rgba(74, 166, 255, .2) !important;
-  color: rgba(168, 216, 255, .8) !important;
-}
-
-[data-theme-id="anime-last-rite"] .learn-indicator-dot {
-  background: #4da6ff !important;
-  box-shadow: 0 0 10px rgba(74, 166, 255, .7) !important;
-}
-
-[data-theme-id="anime-last-rite"] .logo-icon {
-  background: linear-gradient(135deg, #0a2a6e, #1a4daa) !important;
-  border: 1px solid rgba(74, 166, 255, .35) !important;
-  box-shadow: 0 0 16px rgba(74, 166, 255, .3), inset 0 1px 0 rgba(168, 216, 255, .12) !important;
-}
-
-[data-theme-id="anime-last-rite"] .free-pill {
-  background: rgba(74, 166, 255, .1) !important;
-  border-color: rgba(74, 166, 255, .2) !important;
-  color: #6dbeff !important;
-}
-
-[data-theme-id="anime-last-rite"] .results-placeholder {
-  background: rgba(5, 10, 20, .5) !important;
-  border-color: rgba(74, 166, 255, .12) !important;
-  backdrop-filter: blur(12px) !important;
-}
-
-/* Trincas de gelo decorativas no canto */
-[data-theme-id="anime-last-rite"] body::before {
-  content: '';
-}
-
-/* LAST RITE - fundo com imagem */
-[data-theme-id="anime-last-rite"] body::before,
-[data-theme-id="anime-last-rite"] body::after {
-  display: block !important;
-}
-
-[data-theme-id="anime-last-rite"] .header {
-  background: rgba(3, 8, 18, .88) !important;
-  border-bottom-color: rgba(74, 166, 255, .12) !important;
-}
-
-[data-theme-id="anime-last-rite"] .sidebar {
-  background: rgba(3, 8, 18, .85) !important;
-}
-
-[data-theme-id="anime-last-rite"] .card {
-  background: rgba(3, 8, 20, .65) !important;
-  border-color: rgba(74, 166, 255, .15) !important;
-  backdrop-filter: blur(22px) !important;
-}
-
-[data-theme-id="anime-last-rite"] .log-box {
-  background: rgba(0, 0, 0, .72) !important;
-  backdrop-filter: blur(16px) !important;
-}
-
-[data-theme-id="anime-last-rite"] .results-placeholder {
-  background: rgba(3, 8, 20, .55) !important;
-  border-color: rgba(74, 166, 255, .14) !important;
-  backdrop-filter: blur(14px) !important;
-}
-
-/* LAST RITE - botão de gelo PNG */
-
-/* Container do card de input - overflow visible para cristais extravasarem */
-[data-theme-id="anime-last-rite"] .col-input .card {
-  overflow: visible !important;
-}
-
-[data-theme-id="anime-last-rite"] .col-input .card-body {
-  overflow: visible !important;
-}
-
-/* Wrapper dos steps + botão - overflow visible */
-[data-theme-id="anime-last-rite"] .pipeline-wrap,
-[data-theme-id="anime-last-rite"] .steps-wrap,
-[data-theme-id="anime-last-rite"] .card>div {
-  overflow: visible !important;
-}
-
-/* O botão em si */
-[data-theme-id="anime-last-rite"] .run-btn {
-  position: relative !important;
-  background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  /* Padding horizontal reduzido - a imagem extravasa via ::before */
-  padding: 20px 32px !important;
-  min-height: 64px !important;
-  width: 100% !important;
-  /* Texto centralizado no miolo do botão */
-  color: #d8f0ff !important;
-  font-family: Georgia, 'Times New Roman', serif !important;
-  font-size: 12px !important;
-  font-weight: 800 !important;
-  letter-spacing: .22em !important;
-  text-transform: uppercase !important;
-  text-shadow:
-    0 0 12px rgba(180, 230, 255, 1),
-    0 0 28px rgba(74, 166, 255, .9),
-    0 0 50px rgba(74, 166, 255, .5),
-    0 2px 6px rgba(0, 0, 0, .95) !important;
-  overflow: visible !important;
-  isolation: isolate !important;
-  transition: filter .2s, transform .15s !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  z-index: 0 !important;
-}
-
-/* Imagem do cristal - pseudo-elemento atras do texto, extravasando para os lados */
-[data-theme-id="anime-last-rite"] .run-btn::before {
-  content: '' !important;
-  position: absolute !important;
-  /* Centralizado verticalmente, mas muito mais largo que o botão */
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  /* 160% da largura para os cristais extravasarem nas laterais */
-  width: 160% !important;
-  /* Proporcional a imagem original 1571x672 ~ 2.34:1 */
-  height: calc(160% / 3.37 * 2.8) !important;
-  background-image: url('../assets/img/ice-button.webp') !important;
-  background-size: contain !important;
-  background-repeat: no-repeat !important;
-  background-position: center center !important;
-  z-index: -1 !important;
-  pointer-events: none !important;
-  transition: filter .2s !important;
-}
-
-/* Texto e icones na frente */
-[data-theme-id="anime-last-rite"] .run-btn>*,
-[data-theme-id="anime-last-rite"] .run-btn>span,
-[data-theme-id="anime-last-rite"] .run-btn svg {
-  position: relative !important;
-  z-index: 2 !important;
-}
-
-/* Estados */
-[data-theme-id="anime-last-rite"] .run-btn:hover::before {
-  filter: saturate(1.3) brightness(1.25) !important;
-}
-
-[data-theme-id="anime-last-rite"] .run-btn:hover {
-  filter: none !important;
-}
-
-[data-theme-id="anime-last-rite"] .run-btn:active {
-  transform: scale(.97) !important;
-}
-
-[data-theme-id="anime-last-rite"] .run-btn:active::before {
-  filter: saturate(1.6) brightness(1.5) !important;
-}
-
-[data-theme-id="anime-last-rite"] .run-btn:disabled {
-  opacity: .45 !important;
-  cursor: not-allowed !important;
-}
-
-[data-theme-id="anime-last-rite"] .run-btn:disabled::before {
-  filter: saturate(0.3) brightness(0.5) !important;
-}
-
-/* LAST RITE - identidade de gelo nos steps e card */
-
-/* Card principal - borda superior com gradiente de gelo */
-[data-theme-id="anime-last-rite"] .card {
-  border-color: rgba(74, 166, 255, .18) !important;
-  box-shadow: 0 0 0 1px rgba(74, 166, 255, .08), inset 0 1px 0 rgba(168, 216, 255, .08) !important;
-}
-
-/* Faixa de gelo no topo do card */
-[data-theme-id="anime-last-rite"] .card::after {
-  content: '' !important;
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  right: 0 !important;
-  height: 1px !important;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(74, 166, 255, .4) 20%,
-      rgba(168, 216, 255, .8) 50%,
-      rgba(74, 166, 255, .4) 80%,
-      transparent 100%) !important;
-  pointer-events: none !important;
-}
-
-/* Card header - tom gelado */
-[data-theme-id="anime-last-rite"] .card-hdr {
-  background: rgba(10, 30, 60, .5) !important;
-  border-bottom-color: rgba(74, 166, 255, .12) !important;
-}
-
-[data-theme-id="anime-last-rite"] .card-title {
-  color: rgba(168, 216, 255, .75) !important;
-  letter-spacing: .06em !important;
-  text-transform: uppercase !important;
-  font-size: 10px !important;
-}
-
-/* Steps - base gelada */
-[data-theme-id="anime-last-rite"] .step {
-  background: rgba(5, 15, 35, .6) !important;
-  border-color: rgba(74, 166, 255, .14) !important;
-  color: rgba(168, 216, 255, .45) !important;
-  backdrop-filter: blur(12px) !important;
-  position: relative !important;
-  overflow: visible !important;
-  transition: all .2s !important;
-}
-
-/* Linha de gelo no topo de cada step */
-[data-theme-id="anime-last-rite"] .step::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0;
-  left: 10%;
-  right: 10% !important;
-  height: 1px !important;
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(74, 166, 255, .35) 50%,
-      transparent) !important;
-  pointer-events: none !important;
-}
-
-/* Step numero - estilo runico/gelado */
-[data-theme-id="anime-last-rite"] .step-num {
-  color: rgba(74, 166, 255, .45) !important;
-  font-family: Georgia, serif !important;
-  font-size: 11px !important;
-  font-weight: 700 !important;
-}
-
-/* Step nome */
-[data-theme-id="anime-last-rite"] .step-name {
-  color: rgba(168, 216, 255, .5) !important;
-  font-size: 11px !important;
-}
-
-/* Step DONE - gelo cristalizado */
-[data-theme-id="anime-last-rite"] .step.done {
-  background: rgba(10, 40, 80, .55) !important;
-  border-color: rgba(74, 166, 255, .32) !important;
-  box-shadow: 0 0 12px rgba(74, 166, 255, .1), inset 0 1px 0 rgba(168, 216, 255, .12) !important;
-}
-
-[data-theme-id="anime-last-rite"] .step.done .step-num {
-  color: #4da6ff !important;
-}
-
-[data-theme-id="anime-last-rite"] .step.done .step-name {
-  color: rgba(168, 216, 255, .85) !important;
-}
-
-/* Step ACTIVE - cristal ativo com glow */
-[data-theme-id="anime-last-rite"] .step.active {
-  background: rgba(15, 50, 110, .65) !important;
-  border-color: rgba(74, 166, 255, .55) !important;
-  color: #a8d8ff !important;
-  box-shadow:
-    0 0 20px rgba(74, 166, 255, .2),
-    0 0 40px rgba(74, 166, 255, .08),
-    inset 0 1px 0 rgba(168, 216, 255, .2) !important;
-}
-
-[data-theme-id="anime-last-rite"] .step.active .step-num {
-  color: #60bfff !important;
-  text-shadow: 0 0 8px rgba(74, 166, 255, .8) !important;
-}
-
-[data-theme-id="anime-last-rite"] .step.active .step-name {
-  color: #a8d8ff !important;
-  text-shadow: 0 0 10px rgba(74, 166, 255, .5) !important;
-}
-
-[data-theme-id="anime-last-rite"] .step.active::before {
-  background: linear-gradient(90deg,
-      transparent,
-      rgba(168, 216, 255, .7) 50%,
-      transparent) !important;
-}
-
-/* Step ERROR */
-[data-theme-id="anime-last-rite"] .step.error {
-  background: rgba(80, 10, 20, .5) !important;
-  border-color: rgba(192, 57, 77, .4) !important;
-  box-shadow: 0 0 16px rgba(192, 57, 77, .15) !important;
-}
-
-/* Textarea - bordas de gelo */
-[data-theme-id="anime-last-rite"] #inputText {
-  background: rgba(3, 10, 24, .7) !important;
-  border-color: rgba(74, 166, 255, .14) !important;
-  color: rgba(168, 216, 255, .75) !important;
-  caret-color: #4da6ff !important;
-}
-
-[data-theme-id="anime-last-rite"] #inputText::placeholder {
-  color: rgba(74, 166, 255, .3) !important;
-}
-
-[data-theme-id="anime-last-rite"] #inputText:focus {
-  border-color: rgba(74, 166, 255, .45) !important;
-  box-shadow: 0 0 0 2px rgba(74, 166, 255, .1), 0 0 20px rgba(74, 166, 255, .08) !important;
-}
-
-/* Log box - terminal gelado */
-[data-theme-id="anime-last-rite"] .log-box {
-  background: rgba(2, 8, 18, .75) !important;
-  border-color: rgba(74, 166, 255, .1) !important;
-  color: rgba(74, 166, 255, .5) !important;
-  font-family: 'Courier New', monospace !important;
-}
-
-/* Pills/badges */
-[data-theme-id="anime-last-rite"] .free-pill,
-[data-theme-id="anime-last-rite"] .badge-ok {
-  background: rgba(74, 166, 255, .1) !important;
-  border-color: rgba(74, 166, 255, .22) !important;
-  color: #6dbeff !important;
-}
-
-/* LAST RITE - gap entre colunas */
-/* Coluna de resultados com fundo mais transparente para o personagem aparecer */
-[data-theme-id="anime-last-rite"] .col-results>.card,
-[data-theme-id="anime-last-rite"] .results-placeholder {
-  background: rgba(3, 8, 18, 0.72) !important;
-  backdrop-filter: blur(14px) !important;
-}
-
-/* TEMA: Zhuang Fangyi - Arknights Endfield Verde eletrico - vermelho sangue - esmeralda sombrio */
-
-[data-theme-id="anime-zhuang"] body::before {
-  background: #003d20 !important;
-  opacity: .30 !important;
-  width: 520px !important;
-  height: 520px !important;
-  top: -140px !important;
-  left: -80px !important;
-  animation: orbPulseZhuang 6s ease-in-out infinite alternate !important;
-}
-
-[data-theme-id="anime-zhuang"] body::after {
-  background: #6b1a1a !important;
-  opacity: .26 !important;
-  width: 380px !important;
-  height: 380px !important;
-  bottom: -100px !important;
-  right: -80px !important;
-}
-
-[data-theme-id="anime-zhuang"] .header::after {
-  background: #00cc55 !important;
-  opacity: .06 !important;
-}
-
-@keyframes orbPulseZhuang {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: .30;
-  }
-
-  50% {
-    transform: translate(20px, 15px) scale(1.06);
-    opacity: .22;
-  }
-
-  100% {
-    transform: translate(-10px, 8px) scale(.97);
-    opacity: .28;
-  }
-}
-
-/* Header */
-[data-theme-id="anime-zhuang"] .header {
-  background: rgba(4, 10, 6, .93) !important;
-  border-bottom-color: rgba(0, 204, 85, .16) !important;
-}
-
-/* Linha de energia no topo do header */
-[data-theme-id="anime-zhuang"] .header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(139, 26, 26, .0) 15%,
-      rgba(139, 26, 26, .7) 40%,
-      rgba(0, 204, 85, .5) 60%,
-      rgba(0, 204, 85, .0) 85%,
-      transparent 100%);
-  pointer-events: none;
-}
-
-/* Logo */
-[data-theme-id="anime-zhuang"] .logo-icon {
-  background: linear-gradient(135deg, #041a0c, #082a16) !important;
-  box-shadow: 0 0 20px rgba(0, 204, 85, .3) !important;
-}
-
-[data-theme-id="anime-zhuang"] .logo-text span {
-  color: #00cc55 !important;
-}
-
-/* Botao Processar */
-[data-theme-id="anime-zhuang"] .run-btn {
-  background: linear-gradient(135deg, #041a0c 0%, #082a16 50%, #041a0c 100%) !important;
-  border: 1px solid rgba(0, 204, 85, .38) !important;
-  box-shadow: 0 0 30px rgba(0, 204, 85, .18), inset 0 1px 0 rgba(0, 204, 85, .12), 0 4px 20px rgba(0, 0, 0, .55) !important;
-  color: #a0ffb8 !important;
-}
-
-[data-theme-id="anime-zhuang"] .run-btn:hover:not(:disabled) {
-  box-shadow: 0 0 50px rgba(0, 204, 85, .32), inset 0 1px 0 rgba(0, 204, 85, .22), 0 4px 28px rgba(0, 0, 0, .65) !important;
-  border-color: rgba(0, 204, 85, .58) !important;
-}
-
-/* Cards */
-[data-theme-id="anime-zhuang"] .card {
-  background: rgba(4, 10, 6, .78) !important;
-  border-color: rgba(0, 204, 85, .13) !important;
-  box-shadow: 0 2px 18px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(0, 204, 85, .05) !important;
-}
-
-[data-theme-id="anime-zhuang"] .card:hover {
-  border-color: rgba(0, 204, 85, .25) !important;
-  box-shadow: 0 2px 24px rgba(0, 0, 0, .5), 0 0 20px rgba(0, 204, 85, .07), inset 0 1px 0 rgba(0, 204, 85, .08) !important;
-}
-
-[data-theme-id="anime-zhuang"] .card-hdr {
-  background: rgba(0, 204, 85, .04) !important;
-  border-bottom-color: rgba(0, 204, 85, .1) !important;
-}
-
-[data-theme-id="anime-zhuang"] .card-title {
-  color: rgba(160, 255, 184, .75) !important;
-}
-
-/* Steps */
-[data-theme-id="anime-zhuang"] .step {
-  background: rgba(4, 14, 8, .65) !important;
-  border-color: rgba(0, 204, 85, .12) !important;
-}
-
-[data-theme-id="anime-zhuang"] .step.active {
-  background: rgba(0, 204, 85, .1) !important;
-  border-color: rgba(0, 204, 85, .38) !important;
-  color: #a0ffb8 !important;
-  box-shadow: 0 0 18px rgba(0, 204, 85, .14), inset 0 0 12px rgba(0, 204, 85, .05) !important;
-}
-
-[data-theme-id="anime-zhuang"] .step.active .step-name {
-  color: #a0ffb8 !important;
-  text-shadow: 0 0 10px rgba(0, 204, 85, .55) !important;
-}
-
-[data-theme-id="anime-zhuang"] .step.done {
-  background: rgba(74, 255, 140, .06) !important;
-  border-color: rgba(74, 255, 140, .22) !important;
-  color: #4aff8c !important;
-}
-
-[data-theme-id="anime-zhuang"] .step.error {
-  background: rgba(139, 26, 26, .4) !important;
-  border-color: rgba(180, 40, 40, .38) !important;
-}
-
-/* Learn indicator */
-[data-theme-id="anime-zhuang"] .learn-indicator:not(.empty) {
-  background: rgba(0, 204, 85, .07) !important;
-  border-color: rgba(0, 204, 85, .22) !important;
-  color: rgba(160, 255, 184, .85) !important;
-}
-
-[data-theme-id="anime-zhuang"] .learn-indicator-dot {
-  background: #00cc55 !important;
-  box-shadow: 0 0 10px rgba(0, 204, 85, .8), 0 0 22px rgba(0, 204, 85, .35) !important;
-  animation: crystalPulseZhuang 2.5s ease-in-out infinite !important;
-}
-
 @keyframes crystalPulseZhuang {
 
   0%,
@@ -3569,449 +2557,6 @@ body.theme-seinen .learn-indicator-dot {
   50% {
     box-shadow: 0 0 16px rgba(0, 204, 85, 1), 0 0 36px rgba(0, 204, 85, .55);
   }
-}
-
-/* Textarea */
-[data-theme-id="anime-zhuang"] #inputText {
-  background: rgba(2, 8, 4, .72) !important;
-  border-color: rgba(0, 204, 85, .14) !important;
-  color: rgba(160, 255, 184, .75) !important;
-  caret-color: #00cc55 !important;
-}
-
-[data-theme-id="anime-zhuang"] #inputText::placeholder {
-  color: rgba(0, 204, 85, .28) !important;
-}
-
-[data-theme-id="anime-zhuang"] #inputText:focus {
-  border-color: rgba(0, 204, 85, .45) !important;
-  box-shadow: 0 0 0 2px rgba(0, 204, 85, .1), 0 0 20px rgba(0, 204, 85, .08) !important;
-}
-
-/* Log box */
-[data-theme-id="anime-zhuang"] .log-box {
-  background: rgba(1, 6, 3, .82) !important;
-  border-color: rgba(0, 204, 85, .1) !important;
-  color: rgba(0, 204, 85, .5) !important;
-}
-
-[data-theme-id="anime-zhuang"] .log-o .log-msg {
-  color: #00cc55 !important;
-  text-shadow: 0 0 10px rgba(0, 204, 85, .4) !important;
-}
-
-[data-theme-id="anime-zhuang"] .log-e .log-msg {
-  color: #c04040 !important;
-  text-shadow: 0 0 8px rgba(139, 26, 26, .4) !important;
-}
-
-/* Free pill / badge-ok */
-[data-theme-id="anime-zhuang"] .free-pill,
-[data-theme-id="anime-zhuang"] .badge-ok {
-  background: rgba(0, 204, 85, .1) !important;
-  border-color: rgba(0, 204, 85, .26) !important;
-  color: #00cc55 !important;
-}
-
-/* Badge bivolt - acento vermelho */
-[data-theme-id="anime-zhuang"] .badge-bivolt {
-  background: rgba(139, 26, 26, .15) !important;
-  border-color: rgba(139, 26, 26, .35) !important;
-  color: #ff7070 !important;
-}
-
-/* Botoes ghost / copy */
-[data-theme-id="anime-zhuang"] .btn-ghost {
-  border-color: rgba(0, 204, 85, .17) !important;
-  color: rgba(160, 255, 184, .58) !important;
-}
-
-[data-theme-id="anime-zhuang"] .btn-ghost:hover:not(:disabled) {
-  background: rgba(0, 204, 85, .08) !important;
-  border-color: rgba(0, 204, 85, .35) !important;
-  color: #a0ffb8 !important;
-}
-
-[data-theme-id="anime-zhuang"] .copy-btn {
-  border-color: rgba(0, 204, 85, .17) !important;
-  color: rgba(0, 204, 85, .55) !important;
-}
-
-[data-theme-id="anime-zhuang"] .copy-btn:hover {
-  border-color: rgba(0, 204, 85, .38) !important;
-  color: #a0ffb8 !important;
-  background: rgba(0, 204, 85, .08) !important;
-}
-
-/* Result labels */
-[data-theme-id="anime-zhuang"] .result-label {
-  color: rgba(0, 204, 85, .45) !important;
-  letter-spacing: 1px !important;
-}
-
-[data-theme-id="anime-zhuang"] .result-hdr {
-  background: rgba(0, 204, 85, .04) !important;
-  border-bottom-color: rgba(0, 204, 85, .1) !important;
-}
-
-/* Coluna de resultados */
-[data-theme-id="anime-zhuang"] .col-results>.card,
-[data-theme-id="anime-zhuang"] .results-placeholder {
-  background: rgba(3, 8, 5, .72) !important;
-  backdrop-filter: blur(14px) !important;
-}
-
-/* Sidebar */
-[data-theme-id="anime-zhuang"] .sidebar {
-  background: rgba(3, 8, 5, .80) !important;
-  border-right-color: rgba(0, 204, 85, .1) !important;
-}
-
-[data-theme-id="anime-zhuang"] .sb-cat-item.active {
-  background: rgba(0, 204, 85, .12) !important;
-  border-color: rgba(0, 204, 85, .28) !important;
-  color: #a0ffb8 !important;
-}
-
-[data-theme-id="anime-zhuang"] .sb-cat-item.active .sb-cat-dot {
-  background: #00cc55 !important;
-  box-shadow: 0 0 8px rgba(0, 204, 85, .6) !important;
-}
-
-/* Grade de cristal no fundo */
-[data-theme-id="anime-zhuang"] .layout::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(0, 204, 85, .022) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 204, 85, .022) 1px, transparent 1px);
-  background-size: 40px 40px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
-}
-
-/* Modal */
-[data-theme-id="anime-zhuang"] .modal {
-  background: rgba(4, 10, 6, .97) !important;
-  border-color: rgba(0, 204, 85, .2) !important;
-}
-
-[data-theme-id="anime-zhuang"] .modal-hdr {
-  background: rgba(0, 204, 85, .05) !important;
-  border-bottom-color: rgba(0, 204, 85, .14) !important;
-}
-
-[data-theme-id="anime-zhuang"] input[type="password"]:focus,
-[data-theme-id="anime-zhuang"] select:focus,
-[data-theme-id="anime-zhuang"] textarea:focus {
-  border-color: rgba(0, 204, 85, .5) !important;
-  box-shadow: 0 0 0 3px rgba(0, 204, 85, .12) !important;
-}
-
-/* Side drawer */
-[data-theme-id="anime-zhuang"] .side-drawer {
-  background: rgba(3, 9, 5, .97) !important;
-  border-left-color: rgba(0, 204, 85, .15) !important;
-}
-
-[data-theme-id="anime-zhuang"] .side-drawer-item:hover {
-  background: rgba(0, 204, 85, .07) !important;
-  border-color: rgba(0, 204, 85, .18) !important;
-}
-
-[data-theme-id="anime-zhuang"] .side-drawer-item-name {
-  color: rgba(160, 255, 184, .85) !important;
-}
-
-/* Anime refinement layer */
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) body {
-  background-blend-mode: multiply !important;
-}
-
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) body::before {
-  opacity: .18 !important;
-  filter: blur(8px) saturate(.85) !important;
-}
-
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) body::after {
-  opacity: .14 !important;
-  filter: blur(10px) saturate(.75) !important;
-}
-
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .header,
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .sidebar {
-  backdrop-filter: blur(18px) saturate(1.05) !important;
-}
-
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .card,
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .results-placeholder,
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .modal,
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .side-drawer {
-  box-shadow: 0 14px 42px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .045) !important;
-}
-
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .card {
-  border-width: 1px !important;
-}
-
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .card-title,
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .result-label {
-  letter-spacing: .04em !important;
-  text-shadow: none !important;
-}
-
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .run-btn {
-  border-radius: 8px !important;
-  text-shadow: none !important;
-  letter-spacing: .03em !important;
-  transform: translateZ(0);
-}
-
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .run-btn:hover:not(:disabled) {
-  transform: translateY(-1px) !important;
-}
-
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .step.active,
-[data-theme-id^="anime-"]:not([data-theme-id="anime-seinen"]) .learn-indicator-dot {
-  animation: none !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] body::before,
-[data-theme-id="anime-vegito-ssj"] body::after,
-[data-theme-id="anime-vegito-blue"] body::before,
-[data-theme-id="anime-vegito-blue"] body::after,
-[data-theme-id="anime-last-rite"] body::before,
-[data-theme-id="anime-last-rite"] body::after,
-[data-theme-id="anime-zhuang"] body::before,
-[data-theme-id="anime-zhuang"] body::after {
-  display: none !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] body {
-  background-color: #070507 !important;
-  background-image:
-    linear-gradient(rgba(7, 5, 7, .16), rgba(7, 5, 7, .32)),
-    url('../assets/img/vegito-ssj-bg.jpg') !important;
-  background-size: cover !important;
-  background-position: center top !important;
-  background-attachment: fixed !important;
-  background-repeat: no-repeat !important;
-  background-blend-mode: normal !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] .header,
-[data-theme-id="anime-vegito-ssj"] .sidebar {
-  background: rgba(10, 7, 5, .9) !important;
-  border-color: rgba(217, 154, 43, .14) !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] .card,
-[data-theme-id="anime-vegito-ssj"] .results-placeholder,
-[data-theme-id="anime-vegito-ssj"] .modal {
-  background: rgba(12, 8, 5, .76) !important;
-  border-color: rgba(217, 154, 43, .16) !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] .run-btn {
-  background: linear-gradient(135deg, #8e5520, #d99a2b 56%, #e5bd67) !important;
-  color: #1d1207 !important;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .34), 0 0 20px rgba(217, 154, 43, .18) !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] .run-btn:hover:not(:disabled) {
-  box-shadow: 0 12px 34px rgba(0, 0, 0, .4), 0 0 26px rgba(217, 154, 43, .24) !important;
-}
-
-[data-theme-id="anime-vegito-ssj"] .logo-icon {
-  filter: drop-shadow(0 0 5px rgba(217, 154, 43, .42)) !important;
-}
-
-[data-theme-id="anime-vegito-blue"] body {
-  background-color: #03080d !important;
-  background-image:
-    linear-gradient(rgba(3, 8, 13, .14), rgba(3, 8, 13, .30)),
-    url('../assets/img/vegito-blue-bg.jpg') !important;
-  background-size: cover !important;
-  background-position: center top !important;
-  background-attachment: fixed !important;
-  background-repeat: no-repeat !important;
-  background-blend-mode: normal !important;
-}
-
-[data-theme-id="anime-vegito-blue"] .header,
-[data-theme-id="anime-vegito-blue"] .sidebar {
-  background: rgba(3, 10, 16, .9) !important;
-  border-color: rgba(63, 182, 217, .14) !important;
-}
-
-[data-theme-id="anime-vegito-blue"] .card,
-[data-theme-id="anime-vegito-blue"] .results-placeholder,
-[data-theme-id="anime-vegito-blue"] .modal {
-  background: rgba(3, 10, 16, .76) !important;
-  border-color: rgba(63, 182, 217, .17) !important;
-}
-
-[data-theme-id="anime-vegito-blue"] .run-btn {
-  background: linear-gradient(135deg, #14516d, #3fb6d9 58%, #8bd7ee) !important;
-  color: #031018 !important;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .36), 0 0 22px rgba(63, 182, 217, .18) !important;
-}
-
-[data-theme-id="anime-vegito-blue"] .run-btn:hover:not(:disabled) {
-  box-shadow: 0 12px 34px rgba(0, 0, 0, .42), 0 0 28px rgba(63, 182, 217, .24) !important;
-}
-
-[data-theme-id="anime-vegito-blue"] .logo-icon {
-  filter: drop-shadow(0 0 5px rgba(63, 182, 217, .42)) !important;
-}
-
-[data-theme-id="anime-serenity"] .header,
-[data-theme-id="anime-serenity"] .sidebar,
-[data-theme-id="anime-serenity"] .card,
-[data-theme-id="anime-serenity"] .results-placeholder,
-[data-theme-id="anime-serenity"] .modal {
-  background: rgba(16, 12, 28, .74) !important;
-  border-color: rgba(198, 166, 217, .16) !important;
-}
-
-[data-theme-id="anime-serenity"] .run-btn,
-[data-theme-id="anime-serenity"] .logo-icon {
-  background: linear-gradient(135deg, #736096, #c6a6d9) !important;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .32), 0 0 20px rgba(198, 166, 217, .16) !important;
-}
-
-[data-theme-id="anime-serenity"] .step.active {
-  box-shadow: 0 0 12px rgba(198, 166, 217, .08) !important;
-}
-
-[data-theme-id="anime-last-rite"] body {
-  background-color: #040810 !important;
-  background-image:
-    linear-gradient(rgba(4, 8, 16, .12), rgba(4, 8, 16, .30)),
-    url('../assets/img/last-rite-bg.webp') !important;
-  background-size: cover !important;
-  background-position: center top !important;
-  background-attachment: fixed !important;
-  background-repeat: no-repeat !important;
-  background-blend-mode: normal !important;
-}
-
-[data-theme-id="anime-last-rite"] body::before {
-  display: none !important;
-}
-
-[data-theme-id="anime-last-rite"] body::after {
-  display: none !important;
-}
-
-[data-theme-id="anime-last-rite"] .header,
-[data-theme-id="anime-last-rite"] .sidebar {
-  background: rgba(4, 10, 18, .92) !important;
-  border-color: rgba(116, 183, 230, .13) !important;
-}
-
-[data-theme-id="anime-last-rite"] .card,
-[data-theme-id="anime-last-rite"] .col-results>.card,
-[data-theme-id="anime-last-rite"] .results-placeholder,
-[data-theme-id="anime-last-rite"] .modal {
-  background: rgba(4, 10, 18, .78) !important;
-  border-color: rgba(116, 183, 230, .16) !important;
-}
-
-[data-theme-id="anime-last-rite"] .run-btn {
-  min-height: 56px !important;
-  padding: 16px 28px !important;
-  color: #e2f4ff !important;
-  font-family: inherit !important;
-  font-size: 12px !important;
-  letter-spacing: .10em !important;
-}
-
-[data-theme-id="anime-last-rite"] .run-btn::before {
-  width: 136% !important;
-  opacity: .82 !important;
-  filter: saturate(.82) brightness(.82) contrast(1.03) !important;
-}
-
-[data-theme-id="anime-last-rite"] .run-btn:hover::before {
-  filter: saturate(.95) brightness(.96) contrast(1.05) !important;
-}
-
-[data-theme-id="anime-last-rite"] .step.active,
-[data-theme-id="anime-last-rite"] .step.done {
-  box-shadow: 0 0 14px rgba(116, 183, 230, .12), inset 0 1px 0 rgba(226, 244, 255, .08) !important;
-}
-
-[data-theme-id="anime-zhuang"] body {
-  background-color: #050c07 !important;
-  background-image:
-    linear-gradient(rgba(5, 12, 7, .14), rgba(5, 12, 7, .30)),
-    url('../assets/img/zhuang-fangyi.jpg') !important;
-  background-size: cover !important;
-  background-position: center top !important;
-  background-attachment: fixed !important;
-  background-repeat: no-repeat !important;
-  background-blend-mode: normal !important;
-}
-
-[data-theme-id="anime-zhuang"] .header,
-[data-theme-id="anime-zhuang"] .sidebar,
-[data-theme-id="anime-zhuang"] .card,
-[data-theme-id="anime-zhuang"] .results-placeholder,
-[data-theme-id="anime-zhuang"] .modal,
-[data-theme-id="anime-zhuang"] .side-drawer {
-  background: rgba(4, 12, 7, .78) !important;
-  border-color: rgba(84, 199, 122, .14) !important;
-}
-
-[data-theme-id="anime-zhuang"] .run-btn {
-  background: linear-gradient(135deg, #12301c, #2e7d4b 58%, #54c77a) !important;
-  border-color: rgba(84, 199, 122, .34) !important;
-  color: #d8ffe3 !important;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, .36), 0 0 20px rgba(84, 199, 122, .15) !important;
-}
-
-[data-theme-id="anime-zhuang"] .run-btn:hover:not(:disabled) {
-  box-shadow: 0 12px 34px rgba(0, 0, 0, .42), 0 0 26px rgba(84, 199, 122, .22) !important;
-}
-
-[data-theme-id="anime-zhuang"] .card-title,
-[data-theme-id="anime-zhuang"] .step.active .step-name,
-[data-theme-id="anime-zhuang"] .side-drawer-item-name {
-  color: rgba(216, 255, 227, .88) !important;
-  text-shadow: none !important;
-}
-
-[data-theme-id="anime-zhuang"] .layout::before {
-  opacity: .45 !important;
-}
-
-body.theme-seinen {
-  background-color: #f2ecdf !important;
-}
-
-body.theme-seinen .card {
-  background: rgba(255, 255, 255, .72) !important;
-  border-color: rgba(0, 0, 0, .18) !important;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, .82) !important;
-}
-
-body.theme-seinen .card-hdr,
-body.theme-seinen .results-placeholder {
-  background: rgba(255, 255, 255, .48) !important;
-}
-
-body.theme-seinen .run-btn {
-  background: #161616 !important;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, .85) !important;
-  letter-spacing: .03em !important;
-}
-
-body.theme-seinen .run-btn:hover:not(:disabled) {
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, .85) !important;
 }
 
 /* PAGINACAO DO HISTORICO */
@@ -4083,55 +2628,57 @@ body.theme-seinen .run-btn:hover:not(:disabled) {
   color: var(--color-text-muted);
 }
 
-/* ANALYTICS - botão limpar logs */
+/* ANALYTICS - botao limpar logs */
 #clearLogsBtn {
   transition: color .15s;
 }
 
 #clearLogsBtn:hover {
-  color: var(--color-danger) !important;
+  color: var(--color-danger);
 }
 
 /* PHASE 1 POLISH - azul + preto */
 :root,
-[data-theme="dark"],
-[data-theme="light"] {
-  --color-bg-page: #05070d !important;
-  --color-bg-subtle: #0b1220 !important;
-  --color-bg-muted: #111c2f !important;
-  --color-surface: rgba(8, 16, 30, .92) !important;
-  --color-border: rgba(88, 130, 193, .18) !important;
-  --color-border-strong: rgba(96, 165, 250, .34) !important;
-  --color-text-primary: #edf5ff !important;
-  --color-text-secondary: #9fb3cc !important;
-  --color-text-muted: rgba(205, 222, 245, .52) !important;
-  --color-accent: #2f81f7 !important;
-  --color-accent-hover: #58a6ff !important;
-  --color-accent-bg: rgba(47, 129, 247, .14) !important;
-  --color-accent-glow: rgba(47, 129, 247, .28) !important;
-  --color-success: #58a6ff !important;
-  --color-success-bg: rgba(47, 129, 247, .12) !important;
-  --color-success-border: rgba(88, 166, 255, .32) !important;
-  --color-warn: #f0b44c !important;
-  --color-danger: #ff6b6b !important;
-  --color-header-bg: rgba(4, 8, 15, .92) !important;
-  --color-sidebar-bg: rgba(5, 9, 17, .96) !important;
-  --color-log-bg: rgba(3, 7, 13, .88) !important;
-  --shadow: 0 18px 40px rgba(0, 0, 0, .34) !important;
-  --shadow-lg: 0 26px 68px rgba(0, 0, 0, .46) !important;
+[data-theme="dark"] {
+  --color-bg-page: #05070d;
+  --color-bg-subtle: #0b1220;
+  --color-bg-muted: #111c2f;
+  --color-surface: rgba(8, 16, 30, .92);
+  --color-border: rgba(88, 130, 193, .18);
+  --color-border-strong: rgba(96, 165, 250, .34);
+  --color-text-primary: #edf5ff;
+  --color-text-secondary: #9fb3cc;
+  --color-text-muted: rgba(205, 222, 245, .52);
+  --color-accent: #2f81f7;
+  --color-accent-hover: #58a6ff;
+  --color-accent-bg: rgba(47, 129, 247, .14);
+  --color-accent-glow: rgba(47, 129, 247, .28);
+  --color-accent-border: rgba(88, 166, 255, .32);
+  --color-accent-shadow: rgba(47, 129, 247, .28);
+  --logo-glow: 0 0 16px rgba(88, 166, 255, .45);
+  --color-success: #58a6ff;
+  --color-success-bg: rgba(47, 129, 247, .12);
+  --color-success-border: rgba(88, 166, 255, .32);
+  --color-warn: #f0b44c;
+  --color-warn-bg: rgba(245, 158, 11, .08);
+  --color-danger: #ff6b6b;
+  --color-danger-bg: rgba(239, 68, 68, .08);
+  --color-header-bg: rgba(4, 8, 15, .92);
+  --color-sidebar-bg: rgba(5, 9, 17, .96);
+  --color-log-bg: rgba(3, 7, 13, .88);
+  --color-input-bg: rgba(3, 7, 13, .75);
+  --color-card-header-bg: rgba(255, 255, 255, .025);
+  --color-button-bg: rgba(88, 166, 255, .07);
+  --color-button-hover-bg: rgba(88, 166, 255, .12);
+  --color-button-text: #b9d7ff;
+  --color-button-hover-text: #ffffff;
+  --color-primary-button-bg: linear-gradient(135deg, #0d47a1, #2f81f7);
+  --color-primary-button-hover-bg: linear-gradient(135deg, #1158c7, #58a6ff);
+  --color-focus-ring: rgba(47, 129, 247, .18);
+  --shadow: 0 18px 40px rgba(0, 0, 0, .34);
+  --shadow-lg: 0 26px 68px rgba(0, 0, 0, .46);
   --radius: 8px;
   --radius-lg: 10px;
-}
-
-html,
-body {
-  background: #05070d !important;
-}
-
-body {
-  background:
-    radial-gradient(circle at 22% -10%, rgba(47, 129, 247, .22), transparent 34rem),
-    linear-gradient(180deg, #070b14 0%, #05070d 52%, #03050a 100%) !important;
 }
 
 body::before,
@@ -4139,14 +2686,14 @@ body::after,
 .header::after,
 body.theme-seinen::before,
 body.theme-seinen::after {
-  display: none !important;
+  display: none;
 }
 
 .header {
   height: 68px;
   padding: 0 26px 0 18px;
-  background: rgba(3, 7, 14, .92) !important;
-  border-bottom: 1px solid rgba(88, 166, 255, .16);
+  background: var(--color-header-bg);
+  border-bottom: 1px solid var(--color-border);
   box-shadow: 0 10px 32px rgba(0, 0, 0, .24);
 }
 
@@ -4155,10 +2702,10 @@ body.theme-seinen::after {
 }
 
 .logo-icon {
-  border: 1px solid rgba(88, 166, 255, .35);
+  border: 1px solid var(--color-accent-border);
   border-radius: 8px;
-  background: linear-gradient(145deg, #0f172a, #0b5ed7) !important;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .04), 0 12px 28px rgba(47, 129, 247, .24);
+  background: var(--color-primary-button-bg);
+  box-shadow: var(--logo-glow);
 }
 
 .logo-text {
@@ -4166,11 +2713,11 @@ body.theme-seinen::after {
 }
 
 .logo-text span {
-  color: #58a6ff !important;
+  color: var(--color-accent-hover);
 }
 
 .logo-sub {
-  color: rgba(205, 222, 245, .5);
+  color: var(--color-text-muted);
 }
 
 .header-right {
@@ -4178,24 +2725,25 @@ body.theme-seinen::after {
 }
 
 .free-pill {
-  color: #b9d7ff;
-  background: rgba(47, 129, 247, .12);
-  border-color: rgba(88, 166, 255, .24);
+  color: var(--color-accent);
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-border);
 }
 
 .user-info {
-  color: #b9c9dc !important;
+  color: var(--color-text-secondary);
 }
 
 #logoutBtn {
-  border-color: rgba(88, 166, 255, .22) !important;
-  color: #9fb3cc !important;
-  background: rgba(255, 255, 255, .03) !important;
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+  background: var(--color-button-bg);
 }
 
 #logoutBtn:hover {
-  border-color: rgba(88, 166, 255, .42) !important;
-  color: #ffffff !important;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-primary);
+  background: var(--color-button-hover-bg);
 }
 
 .layout {
@@ -4212,8 +2760,8 @@ body.theme-seinen::after {
   z-index: 120;
   width: 260px;
   padding: 18px 14px;
-  background: linear-gradient(180deg, rgba(4, 8, 15, .98), rgba(3, 6, 12, .96));
-  border-right: 1px solid rgba(88, 166, 255, .14);
+  background: var(--color-sidebar-bg);
+  border-right: 1px solid var(--color-border);
   box-shadow: 18px 0 42px rgba(0, 0, 0, .26);
   overflow-y: auto;
 }
@@ -4226,7 +2774,7 @@ body.theme-seinen::after {
 
 .app-sidebar-label {
   padding: 0 8px 3px;
-  color: rgba(205, 222, 245, .36);
+  color: var(--color-text-muted);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: .12em;
@@ -4244,22 +2792,22 @@ body.theme-seinen::after {
   gap: 10px;
   align-items: center;
   text-align: left;
-  color: #9fb3cc;
+  color: var(--color-text-secondary);
   background: transparent;
   cursor: pointer;
   transition: background .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
 }
 
 .app-nav-item:hover {
-  color: #ffffff;
-  background: rgba(88, 166, 255, .08);
-  border-color: rgba(88, 166, 255, .16);
+  color: var(--color-text-primary);
+  background: var(--color-button-hover-bg);
+  border-color: var(--color-border);
 }
 
 .app-nav-item.active {
-  color: #ffffff;
-  background: linear-gradient(135deg, rgba(47, 129, 247, .22), rgba(88, 166, 255, .11));
-  border-color: rgba(88, 166, 255, .3);
+  color: var(--color-text-primary);
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-border);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .02), 0 16px 30px rgba(0, 0, 0, .18);
 }
 
@@ -4269,8 +2817,8 @@ body.theme-seinen::after {
   border-radius: 8px;
   display: grid;
   place-items: center;
-  background: rgba(88, 166, 255, .09);
-  color: #58a6ff;
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 800;
@@ -4292,7 +2840,7 @@ body.theme-seinen::after {
 
 .app-nav-item small {
   margin-top: 3px;
-  color: rgba(205, 222, 245, .48);
+  color: var(--color-text-muted);
   font-size: 11px;
   line-height: 1.2;
   font-style: normal;
@@ -4334,8 +2882,8 @@ body.theme-seinen::after {
 .results-placeholder,
 .log-box,
 .step {
-  background: rgba(8, 16, 30, .82) !important;
-  border: 1px solid rgba(88, 166, 255, .16) !important;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   box-shadow: 0 14px 34px rgba(0, 0, 0, .22);
 }
 
@@ -4347,7 +2895,7 @@ body.theme-seinen::after {
 .page-kicker {
   display: block;
   margin-bottom: 7px;
-  color: #58a6ff;
+  color: var(--color-accent);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .12em;
@@ -4356,7 +2904,7 @@ body.theme-seinen::after {
 
 .page-intro h1 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 22px;
   line-height: 1.15;
   letter-spacing: 0;
@@ -4365,7 +2913,7 @@ body.theme-seinen::after {
 .page-intro p {
   margin: 8px 0 0;
   max-width: 760px;
-  color: #9fb3cc;
+  color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.55;
 }
@@ -4379,7 +2927,7 @@ body.theme-seinen::after {
 }
 
 .page-intro-card span {
-  color: rgba(205, 222, 245, .52);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .08em;
@@ -4388,23 +2936,23 @@ body.theme-seinen::after {
 
 .page-intro-card strong {
   margin-top: 7px;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 15px;
 }
 
 .learn-indicator {
-  color: #b9d7ff;
-  border-color: rgba(88, 166, 255, .2) !important;
+  color: var(--color-accent);
+  border-color: var(--color-accent-border);
 }
 
 .learn-indicator.empty {
-  color: rgba(205, 222, 245, .6);
+  color: var(--color-text-muted);
 }
 
 .learn-indicator-dot,
 .learn-indicator.empty .learn-indicator-dot {
-  background: #58a6ff !important;
-  box-shadow: 0 0 16px rgba(88, 166, 255, .45) !important;
+  background: var(--color-accent);
+  box-shadow: 0 0 16px rgba(88, 166, 255, .45);
 }
 
 .col-input {
@@ -4418,19 +2966,19 @@ body.theme-seinen::after {
 }
 
 .card:hover {
-  border-color: rgba(88, 166, 255, .28) !important;
+  border-color: var(--color-border-strong);
 }
 
 .card-hdr,
 .result-hdr {
   padding: 14px 16px;
-  background: rgba(255, 255, 255, .025) !important;
-  border-bottom-color: rgba(88, 166, 255, .12) !important;
+  background: var(--color-card-header-bg);
+  border-bottom-color: var(--color-border);
 }
 
 .card-title,
 .result-label {
-  color: #cfe4ff;
+  color: var(--color-text-primary);
   letter-spacing: .02em;
 }
 
@@ -4445,9 +2993,9 @@ select,
 textarea,
 .modal-body .m-field input[type="text"],
 .modal-body .m-field textarea {
-  background: rgba(3, 7, 13, .75) !important;
-  border-color: rgba(88, 166, 255, .18) !important;
-  color: #f3f8ff !important;
+  background: var(--color-input-bg);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
 }
 
 textarea#inputText {
@@ -4461,38 +3009,38 @@ input[type="password"]:focus,
 select:focus,
 .modal-body .m-field input[type="text"]:focus,
 .modal-body .m-field textarea:focus {
-  border-color: rgba(88, 166, 255, .65) !important;
-  box-shadow: 0 0 0 3px rgba(47, 129, 247, .18) !important;
+  border-color: var(--color-accent-hover);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .btn-ghost,
 .btn-secondary,
 .copy-btn {
-  border-color: rgba(88, 166, 255, .18) !important;
-  background: rgba(88, 166, 255, .07) !important;
-  color: #b9d7ff !important;
+  border-color: var(--color-border);
+  background: var(--color-button-bg);
+  color: var(--color-button-text);
 }
 
 .btn-ghost:hover,
 .btn-secondary:hover,
 .copy-btn:hover {
-  border-color: rgba(88, 166, 255, .38) !important;
-  background: rgba(88, 166, 255, .12) !important;
-  color: #ffffff !important;
+  border-color: var(--color-border-strong);
+  background: var(--color-button-hover-bg);
+  color: var(--color-button-hover-text);
 }
 
 .btn-primary,
 .run-btn {
-  border-color: rgba(88, 166, 255, .45) !important;
-  background: linear-gradient(135deg, #0d47a1, #2f81f7) !important;
-  color: #ffffff !important;
-  box-shadow: 0 18px 38px rgba(47, 129, 247, .22), 0 6px 18px rgba(0, 0, 0, .32) !important;
+  border-color: var(--color-accent);
+  background: var(--color-primary-button-bg);
+  color: #ffffff;
+  box-shadow: 0 18px 38px var(--color-accent-glow), 0 6px 18px rgba(0, 0, 0, .22);
 }
 
 .btn-primary:hover:not(:disabled),
 .run-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1158c7, #58a6ff) !important;
-  box-shadow: 0 22px 46px rgba(47, 129, 247, .3), 0 8px 22px rgba(0, 0, 0, .38) !important;
+  background: var(--color-primary-button-hover-bg);
+  box-shadow: 0 22px 46px var(--color-accent-glow), 0 8px 22px rgba(0, 0, 0, .28);
 }
 
 .steps {
@@ -4512,46 +3060,47 @@ select:focus,
   border-radius: 8px;
   display: grid;
   place-items: center;
-  background: rgba(88, 166, 255, .08);
-  color: #58a6ff;
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
 }
 
 .step.active {
-  background: rgba(47, 129, 247, .16) !important;
-  border-color: rgba(88, 166, 255, .42) !important;
-  color: #d8ebff !important;
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-border);
+  color: var(--color-text-primary);
 }
 
 .step.done {
-  background: rgba(47, 129, 247, .12) !important;
-  border-color: rgba(88, 166, 255, .28) !important;
-  color: #58a6ff !important;
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-border);
+  color: var(--color-accent);
 }
 
 .step.error {
-  background: rgba(255, 107, 107, .1) !important;
-  border-color: rgba(255, 107, 107, .25) !important;
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .results-placeholder {
   min-height: 430px;
-  color: rgba(205, 222, 245, .46);
+  color: var(--color-text-muted);
 }
 
 .results-placeholder-icon {
-  color: #58a6ff;
+  color: var(--color-accent);
 }
 
 .result-content {
-  color: #edf5ff;
-  background: rgba(3, 7, 13, .26);
+  color: var(--color-text-primary);
+  background: var(--color-bg-subtle);
 }
 
 .badge-ok,
 .badge-bivolt {
-  background: rgba(47, 129, 247, .14);
-  border-color: rgba(88, 166, 255, .28);
-  color: #8cc8ff;
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-border);
+  color: var(--color-accent);
 }
 
 .badge-fail {
@@ -4562,8 +3111,8 @@ select:focus,
 .modal,
 .modal-hdr,
 .side-drawer {
-  background: rgba(5, 10, 18, .97) !important;
-  border-color: rgba(88, 166, 255, .18) !important;
+  background: var(--color-surface);
+  border-color: var(--color-border);
 }
 
 .side-drawer-overlay {
@@ -4571,12 +3120,12 @@ select:focus,
 }
 
 .side-drawer-item {
-  border-color: rgba(88, 166, 255, .12) !important;
+  border-color: var(--color-border);
 }
 
 .side-drawer-item:hover {
-  background: rgba(47, 129, 247, .1) !important;
-  border-color: rgba(88, 166, 255, .28) !important;
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent-border);
 }
 
 @media (max-width: 1120px) {
@@ -4757,7 +3306,7 @@ select:focus,
 }
 
 .workspace-card--output::-webkit-scrollbar-thumb {
-  background: rgba(88, 166, 255, .24);
+  background: var(--color-accent-border);
   border-radius: 999px;
 }
 
@@ -4801,13 +3350,13 @@ select:focus,
   justify-content: space-between;
   gap: 10px;
   padding: 10px 11px;
-  border: 1px solid rgba(88, 166, 255, .16);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: rgba(88, 166, 255, .06);
+  background: var(--color-surface);
 }
 
 .sidebar-metric span {
-  color: rgba(205, 222, 245, .55);
+  color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .08em;
@@ -4815,7 +3364,7 @@ select:focus,
 }
 
 .sidebar-metric strong {
-  color: #d8ebff;
+  color: var(--color-text-primary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -4860,7 +3409,7 @@ select:focus,
 .sidebar-account {
   margin-top: auto;
   padding-top: 10px;
-  border-top: 1px solid rgba(88, 166, 255, .12);
+  border-top: 1px solid var(--color-border);
 }
 
 .sidebar-account .user-info {
@@ -4868,9 +3417,9 @@ select:focus,
   justify-content: space-between;
   gap: 10px;
   padding: 8px;
-  border: 1px solid rgba(88, 166, 255, .14);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, .025);
+  background: var(--color-surface);
 }
 
 .sidebar-account #userDisplayName {
@@ -4898,7 +3447,7 @@ select:focus,
 
 .faq-brand h1 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 22px;
   line-height: 1.15;
   letter-spacing: 0;
@@ -4906,7 +3455,7 @@ select:focus,
 
 .faq-brand p {
   margin: 6px 0 0;
-  color: #9fb3cc;
+  color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -4932,8 +3481,8 @@ select:focus,
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: rgba(8, 16, 30, .82);
-  border: 1px solid rgba(88, 166, 255, .16);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   box-shadow: 0 14px 34px rgba(0, 0, 0, .22);
 }
@@ -4945,13 +3494,13 @@ select:focus,
   flex: 0 0 auto;
   gap: 12px;
   padding: 14px 16px;
-  background: rgba(255, 255, 255, .025);
-  border-bottom: 1px solid rgba(88, 166, 255, .12);
+  background: var(--color-card-header-bg);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .faq-panel__head h2 {
   margin: 0;
-  color: #cfe4ff;
+  color: var(--color-text-primary);
   font-size: 13px;
   line-height: 1.3;
   letter-spacing: .02em;
@@ -4989,7 +3538,7 @@ select:focus,
 
 .faq-bulk-status {
   min-height: 20px;
-  color: rgba(205, 222, 245, .62);
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 800;
 }
@@ -5017,15 +3566,15 @@ select:focus,
 .faq-editor::-webkit-scrollbar-thumb,
 .faq-output textarea::-webkit-scrollbar-thumb,
 .faq-preview-frame::-webkit-scrollbar-thumb {
-  background: rgba(88, 166, 255, .24);
+  background: var(--color-accent-border);
   border-radius: 999px;
 }
 
 .faq-editor__item {
   flex: 0 0 auto;
   overflow: hidden;
-  background: rgba(3, 7, 13, .58);
-  border: 1px solid rgba(88, 166, 255, .16);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
@@ -5035,13 +3584,13 @@ select:focus,
   justify-content: space-between;
   gap: 10px;
   padding: 10px 12px;
-  background: rgba(88, 166, 255, .08);
-  border-bottom: 1px solid rgba(88, 166, 255, .12);
+  background: var(--color-card-header-bg);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .faq-editor__bar strong {
   min-width: 0;
-  color: #d8ebff;
+  color: var(--color-text-primary);
   font-size: 13px;
   overflow-wrap: anywhere;
 }
@@ -5061,7 +3610,7 @@ select:focus,
 }
 
 .faq-field span {
-  color: #b9d7ff;
+  color: var(--color-text-primary);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: .02em;
@@ -5070,9 +3619,9 @@ select:focus,
 .faq-field input,
 .faq-field textarea {
   width: 100%;
-  color: #f3f8ff;
-  background: rgba(3, 7, 13, .75);
-  border: 1px solid rgba(88, 166, 255, .18);
+  color: var(--color-text-primary);
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 10px 11px;
   outline: none;
@@ -5087,13 +3636,13 @@ select:focus,
 
 .faq-field input:focus,
 .faq-field textarea:focus {
-  border-color: rgba(88, 166, 255, .65);
-  box-shadow: 0 0 0 3px rgba(47, 129, 247, .18);
+  border-color: var(--color-accent-hover);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .faq-status {
   min-height: 20px;
-  color: #8cc8ff;
+  color: var(--color-accent);
   font-size: 12px;
   font-weight: 800;
   text-align: right;
@@ -5102,31 +3651,9 @@ select:focus,
 .faq-output {
   display: grid;
   flex: 1;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto 170px minmax(0, 1fr);
   gap: 12px;
   overflow: hidden;
-}
-
-#faqWorkspace .faq-output {
-  position: relative;
-  grid-template-rows: minmax(0, 1fr);
-}
-
-#faqWorkspace .faq-status {
-  position: absolute;
-  top: 28px;
-  right: 28px;
-  z-index: 2;
-  min-height: 0;
-  padding: 6px 9px;
-  background: rgba(3, 7, 13, .82);
-  border: 1px solid rgba(88, 166, 255, .22);
-  border-radius: 8px;
-  pointer-events: none;
-}
-
-#faqWorkspace .faq-status:empty {
-  display: none;
 }
 
 .faq-output textarea {
@@ -5134,9 +3661,9 @@ select:focus,
   height: 100%;
   min-height: 0;
   padding: 14px;
-  color: #d8ebff;
-  background: rgba(3, 7, 13, .75);
-  border: 1px solid rgba(88, 166, 255, .18);
+  color: var(--color-text-primary);
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   resize: none;
   font: 12px/1.5 var(--font-mono);
@@ -5155,19 +3682,18 @@ select:focus,
 .faq-preview-shell {
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
   padding: 12px;
   overflow: hidden;
-  background: rgba(3, 7, 13, .45);
-  border: 1px dashed rgba(88, 166, 255, .22);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
 }
 
 .faq-preview-shell__label {
   display: block;
   margin: 0 0 10px;
-  color: rgba(205, 222, 245, .58);
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 800;
 }
@@ -5179,7 +3705,7 @@ select:focus,
   padding: 16px 0;
   border: 0;
   overflow: auto;
-  background: #ffffff;
+  background: var(--color-surface);
   border-radius: 8px;
 }
 
@@ -5187,7 +3713,7 @@ select:focus,
   height: calc(100vh - 68px);
   min-height: 620px;
   padding: 16px;
-  color: #d8ebff;
+  color: var(--color-text-primary);
 }
 
 .docs-shell {
@@ -5196,21 +3722,21 @@ select:focus,
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  background: rgba(13, 18, 24, .94);
-  border: 1px solid rgba(255, 112, 26, .22);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
 }
 
 .docs-header {
   flex: 0 0 auto;
   padding: 18px 18px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .docs-header span {
   display: block;
   margin-bottom: 5px;
-  color: #ff7a1a;
+  color: var(--color-text-primary);
   font: 800 11px/1 var(--font-mono);
   letter-spacing: .04em;
   text-transform: uppercase;
@@ -5218,7 +3744,7 @@ select:focus,
 
 .docs-header h1 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 21px;
   line-height: 1.15;
   letter-spacing: 0;
@@ -5226,7 +3752,7 @@ select:focus,
 
 .docs-header p {
   margin: 8px 0 0;
-  color: rgba(218, 232, 247, .76);
+  color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -5237,7 +3763,7 @@ select:focus,
   gap: 12px;
   flex: 0 0 auto;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .docs-search {
@@ -5246,14 +3772,14 @@ select:focus,
   min-width: 0;
   height: 40px;
   padding: 0 12px;
-  background: rgba(3, 7, 13, .72);
-  border: 1px solid rgba(255, 112, 26, .72);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
 }
 
 .docs-search span {
   flex: 0 0 auto;
-  color: rgba(255, 255, 255, .62);
+  color: var(--color-text-primary);
   font-size: 18px;
   line-height: 1;
 }
@@ -5263,7 +3789,7 @@ select:focus,
   min-width: 0;
   height: 100%;
   padding: 0 0 0 9px;
-  color: #f3f8ff;
+  color: var(--color-text-primary);
   background: transparent;
   border: 0;
   outline: 0;
@@ -5277,9 +3803,9 @@ select:focus,
   min-width: 126px;
   height: 40px;
   padding: 0 14px;
-  color: #ff7a1a;
-  background: rgba(255, 112, 26, .12);
-  border: 1px solid rgba(255, 112, 26, .34);
+  color: var(--color-text-primary);
+  background: var(--color-accent-bg);
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   font: 800 12px/1 var(--font-mono);
   white-space: nowrap;
@@ -5296,13 +3822,13 @@ select:focus,
   min-height: 0;
   padding: 18px 14px;
   overflow-y: auto;
-  border-right: 1px solid rgba(255, 255, 255, .08);
+  border-right: 1px solid var(--color-border);
 }
 
 .docs-sidebar__label {
   display: block;
   margin: 0 0 14px 5px;
-  color: rgba(255, 255, 255, .55);
+  color: var(--color-text-secondary);
   font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
@@ -5321,7 +3847,7 @@ select:focus,
   width: 100%;
   min-height: 38px;
   padding: 9px 10px;
-  color: rgba(232, 239, 248, .74);
+  color: var(--color-text-secondary);
   background: transparent;
   border: 1px solid transparent;
   border-radius: 8px;
@@ -5331,9 +3857,9 @@ select:focus,
 
 .docs-category:hover,
 .docs-category.active {
-  color: #ff7a1a;
-  background: rgba(255, 112, 26, .12);
-  border-color: rgba(255, 112, 26, .34);
+  color: var(--color-text-primary);
+  background: var(--color-accent-bg);
+  border-color: var(--color-border-strong);
 }
 
 .docs-category span {
@@ -5352,8 +3878,8 @@ select:focus,
   min-width: 23px;
   height: 20px;
   padding: 0 7px;
-  color: rgba(255, 255, 255, .72);
-  background: rgba(255, 255, 255, .08);
+  color: var(--color-text-primary);
+  background: var(--color-accent-bg);
   border-radius: 999px;
   font: 800 10px/1 var(--font-mono);
 }
@@ -5375,14 +3901,14 @@ select:focus,
 
 .docs-content::-webkit-scrollbar-thumb,
 .docs-sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 112, 26, .24);
+  background: var(--color-accent-bg);
   border-radius: 999px;
 }
 
 .docs-card {
   padding: 15px;
-  background: rgba(255, 255, 255, .025);
-  border: 1px solid rgba(255, 255, 255, .11);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
@@ -5396,7 +3922,7 @@ select:focus,
 
 .docs-card__head h2 {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-text-primary);
   font-size: 16px;
   line-height: 1.25;
   letter-spacing: 0;
@@ -5405,14 +3931,14 @@ select:focus,
 .docs-card__head span {
   flex: 0 0 auto;
   padding: 4px 8px;
-  color: #ff7a1a;
-  border: 1px solid rgba(255, 112, 26, .45);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
   border-radius: 999px;
   font: 800 10px/1 var(--font-mono);
 }
 
 .docs-card__body {
-  color: rgba(232, 239, 248, .78);
+  color: var(--color-text-primary);
   font-size: 13px;
   line-height: 1.58;
 }
@@ -5437,20 +3963,20 @@ select:focus,
 .docs-note {
   margin-top: 12px;
   padding: 10px;
-  color: rgba(255, 236, 222, .9);
-  background: rgba(255, 112, 26, .1);
-  border: 1px solid rgba(255, 112, 26, .34);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
 .docs-note strong {
-  color: #ff7a1a;
+  color: var(--color-text-primary);
 }
 
 .docs-empty {
   padding: 18px;
-  color: rgba(232, 239, 248, .64);
-  border: 1px dashed rgba(255, 255, 255, .16);
+  color: var(--color-text-secondary);
+  border: 1px dashed var(--color-border);
   border-radius: 8px;
 }
 
@@ -5521,7 +4047,7 @@ select:focus,
 
   .docs-sidebar {
     border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    border-bottom: 1px solid var(--color-border);
   }
 
   .faq-editor-panel .faq-panel__body {
@@ -5585,7 +4111,6 @@ select:focus,
   }
 }
 
-
 .result-details > summary::before {
   content: "›";
   display: inline-block;
@@ -5621,4 +4146,68 @@ select:focus,
 
 .faq-editor__item--dropdown[open] > summary::before {
   transform: rotate(90deg);
+}
+
+.theme-toggle-btn {
+  height: 34px;
+  padding: 0 12px;
+  margin-left: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --color-bg-page: #f8f8f8;
+  --color-bg-subtle: #f2f2f2;
+  --color-bg-muted: #e8e8e8;
+  --color-surface: #ffffff;
+
+  --color-border: #e8e8e8;
+  --color-border-strong: #d4d4d4;
+
+  --color-text-primary: #111111;
+  --color-text-secondary: #333333;
+  --color-text-muted: #666666;
+
+  --color-accent: #ff6b00;
+  --color-accent-hover: #ff8c38;
+  --color-accent-bg: rgba(255,107,0,.08);
+  --color-accent-glow: rgba(255,107,0,.18);
+  --color-accent-border: rgba(255,107,0,.28);
+  --color-accent-shadow: rgba(255,107,0,.18);
+  --logo-glow: 0 0 16px rgba(255,107,0,.22);
+
+  --color-success: #1a9e52;
+  --color-success-bg: rgba(26,158,82,.08);
+  --color-success-border: rgba(26,158,82,.24);
+  --color-warn: #c98200;
+  --color-warn-bg: rgba(201,130,0,.08);
+  --color-danger: #e03030;
+  --color-danger-bg: rgba(224,48,48,.08);
+
+  --color-header-bg: rgba(255,255,255,.92);
+  --color-sidebar-bg: #ffffff;
+  --color-log-bg: #f2f2f2;
+  --color-input-bg: #ffffff;
+  --color-card-header-bg: #f4f4f4;
+  --color-button-bg: #ffffff;
+  --color-button-hover-bg: rgba(255,107,0,.10);
+  --color-button-text: #222222;
+  --color-button-hover-text: #111111;
+  --color-primary-button-bg: linear-gradient(135deg, #e85f00, #ff7a1a);
+  --color-primary-button-hover-bg: linear-gradient(135deg, #ff6b00, #ff8c38);
+  --color-focus-ring: rgba(255,107,0,.16);
+
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  --shadow: 0 2px 12px rgba(0,0,0,.07);
+  --shadow-lg: 0 8px 48px rgba(0,0,0,.13);
+
 }

@@ -494,6 +494,30 @@ _loginBtn?.addEventListener('click', async () => {
 // ── Botão de logout ───────────────────────────────────────────
 document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
 
+// ── Botão de tema claro/escuro ────────────────────────────────
+const themeBtn = document.getElementById('themeToggleBtn');
+
+function setTheme(mode) {
+  document.documentElement.setAttribute('data-theme', mode);
+  localStorage.setItem('fastseo_theme_mode', mode);
+
+  if (themeBtn) {
+    const isLight = mode === 'light';
+
+    themeBtn.textContent = isLight ? '☾' : '☀';
+    themeBtn.title = isLight ? 'Mudar para tema escuro' : 'Mudar para tema claro';
+    themeBtn.setAttribute('aria-label', themeBtn.title);
+  }
+}
+
+const savedTheme = localStorage.getItem('fastseo_theme_mode') || 'dark';
+setTheme(savedTheme);
+
+themeBtn?.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  setTheme(current === 'light' ? 'dark' : 'light');
+});
+
 // ── Eventos do app ────────────────────────────────────────────
 function showMainView(view) {
   const ficha = document.getElementById('fastseoWorkspace');
