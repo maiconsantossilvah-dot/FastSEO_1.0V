@@ -26,16 +26,17 @@ export const SubcatModal = {
             Regras usadas pelo <strong>Agente A1</strong> para gerar títulos SEO no padrão correto.
             Personalize fórmulas e exemplos ou adicione novas regras para categorias específicas.
           </div>
-          
+
           <div class="subcat-toolbar">
             <input type="text" class="subcat-search" id="subcatSearch" placeholder="Filtrar por nome de categoria..." value="${Utils.escHtml(_search)}"/>
             <span class="subcat-count" id="subcatCount"></span>
             <button class="btn btn-ghost" id="subcatResetBtn" style="font-size:11px">↺ Restaurar padrão</button>
           </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <div class="subcat-list" id="subcatList"></div>
           <button class="btn btn-ghost" id="subcatAddToggleBtn" style="align-self:flex-start;font-size:12px">＋ Nova regra</button>
           <button class="btn btn-ghost" id="subcatExportBtn" style="align-self:flex-start;font-size:12px">Exportar planilha</button>
-
+          </div>
           <div class="subcat-add-panel" id="subcatAddPanel">
   <div class="sf-row"><label>Nome da categoria</label>
     <input type="text" id="subcatAddNome" placeholder="Ex: Fritadeira Elétrica"/></div>
