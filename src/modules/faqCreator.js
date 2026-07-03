@@ -192,6 +192,7 @@ function renderFaqItem(item) {
         <!-------------------------->`;
 }
 
+
 // Monta o HTML final que será copiado para uso externo.
 function buildFaqHtml() {
   const items = state.items
