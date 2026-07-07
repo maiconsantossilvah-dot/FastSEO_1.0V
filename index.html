@@ -221,9 +221,10 @@
         </div>
       </div>
     </div>
-    <button id="themeToggleBtn" class="theme-toggle-btn" type="button" title="Mudar para tema claro" aria-label="Mudar para tema claro">
-  ☀
-</button>
+    <button id="themeToggleBtn" class="theme-toggle-btn" type="button" title="Mudar para tema claro"
+      aria-label="Mudar para tema claro">
+      ☀
+    </button>
   </header>
 
   <div class="layout app-layout--simple" id="appLayout" style="display:none">
@@ -350,7 +351,9 @@
               </div>
             </div>
             <div class="card-body">
-              <textarea id="inputText" placeholder="Cole aqui os dados brutos do fornecedor... ou arraste um PDF ou planilha para cá"></textarea>
+              <div id="inputCategoryHint" class="input-category-hint" hidden></div>
+              <textarea id="inputText"
+                placeholder="Cole aqui os dados brutos do fornecedor... ou arraste um PDF ou planilha para cá"></textarea>
             </div>
           </section>
 
@@ -588,7 +591,8 @@
           <div class="docs-searchbar">
             <label class="docs-search">
               <span aria-hidden="true">⌕</span>
-              <input id="docsSearch" type="search" autocomplete="off" placeholder="Buscar por pipeline, Firebase, TXT, FAQ, regras...">
+              <input id="docsSearch" type="search" autocomplete="off"
+                placeholder="Buscar por pipeline, Firebase, TXT, FAQ, regras...">
             </label>
             <strong id="docsResultCount">0 resultados</strong>
           </div>

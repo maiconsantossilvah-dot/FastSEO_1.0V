@@ -11,6 +11,8 @@ import { SidebarUI } from './components/SidebarUI.js';
 import { PipelineUI } from './components/PipelineUI.js';
 import { HistoryUI } from './components/HistoryUI.js';
 import { ConfigModal, ConfigUI } from './components/ConfigUI.js';
+import { AppState } from './modules/state.js';
+import { Utils } from './utils/index.js';
 
 // ── Export — copia e baixa os resultados gerados ──────────────
 // CORREÇÃO: Export não estava definido em nenhum lugar do código,
@@ -435,6 +437,7 @@ function showApp(user) {
 document.addEventListener('fastseo:historyRender', () => { HistoryUI.resetPage(); HistoryUI.render(); });
 document.addEventListener('fastseo:catsChanged', () => {
   SidebarUI.render();
+  updateInputCategoryHint();
   if (document.getElementById('categoriasModalOverlay')) {
     import('./components/CategoriasModal.js').then(({ CategoriasModal }) => CategoriasModal.onCatsChanged());
   }
@@ -593,6 +596,7 @@ document.getElementById('openConfigBtn')?.addEventListener('click', async () => 
 document.getElementById('openCategoriasBtn')?.addEventListener('click', async () => {
   const { CategoriasModal } = await import('./components/CategoriasModal.js');
   CategoriasModal.open();
+
 });
 // addCatBtn agora vive dentro do CategoriasModal
 // sbContent agora é oculto — seleção via CategoriasModal
@@ -608,9 +612,40 @@ function updateRunReadiness() {
   btn.title = ready ? 'Processar ficha técnica' : 'Cole os dados do produto para processar';
 }
 
+function updateInputCategoryHint() {
+  const input = document.getElementById('inputText')?.value?.trim() || '';
+  const hint = document.getElementById('inputCategoryHint');
+  if (!hint) return;
+
+  if (!input) {
+    hint.hidden = true;
+    hint.textContent = '';
+    return;
+  }
+
+  const matchedCats = Utils.matchCategories(input, Categories.getAll());
+  const subcatRule = AppState.subcatRules.match(input);
+
+  if (!matchedCats.length && !subcatRule) {
+    hint.hidden = true;
+    hint.textContent = '';
+    return;
+  }
+
+  const catText = matchedCats.length
+    ? `Categoria cadastrada: ${matchedCats.map(c => c.nome).join(', ')}`
+    : 'Categoria cadastrada: não encontrada';
+
+  const subcatText = subcatRule ? ` • Padrão: ${subcatRule.nome}` : '';
+
+  hint.hidden = false;
+  hint.textContent = `${catText}${subcatText}`;
+}
+
 document.getElementById('inputText')?.addEventListener('input', () => {
   ConfigUI.updateCharCount();
   updateRunReadiness();
+  updateInputCategoryHint();
 });
 
 // ── Drag & drop de arquivos no textarea ────────────────────────────
