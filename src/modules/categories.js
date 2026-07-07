@@ -5,7 +5,7 @@
  * e localStorage como cache offline/fallback.
  */
 
-import { CategoriesDB }  from '../firebase/firestore.js';
+import { CategoriesDB } from '../firebase/firestore.js';
 import {
   buildCategoryPayload,
   needsCategoryMigration,
@@ -28,7 +28,7 @@ export const Categories = {
 
   _writeCache(cats) {
     _cache = (cats || []).map(normalizeCategory);
-    try { localStorage.setItem(LS_CATS, JSON.stringify(_cache)); } catch (_) {}
+    try { localStorage.setItem(LS_CATS, JSON.stringify(_cache)); } catch (_) { }
   },
 
   _readLocalFallback() {
@@ -42,6 +42,7 @@ export const Categories = {
   async create() {
     const data = buildCategoryPayload({
       nome: 'Nova Categoria',
+      avisoFichaTipo: 'normal',
       camposObrigatorios: [],
       camposOpcionais: [],
       fichaIdeal: '',

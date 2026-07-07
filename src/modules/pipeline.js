@@ -19,16 +19,17 @@
  *   services/analytics.js   -> track*
  */
 
-import { callAgent }    from '../services/api.js';
-import { Prompts }      from './prompts.js';
-import { Categories }   from './categories.js';
-import { Quota }        from './quota.js';
-import { History }      from './history.js';
-import { Logs }         from './quota.js';
-import { Utils }        from '../utils/index.js';
-import { PipelineUI }   from '../components/PipelineUI.js';
-import { AppState }     from './state.js';
+import { callAgent } from '../services/api.js';
+import { Prompts } from './prompts.js';
+import { Categories } from './categories.js';
+import { Quota } from './quota.js';
+import { History } from './history.js';
+import { Logs } from './quota.js';
+import { Utils } from '../utils/index.js';
+import { PipelineUI } from '../components/PipelineUI.js';
+import { AppState } from './state.js';
 import { parseQAJson, formatQAReport } from './qa.js';
+import { getCategoryNotice } from './categoryNotices.js';
 import { buildCategoryQaSchemaPrompt, hasCategoryDefinition, textToFieldList } from './categoryQaSchema.js';
 
 // Integrações opcionais: SEO enriquece prompts; Analytics registra uso e erros.
@@ -70,6 +71,20 @@ function shouldAutoRunCopywriter() {
   catch { return true; }
 }
 
+function inserirAvisoAntesDoFornecedor(ficha, aviso) {
+  const texto = String(ficha || '').trim();
+  const textoAviso = String(aviso || '').trim();
+  if (!textoAviso || texto.includes(textoAviso)) return texto;
+
+  const match = texto.match(/^Fornecedor\s*:/im);
+  if (!match) return `${texto}\n\n${textoAviso}`;
+
+  const antes = texto.slice(0, match.index).trimEnd();
+  const depois = texto.slice(match.index).trimStart();
+
+  return `${antes}\n\n${textoAviso}\n\n${depois}`;
+}
+
 export const Pipeline = {
   /**
    * Ponto de entrada público.
@@ -100,7 +115,7 @@ export const Pipeline = {
       return;
     }
 
-    const geminiKey  = document.getElementById('apiKey')?.value.trim() || '';
+    const geminiKey = document.getElementById('apiKey')?.value.trim() || '';
     const mistralKey = document.getElementById('mistralKey')?.value.trim() || '';
     if (!(geminiKey.startsWith('AIza') && geminiKey.length > 20) && mistralKey.length <= 20) {
       PipelineUI.log('Configure Gemini ou Mistral para gerar o Conteúdo Comercial.', 'w');
@@ -119,19 +134,19 @@ export const Pipeline = {
     trackRegeneracao();
 
     // Abort controller próprio para não cancelar um pipeline completo em andamento.
-    const abort  = new AbortController();
+    const abort = new AbortController();
     const signal = abort.signal;
 
     PipelineUI.setStep(3, 'active');
     PipelineUI.log('[A3] Regenerando conteúdo comercial...', 'i');
 
     try {
-      const input      = document.getElementById('inputText')?.value || fichaText;
-      const allCats    = Categories.getAll().filter(hasCategoryDefinition);
-      const matched    = Utils.matchCategories(input, Categories.getAll());
-      const fewShot    = Utils.buildFewShot(bivolt, matched);
+      const input = document.getElementById('inputText')?.value || fichaText;
+      const allCats = Categories.getAll().filter(hasCategoryDefinition);
+      const matched = Utils.matchCategories(input, Categories.getAll());
+      const fewShot = Utils.buildFewShot(bivolt, matched);
 
-      const subcatRule    = AppState.subcatRules.match(input);
+      const subcatRule = AppState.subcatRules.match(input);
       const subcatSnippet = AppState.subcatRules.buildSnippet(subcatRule);
 
       const sys3 = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
@@ -166,13 +181,13 @@ export const Pipeline = {
   async _execute(inputRaw) {
     const t0 = Date.now();
 
-    const geminiKey  = document.getElementById('apiKey')?.value.trim()     || '';
+    const geminiKey = document.getElementById('apiKey')?.value.trim() || '';
     const mistralKey = document.getElementById('mistralKey')?.value.trim() || '';
-    const anyKeyOk   = (geminiKey.startsWith('AIza') && geminiKey.length > 20)
-                    || mistralKey.length > 20;
+    const anyKeyOk = (geminiKey.startsWith('AIza') && geminiKey.length > 20)
+      || mistralKey.length > 20;
 
-    if (!anyKeyOk)         { alert('Configure pelo menos uma API Key (Gemini ou Mistral) antes de continuar.'); return; }
-    if (!inputRaw.trim())  { alert('Cole os dados do produto antes de processar.'); return; }
+    if (!anyKeyOk) { alert('Configure pelo menos uma API Key (Gemini ou Mistral) antes de continuar.'); return; }
+    if (!inputRaw.trim()) { alert('Cole os dados do produto antes de processar.'); return; }
 
     // Aborta execução anterior, se houver.
     if (AppState.pipeline.abort) AppState.pipeline.abort.abort();
@@ -193,16 +208,16 @@ export const Pipeline = {
     }
 
     // Metadados para Analytics.
-    const modeloAtual    = document.getElementById('modelSel')?.value || 'gemini-2.5-flash-lite';
-    const mistralOk      = mistralKey.length > 20;
+    const modeloAtual = document.getElementById('modelSel')?.value || 'gemini-2.5-flash-lite';
+    const mistralOk = mistralKey.length > 20;
     const categoriaAtual = AppState.categoriaAtiva?.nome || '';
-    const pipelineMode   = getPipelineMode();
+    const pipelineMode = getPipelineMode();
 
     // Analytics: pipeline iniciado.
     trackPipelineIniciado({
-      modelo:   modeloAtual,
-      temPDF:   !!AppState.pdfTexto,
-      temSEO:   hasSerpApiKey(),
+      modelo: modeloAtual,
+      temPDF: !!AppState.pdfTexto,
+      temSEO: hasSerpApiKey(),
       categoria: categoriaAtual,
     });
 
@@ -212,7 +227,7 @@ export const Pipeline = {
     PipelineUI.setRunning(true);
 
     try {
-      const input  = Utils.sanitize(inputRaw);
+      const input = Utils.sanitize(inputRaw);
       if (!input) throw new Error('Input vazio após sanitização.');
 
       const bivolt = Utils.detectBivolt(input);
@@ -221,14 +236,19 @@ export const Pipeline = {
       await this._flushOpenEditor();
 
       // Escolhe as categorias que servem como referência para este produto.
-      const allCats   = Categories.getAll().filter(hasCategoryDefinition);
-      const matched   = Utils.matchCategories(input, Categories.getAll());
+      const allCats = Categories.getAll().filter(hasCategoryDefinition);
+      const matched = Utils.matchCategories(input, Categories.getAll());
+      const categoriaComAviso = matched.find(cat => getCategoryNotice(cat.avisoFichaTipo).text);
+      const aviso = categoriaComAviso ? getCategoryNotice(categoriaComAviso.avisoFichaTipo).text : '';
+      const avisoValidacao = aviso
+        ? `\n\n---\nAVISO OBRIGATORIO DA CATEGORIA:\nO trecho abaixo foi inserido automaticamente por regra interna da categoria "${categoriaComAviso.nome}". Ele deve ser aceito mesmo que nao exista nos dados brutos e nao deve ser tratado como invencao.\n${aviso}`
+        : '';
       const unmatched = allCats.filter(c => !matched.includes(c));
 
       PipelineUI.log(`Modo: ${pipelineMode === 'quality' ? 'Qualidade' : pipelineMode} - Modelo Gemini: ${modeloAtual}${mistralOk ? ' - Mistral (A1)' : ''}`, 'i');
       if (mistralOk) PipelineUI.log('Modo mesclado: A1=Mistral - A2=Gemini - A3=Gemini', 'o');
-      if (!autoA3)   PipelineUI.log('A3 opcional: conteúdo comercial ficará disponível no botão Gerar.', 'i');
-      if (bivolt)    PipelineUI.log('Modo bivolt detectado (110V + 220V)', 'o');
+      if (!autoA3) PipelineUI.log('A3 opcional: conteúdo comercial ficará disponível no botão Gerar.', 'i');
+      if (bivolt) PipelineUI.log('Modo bivolt detectado (110V + 220V)', 'o');
 
       if (allCats.length === 0) {
         PipelineUI.log('Nenhuma categoria configurada - processando sem exemplos', 'i');
@@ -240,12 +260,12 @@ export const Pipeline = {
         if (unmatched.length) PipelineUI.log(`-> Ignoradas: ${unmatched.map(c => c.nome).join(', ')}`, 'i');
       }
 
-      const fewShot    = Utils.buildFewShot(bivolt, matched);
+      const fewShot = Utils.buildFewShot(bivolt, matched);
       const hasFewShot = fewShot.length > 0;
-      const tok1       = (bivolt ? 1500 : 1200) + (hasFewShot ? 300 : 0);
+      const tok1 = (bivolt ? 1500 : 1200) + (hasFewShot ? 300 : 0);
       const qaSchemaPrompt = buildCategoryQaSchemaPrompt(matched);
 
-      const subcatRule    = AppState.subcatRules.match(input);
+      const subcatRule = AppState.subcatRules.match(input);
       const subcatSnippet = AppState.subcatRules.buildSnippet(subcatRule);
       if (subcatRule) PipelineUI.log(`Padrão de título aplicado: ${subcatRule.nome}`, 'o');
 
@@ -265,17 +285,21 @@ export const Pipeline = {
       // AGENTE 1 - Formatador
       PipelineUI.setStep(1, 'active');
       PipelineUI.log(`[A1] Formatando ficha${bivolt ? ' bivolt' : ''}...`, 'i');
-      const ficha = await callAgent(sys1, `Dados do produto:\n${input}`, tok1, signal, 1);
+      let ficha = await callAgent(sys1, `Dados do produto:\n${input}`, tok1, signal, 1);
       Quota.add(1);
       PipelineUI.setStep(1, 'done');
       PipelineUI.log('[A1] Ficha formatada.', 'o');
+
+      if (aviso) {
+        ficha = inserirAvisoAntesDoFornecedor(ficha, aviso);
+      }
 
       // AGENTE 2 - Conferente/QA
       PipelineUI.setStep(2, 'active');
       PipelineUI.log('[A2] Conferindo dados...', 'i');
       const validacao = await callAgent(
         sys2,
-        `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}${qaSchemaPrompt ? `\n\n---\nJSON DE VALIDAÇÃO DA CATEGORIA:\n${qaSchemaPrompt}` : ''}`,
+        `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}${avisoValidacao}${qaSchemaPrompt ? `\n\n---\nJSON DE VALIDAÇÃO DA CATEGORIA:\n${qaSchemaPrompt}` : ''}`,
         2000, signal, 2
       );
       Quota.add(1);
@@ -308,10 +332,10 @@ export const Pipeline = {
 
       // Analytics: pipeline concluído com sucesso.
       trackPipelineConcluido({
-        modelo:    modeloAtual,
+        modelo: modeloAtual,
         duracaoMs: Date.now() - t0,
-        temSEO:    !!contextoSEO,
-        bivolt:    !!bivolt,
+        temSEO: !!contextoSEO,
+        bivolt: !!bivolt,
         reprovado: !!reprovado,
       });
 
@@ -319,12 +343,12 @@ export const Pipeline = {
       const preview = (document.getElementById('inputText')?.value || '').slice(0, 100).trim();
       await History.save({ preview, ficha, conteudo, bivolt });
       await Logs.save({
-        status:       reprovado ? 'reprovado' : 'aprovado',
-        duracao_ms:   Date.now() - t0,
-        modelo:       modeloAtual,
-        bivolt:       !!bivolt,
+        status: reprovado ? 'reprovado' : 'aprovado',
+        duracao_ms: Date.now() - t0,
+        modelo: modeloAtual,
+        bivolt: !!bivolt,
         usou_mistral: mistralOk,
-        usou_seo:     !!contextoSEO,
+        usou_seo: !!contextoSEO,
       });
 
       Quota.updateUI();
@@ -340,7 +364,7 @@ export const Pipeline = {
       // Analytics: erro no pipeline
       trackPipelineErro({
         etapa: 'pipeline',
-        erro:  err.message,
+        erro: err.message,
         modelo: document.getElementById('modelSel')?.value || '',
       });
 
@@ -364,6 +388,7 @@ export const Pipeline = {
       nome: document.getElementById('catEditNome'),
       camposObrigatorios: document.getElementById('catEditObrigatorios'),
       camposOpcionais: document.getElementById('catEditOpcionais'),
+      avisoFichaTipo: document.getElementById('catEditAvisoFicha'),
       fichaIdeal: document.getElementById('catEditFichaIdeal'),
     };
     if (active && Object.values(currentFields).every(Boolean)) {
@@ -371,6 +396,7 @@ export const Pipeline = {
         nome: currentFields.nome.value || 'Sem nome',
         camposObrigatorios: textToFieldList(currentFields.camposObrigatorios.value),
         camposOpcionais: textToFieldList(currentFields.camposOpcionais.value),
+        avisoFichaTipo: currentFields.avisoFichaTipo.value || 'normal',
         fichaIdeal: currentFields.fichaIdeal.value,
       });
       return;
@@ -378,10 +404,10 @@ export const Pipeline = {
 
     if (!editorOpen || !active) return;
     const legacyFields = {
-      nome:   document.getElementById('catNome'),
+      nome: document.getElementById('catNome'),
       camposObrigatorios: document.getElementById('catCamposObrigatorios'),
-      camposOpcionais:    document.getElementById('catCamposOpcionais'),
-      fichaIdeal:         document.getElementById('catFichaIdeal'),
+      camposOpcionais: document.getElementById('catCamposOpcionais'),
+      fichaIdeal: document.getElementById('catFichaIdeal'),
     };
     if (Object.values(legacyFields).every(Boolean)) {
       await Categories.update(active, {

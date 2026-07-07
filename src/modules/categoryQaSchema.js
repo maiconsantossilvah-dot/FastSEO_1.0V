@@ -89,6 +89,8 @@ export function normalizeCategory(category = {}) {
     ? textToFieldList(category.camposObrigatorios)
     : textToFieldList(category.campos);
 
+  const avisoFichaTipo = text(category.avisoFichaTipo) || 'normal';
+
   const camposOpcionais = hasOwn(category, 'camposOpcionais')
     ? textToFieldList(category.camposOpcionais)
     : [];
@@ -103,6 +105,7 @@ export function normalizeCategory(category = {}) {
     camposObrigatorios,
     camposOpcionais,
     fichaIdeal,
+    avisoFichaTipo,
   };
 
   normalized.qaSchema = category.qaSchema && typeof category.qaSchema === 'object'
@@ -110,16 +113,19 @@ export function normalizeCategory(category = {}) {
     : createQaSchemaFromCategory(normalized);
 
   return normalized;
+
 }
 
 export function buildCategoryPayload(input = {}, previous = {}) {
   const merged = normalizeCategory({ ...previous, ...input });
+  merged.avisoFichaTipo = merged.avisoFichaTipo || 'normal';
 
   return {
     nome: merged.nome,
     camposObrigatorios: textToFieldList(merged.camposObrigatorios),
     camposOpcionais: textToFieldList(merged.camposOpcionais),
     fichaIdeal: text(merged.fichaIdeal),
+    avisoFichaTipo: merged.avisoFichaTipo || 'normal',
     qaSchema: createQaSchemaFromCategory(merged),
   };
 }

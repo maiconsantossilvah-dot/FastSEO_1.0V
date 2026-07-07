@@ -5,7 +5,7 @@
  */
 
 import { Categories } from '../modules/categories.js';
-import { AppState }   from '../modules/state.js';
+import { AppState } from '../modules/state.js';
 import {
   createQaSchemaFromCategory,
   fieldListToText,
@@ -13,6 +13,7 @@ import {
   normalizeCategory,
   textToFieldList,
 } from '../modules/categoryQaSchema.js';
+import { CATEGORY_NOTICE_OPTIONS } from '../modules/categoryNotices.js';
 
 const $ = id => document.getElementById(id);
 
@@ -123,6 +124,11 @@ export const CategoriasModal = {
     if (!rawCat) return;
     const cat = normalizeCategory(rawCat);
 
+    const noticeOptionsHtml = CATEGORY_NOTICE_OPTIONS.map(option => {
+      const selected = (cat.avisoFichaTipo || 'normal') === option.key ? ' selected' : '';
+      return `<option value="${this._esc(option.key)}"${selected}>${this._esc(option.label)}</option>`;
+    }).join('');
+
     AppState.categories.active = id;
     AppState.categories.editorOpen = true;
     this._editingId = id;
@@ -141,6 +147,14 @@ export const CategoriasModal = {
           <label>Campos opcionais <span class="cats-field-hint">- validam se aparecerem nos dados brutos</span></label>
           <textarea id="catEditOpcionais" rows="4" placeholder="Ex: Cor, Peso, Dimensões, Recursos extras...">${this._esc(fieldListToText(cat.camposOpcionais))}</textarea>
         </div>
+
+<div class="cats-field">
+  <label>Texto obrigatório da ficha</label>
+  <select id="catEditAvisoFicha">
+    ${noticeOptionsHtml}
+  </select>
+</div>
+
         <div class="cats-field">
           <label>Ficha ideal <span class="cats-field-hint">- referência para o formatador</span></label>
           <textarea id="catEditFichaIdeal" rows="6" placeholder="Cole aqui a estrutura ideal desta categoria...">${this._esc(cat.fichaIdeal || '')}</textarea>
@@ -151,13 +165,18 @@ export const CategoriasModal = {
         </div>
       </div>`;
 
-    ['catEditNome','catEditObrigatorios','catEditOpcionais','catEditFichaIdeal'].forEach(fieldId => {
+    ['catEditNome', 'catEditObrigatorios', 'catEditOpcionais', 'catEditFichaIdeal'].forEach(fieldId => {
+
       $(fieldId)?.addEventListener('input', () => {
         this._updateQaPreview();
         this._scheduleSave();
       });
     });
     this._updateQaPreview();
+    $('catEditAvisoFicha')?.addEventListener('change', () => {
+      this._updateQaPreview();
+      this._scheduleSave();
+    });
   },
 
   _scheduleSave() {
@@ -178,6 +197,7 @@ export const CategoriasModal = {
       camposObrigatorios: textToFieldList($('catEditObrigatorios')?.value || ''),
       camposOpcionais: textToFieldList($('catEditOpcionais')?.value || ''),
       fichaIdeal: $('catEditFichaIdeal')?.value || '',
+      avisoFichaTipo: $('catEditAvisoFicha')?.value || 'normal',
     };
   },
 
@@ -218,7 +238,7 @@ export const CategoriasModal = {
   },
 
   _esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   },
 
   close() {
