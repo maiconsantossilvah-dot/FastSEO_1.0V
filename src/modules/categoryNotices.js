@@ -20,7 +20,13 @@ export const CATEGORY_NOTICE_OPTIONS = [
     key: 'produto_grande',
     label: 'Produto Grande',
     text: 'Confira as dimensões do produto e certifique-se de que estão adequadas aos elevadores, portas e corredores do local de entrega, pois não fazemos a montagem e desmontagem do produto ou de portas e janelas para entrega de produtos, bem como içamento por fora de prédio ou transporte por escada quando oferecer risco para o produto e entregadores.'
-  }
+  },
+
+  {
+    key: 'bicicleta_eletrica',
+    label: 'Bicicleta Elétrica',
+    text: 'Montagens e custos relacionados a montagem são de responsabilidade do cliente.'
+  },
 ];
 
 export function getCategoryNotice(key) {
