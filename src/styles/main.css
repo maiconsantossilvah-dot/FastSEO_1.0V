@@ -68,6 +68,9 @@
 [data-theme="dark"] select,
 select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23B9BED5' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px 12px;
 }
 
 /* RESET */
@@ -612,7 +615,7 @@ input[type="password"],
 select,
 textarea {
   width: 100%;
-  background: rgba(0, 0, 0, .3);
+  background-color: rgba(0, 0, 0, .3);
   border: 1px solid rgba(255, 255, 255, .08);
   border-radius: var(--radius);
   color: var(--color-text-primary);
@@ -1240,7 +1243,7 @@ textarea#inputText {
   min-height: 36px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: var(--color-input-bg);
+  background-color: var(--color-input-bg);
   color: var(--color-text-primary);
   font-family: var(--font-body);
   font-size: 12px;
@@ -2995,7 +2998,7 @@ select,
 textarea,
 .modal-body .m-field input[type="text"],
 .modal-body .m-field textarea {
-  background: var(--color-input-bg);
+  background-color: var(--color-input-bg);
   border-color: var(--color-border);
   color: var(--color-text-primary);
 }
