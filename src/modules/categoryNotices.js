@@ -15,6 +15,12 @@ export const CATEGORY_NOTICE_OPTIONS = [
     label: 'Item Sortido',
     text: 'Esse produto vem em cores e modelos variados sem opção de escolha especifica',
   },
+
+  {
+    key: 'produto_grande',
+    label: 'Produto Grande',
+    text: 'Confira as dimensões do produto e certifique-se de que estão adequadas aos elevadores, portas e corredores do local de entrega, pois não fazemos a montagem e desmontagem do produto ou de portas e janelas para entrega de produtos, bem como içamento por fora de prédio ou transporte por escada quando oferecer risco para o produto e entregadores.'
+  }
 ];
 
 export function getCategoryNotice(key) {
