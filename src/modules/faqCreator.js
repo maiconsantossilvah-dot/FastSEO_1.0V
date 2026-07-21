@@ -233,23 +233,22 @@ function renderEditor() {
   if (!editor) return;
 
   editor.innerHTML = state.items.map((item, index) => `
-    <details class="faq-editor__item faq-editor__item--dropdown" data-index="${index}">
-  <summary class="faq-editor__bar">
-    <strong>Pergunta ${index + 1}</strong>
-    <button class="copy-btn faq-remove-btn" type="button" data-action="remove">Remover</button>
-  </summary>
-
-  <div class="faq-editor__fields">
-    <label class="faq-field">
-      <span>Pergunta</span>
-      <input type="text" value="${escapeHtml(item.question)}" data-field="question" autocomplete="off">
-    </label>
-    <label class="faq-field">
-      <span>Resposta</span>
-      <textarea data-field="answer">${escapeHtml(item.answer)}</textarea>
-    </label>
-  </div>
-</details>
+    <details class="faq-editor__item" data-index="${index}">
+          <summary class="faq-editor__bar">
+            <strong>Pergunta ${index + 1}</strong>
+            <button class="button button--danger icon-button" type="button" data-action="remove" aria-label="Remover pergunta ${index + 1}" title="Remover pergunta">${trashIcon()}</button>
+          </summary>
+          <div class="faq-editor__fields">
+            <label class="field">
+              <span>Pergunta</span>
+              <input type="text" data-field="question" value="${escapeHtml(item.question)}">
+            </label>
+            <label class="field">
+              <span>Resposta</span>
+              <textarea data-field="answer">${escapeHtml(item.answer)}</textarea>
+            </label>
+          </div>
+        </details>
   `).join('');
 
   updateOutput();
