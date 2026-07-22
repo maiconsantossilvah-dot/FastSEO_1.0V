@@ -1,4 +1,5 @@
 const faqStyle = String.raw`<style>
+/*inicio-area-de-faq*/
 #faq-section,
 #faq-section * {
 box-sizing: border-box;
@@ -145,6 +146,7 @@ margin: 0;
 font-size: 0.9rem;
 }
 }
+/*final-area-de-faq*/
 </style>`;
 
 const state = {
