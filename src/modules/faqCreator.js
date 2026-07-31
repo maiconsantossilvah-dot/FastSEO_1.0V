@@ -22,6 +22,10 @@ function escapeHtml(value = '') {
     .replaceAll("'", '&#039;');
 }
 
+function formatAnswer(value = '') {
+  return escapeHtml(value.trim()).replace(/\r?\n/g, '<br>');
+}
+
 function renderFaqItem(item) {
   const question = escapeHtml(item.question.trim());
   const answer = formatAnswer(item.answer);
