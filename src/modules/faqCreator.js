@@ -32,14 +32,14 @@ function renderFaqItem(item) {
 
   return `
 <li id="faq-section__item">
-  <details>
-    <summary>
-      <h3 id="faq-section__q-text">${question}</h3>
-      <span id="faq-section__icon" aria-hidden="true"></span>
+  <details id="faq-section__details" style="background-color: #ffffff; border: 1px solid #e5e5e5;">
+    <summary id="faq-section__summary">
+      <h3 id="faq-section__q-text" style="color: #333333;">${question}</h3>
+      <span id="faq-section__icon" style="color: rgb(46, 53, 56);" aria-hidden="true"></span>
     </summary>
 
     <div id="faq-section__a-inner">
-      <p id="faq-section__a-text">${answer}</p>
+      <p id="faq-section__a-text" style="color: rgb(46, 53, 56);">${answer}</p>
     </div>
   </details>
 </li>`;
@@ -54,18 +54,17 @@ function buildFaqHtml() {
     .join('\n\n');
 
   return `<meta charset="UTF-8">
+${faqStyle}
 <section id="faq-section" aria-labelledby="faq-section__title">
 <div id="faq-section__header">
-<h2 id="faq-section__title">${escapeHtml(faqTitle)}</h2>
+<h2 id="faq-section__title" style="color: #ffffff; background-color: rgb(0, 157, 255);">${escapeHtml(faqTitle)}</h2>
 </div>
 <ul id="faq-section__list" role="list">
 ${items}
 </ul>
 </section>
 
-<!-- ESSES CÓDIGOS ABAIXO VOCÊ NÃO PRECISA MEXER!!! APENAS O HTML ACIMA-->
-
-${faqStyle}`;
+<!-- O CSS estrutural do FAQ é carregado pelo link acima. -->`;
 }
 
 function updateOutput() {
