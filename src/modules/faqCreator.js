@@ -22,22 +22,23 @@ function escapeHtml(value = '') {
     .replaceAll("'", '&#039;');
 }
 
-function formatAnswer(value = '') {
-  return escapeHtml(value.trim()).replace(/\r?\n/g, '<br>');
-}
-
 function renderFaqItem(item) {
   const question = escapeHtml(item.question.trim());
   const answer = formatAnswer(item.answer);
 
-  return `        <section id="faq-section" aria-labelledby="faq-section__title">
-<div id="faq-section__header">
-<h2 id="faq-section__title">Dúvidas Frequentes</h2>
-</div>
-<ul id="faq-section__list" role="list">
-${items}
-</ul>
-</section>`;
+  return `
+<li id="faq-section__item">
+  <details>
+    <summary>
+      <h3 id="faq-section__q-text">${question}</h3>
+      <span id="faq-section__icon" aria-hidden="true"></span>
+    </summary>
+
+    <div id="faq-section__a-inner">
+      <p id="faq-section__a-text">${answer}</p>
+    </div>
+  </details>
+</li>`;
 }
 
 
