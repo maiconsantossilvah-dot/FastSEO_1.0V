@@ -1,153 +1,4 @@
-const faqStyle = String.raw`<style>
-/*inicio-area-de-faq*/
-#faq-section,
-#faq-section * {
-box-sizing: border-box;
-}
-
-#faq-section * {
-padding: 0;
-margin: 0;
-}
-
-#faq-section {
-width: 100%;
-padding: 0rem 16px;
-box-sizing: border-box;
-margin: -10px auto 25px;
-font-family: sans-serif;
-}
-
-#faq-section__header {
-color: #f1f1f1;
-margin: 0 0 12px;
-font-size: 14px;
-line-height: 24px;
-letter-spacing: 0.15px;
-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Helvetica, "Noto Sans", "Liberation Sans", Arial, sans-serif;
-font-weight: 400;
-text-decoration: none;
-}
-
-#faq-section__title {
-text-align: center;
-align-items: flex-start;
-background: rgb(0, 157, 255);
-border-radius: 4px;
-color: rgb(255, 255, 255);
-display: flex;
-flex-direction: row;
-height: 40px;
-margin: 0 0 8px;
-padding: 8px;
-width: 100%;
-box-sizing: border-box;
-}
-
-#faq-section__list {
-list-style: none;
-margin: 0 auto;
-padding: 0;
-display: flex;
-flex-direction: column;
-gap: 8px;
-}
-
-#faq-section__item {
-background: #fff;
-border: 1px solid #e5e5e5;
-border-radius: 12px;
-overflow: hidden;
-}
-
-#faq-section__item summary {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 12px;
-padding: 16px 20px;
-cursor: pointer;
-list-style: none;
-transition: background 0.15s ease;
-}
-
-#faq-section__item summary::-webkit-details-marker {
-display: none;
-}
-
-#faq-section__item summary:hover {
-background: #f9f9f9;
-}
-
-#faq-section__item summary:focus-visible {
-outline: 2px solid #ea5b0c;
-outline-offset: -2px;
-border-radius: 12px;
-}
-
-#faq-section__q-text {
-font-size: 14px;
-font-weight: bold;
-color: #333;
-flex: 1;
-margin: 0;
-transition: color 0.15s ease;
-}
-
-#faq-section__icon {
-width: 20px;
-height: 20px;
-flex-shrink: 0;
-position: relative;
-}
-
-#faq-section__icon::before,
-#faq-section__icon::after {
-content: '';
-position: absolute;
-background: rgb(46, 53, 56);
-border-radius: 2px;
-transition: transform 0.25s ease, opacity 0.25s ease;
-}
-
-#faq-section__icon::before {
-width: 12px;
-height: 1.5px;
-top: 9px;
-left: 4px;
-}
-
-#faq-section__icon::after {
-width: 1.5px;
-height: 12px;
-top: 4px;
-left: 9px;
-}
-
-#faq-section__item details[open] #faq-section__icon::after {
-transform: rotate(90deg);
-opacity: 0;
-}
-
-#faq-section__a-inner {
-padding: 14px 20px 16px;
-border-top: 1px solid #e5e5e5;
-}
-
-#faq-section__a-text {
-font-size: 12px;
-color: rgb(46, 53, 56);
-line-height: 1.6;
-margin: 0;
-}
-
-@media (max-width: 480px) {
-#faq-section__q-text {
-font-size: 0.9rem;
-}
-}
-/*final-area-de-faq*/
-</style>`;
+const faqStyle = String.raw`<link rel="stylesheet" href="https://imgprd.martinsatacado.com.br/catalogoimg/catalogo/faq.css">`;
 
 const state = {
   items: [
@@ -179,19 +30,14 @@ function renderFaqItem(item) {
   const question = escapeHtml(item.question.trim());
   const answer = formatAnswer(item.answer);
 
-  return `        <!-- Cole aqui as perguntas e respostas -->
-        <li id="faq-section__item">
-<details>
-<summary>
-<h3 id="faq-section__q-text"> ${question} </h3>
-<span id="faq-section__icon" aria-hidden="true"></span>
-</summary>
-<div id="faq-section__a-inner">
-<p id="faq-section__a-text"> ${answer} </p>
+  return `        <section id="faq-section" aria-labelledby="faq-section__title">
+<div id="faq-section__header">
+<h2 id="faq-section__title">Dúvidas Frequentes</h2>
 </div>
-</details>
-</li>
-        <!-------------------------->`;
+<ul id="faq-section__list" role="list">
+${items}
+</ul>
+</section>`;
 }
 
 
@@ -235,7 +81,7 @@ function renderEditor() {
   if (!editor) return;
 
   editor.innerHTML = state.items.map((item, index) => `
-    <details class="faq-editor__item faq-editor__item--dropdown" data-index="${index}">
+    <details class="faq-editor__item" data-index="${index}">
   <summary class="faq-editor__bar">
     <strong>Pergunta ${index + 1}</strong>
     <button class="copy-btn faq-remove-btn" type="button" data-action="remove">Remover</button>
