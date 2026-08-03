@@ -32,14 +32,14 @@ function renderFaqItem(item) {
 
   return `
 <li id="faq-section__item">
-  <details id="faq-section__details" style="background-color: #ffffff; border: 1px solid #e5e5e5;">
+  <details id="faq-section__details">
     <summary id="faq-section__summary">
-      <h3 id="faq-section__q-text" style="color: #333333;">${question}</h3>
-      <span id="faq-section__icon" style="color: rgb(46, 53, 56);" aria-hidden="true"></span>
+      <h3 id="faq-section__q-text">${question}</h3>
+      <span id="faq-section__icon"></span>
     </summary>
 
     <div id="faq-section__a-inner">
-      <p id="faq-section__a-text" style="color: rgb(46, 53, 56);">${answer}</p>
+      <p id="faq-section__a-text">${answer}</p>
     </div>
   </details>
 </li>`;
@@ -57,7 +57,7 @@ function buildFaqHtml() {
 ${faqStyle}
 <section id="faq-section" aria-labelledby="faq-section__title">
 <div id="faq-section__header">
-<h2 id="faq-section__title" style="color: #ffffff; background-color: rgb(0, 157, 255);">${escapeHtml(faqTitle)}</h2>
+<h2 id="faq-section__title">${escapeHtml(faqTitle)}</h2>
 </div>
 <ul id="faq-section__list" role="list">
 ${items}
