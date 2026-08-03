@@ -6,6 +6,7 @@
 import { Quota } from '../modules/quota.js';
 import { getGoogleApiKey, setGoogleApiKey, getGoogleCx, setGoogleCx, hasSerpApiKey } from '../services/serp.js';
 import { trackSerpApiConfigurada } from '../services/analytics.js';
+import { isValidGeminiKey } from '../utils/apiKeys.js';
 const $ = id => document.getElementById(id);
 
 // Cache de keys no localStorage (sem enviar ao servidor)
@@ -24,7 +25,7 @@ export const ConfigUI = {
     const el = $('apiKey');
     const st = $('keyStatus');
     if (!v) { if (el) el.className = ''; if (st) st.textContent = ''; LS.del('gemini_key'); return; }
-    if (v.startsWith('AIza') && v.length > 20) {
+    if (isValidGeminiKey(v)) {
       if (el) el.className = 'valid';
       if (st) st.textContent = 'OK';
       LS.set('gemini_key', v);
@@ -891,7 +892,7 @@ export const ConfigModal = {
       if (!el) return;
       el.addEventListener('input', () => {
         const v = el.value.trim();
-        const ok = isGemini ? (v.startsWith('AIza') && v.length > 20) : v.length > 20;
+        const ok = isGemini ? isValidGeminiKey(v) : v.length > 20;
         if (!v) { el.className=''; if(st) st.textContent=''; try{localStorage.removeItem('fastseo_'+id);}catch{} return; }
         el.className = ok ? 'valid' : 'invalid';
         if (st) st.textContent = ok ? 'OK' : 'X';
@@ -912,8 +913,8 @@ export const ConfigModal = {
     const hidden = document.getElementById('hiddenApiInputs');
     if (!hidden) return;
     const fallbacks = [
-      { id: 'apiKey2',     placeholder: 'AIza... (secundária)' },
-      { id: 'apiKey3',     placeholder: 'AIza... (terciária)'  },
+      { id: 'apiKey2',     placeholder: 'AIza... ou AQ.... (secundária)' },
+      { id: 'apiKey3',     placeholder: 'AIza... ou AQ.... (terciária)'  },
       { id: 'mistralKey2', placeholder: '... (secundária)'     },
     ];
     fallbacks.forEach(({ id, placeholder }) => {

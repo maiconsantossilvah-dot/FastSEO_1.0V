@@ -31,6 +31,7 @@ import { AppState } from './state.js';
 import { parseQAJson, formatQAReport } from './qa.js';
 import { getCategoryNotice } from './categoryNotices.js';
 import { buildCategoryQaSchemaPrompt, hasCategoryDefinition, textToFieldList } from './categoryQaSchema.js';
+import { isValidGeminiKey } from '../utils/apiKeys.js';
 
 // Integrações opcionais: SEO enriquece prompts; Analytics registra uso e erros.
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -117,7 +118,7 @@ export const Pipeline = {
 
     const geminiKey = document.getElementById('apiKey')?.value.trim() || '';
     const mistralKey = document.getElementById('mistralKey')?.value.trim() || '';
-    if (!(geminiKey.startsWith('AIza') && geminiKey.length > 20) && mistralKey.length <= 20) {
+    if (!isValidGeminiKey(geminiKey) && mistralKey.length <= 20) {
       PipelineUI.log('Configure Gemini ou Mistral para gerar o Conteúdo Comercial.', 'w');
       return;
     }
@@ -183,7 +184,7 @@ export const Pipeline = {
 
     const geminiKey = document.getElementById('apiKey')?.value.trim() || '';
     const mistralKey = document.getElementById('mistralKey')?.value.trim() || '';
-    const anyKeyOk = (geminiKey.startsWith('AIza') && geminiKey.length > 20)
+    const anyKeyOk = isValidGeminiKey(geminiKey)
       || mistralKey.length > 20;
 
     if (!anyKeyOk) { alert('Configure pelo menos uma API Key (Gemini ou Mistral) antes de continuar.'); return; }

@@ -6,6 +6,7 @@
 
 import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from '../config.js';
 import { PipelineUI } from '../components/PipelineUI.js';
+import { isValidGeminiKey } from '../utils/apiKeys.js';
 
 function _sleep(ms, signal) {
   return new Promise((resolve, reject) => {
@@ -26,7 +27,7 @@ function _getModel()      { return document.getElementById('modelSel')?.value ||
 function _getGeminiKeys() {
   return [_getGeminiKey(), _ls('fastseo_apiKey2'), _ls('fastseo_apiKey3')]
     .map(k => k.trim())
-    .filter((k, i, arr) => k.startsWith('AIza') && k.length > 20 && arr.indexOf(k) === i);
+    .filter((k, i, arr) => isValidGeminiKey(k) && arr.indexOf(k) === i);
 }
 
 function _getMistralKeys() {
@@ -121,12 +122,15 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
   let lastErr = null;
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
     try {
       const res = await _requestWithAutoWait('gemini', () => fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': key,
+        },
         signal,
         body: JSON.stringify({
           system_instruction: { parts: [{ text: system }] },
@@ -145,7 +149,7 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
         const e = await res.json().catch(() => ({}));
         const msg = e?.error?.message || '';
         if (_isOverloaded(msg)) throw Object.assign(new Error(msg), { cotaEsgotada: true, fallbackEligible: true });
-        if (res.status === 400) throw Object.assign(new Error('API Key do Gemini inválida. Verifique em aistudio.google.com'), { invalidKey: true });
+        if ([400, 401, 403].includes(res.status)) throw Object.assign(new Error('API Key do Gemini inválida. Verifique em aistudio.google.com'), { invalidKey: true });
         throw new Error(`Gemini: ${msg || 'HTTP ' + res.status}`);
       }
 
