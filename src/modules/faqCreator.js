@@ -53,9 +53,10 @@ function buildFaqHtml() {
     .map(renderFaqItem)
     .join('\n\n');
 
-  return `${faqStyle}
+  return `
 <section id="faq-section" aria-label="faq-section__title">
 <div id="faq-section__header">
+${faqStyle}
 <h2 id="faq-section__title">${escapeHtml(faqTitle)}</h2>
 </div>
 <ul id="faq-section__list" role="list">
