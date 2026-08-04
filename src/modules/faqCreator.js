@@ -1,4 +1,4 @@
-const faqStyle = String.raw`<link rel="stylesheet" href="https://imgprd.martinsatacado.com.br/catalogoimg/catalogo/style-faq-padrao.css">`;
+const faqStyle = String.raw`<link rel="stylesheet" href=https://imgprd.martinsatacado.com.br/catalogoimg/catalogo/style-faq-padrao-tecnica.css">`;
 
 const state = {
   items: [
@@ -32,17 +32,17 @@ function renderFaqItem(item) {
 
   return `
 <li id="faq-section__item">
-  <details id="faq-section__details">
-    <summary id="faq-section__summary">
-      <h3 id="faq-section__q-text">${question}</h3>
-      <span id="faq-section__icon"></span>
-    </summary>
+            <details id="faq-section__details">
+                <summary id="faq-section__summary">
+                    <span id="faq-section__q-text">${question}</span>
+                    <span id="faq-section__icon" aria-hidden="true"></span>
+                </summary>
 
-    <div id="faq-section__a-inner">
-      <p id="faq-section__a-text">${answer}</p>
-    </div>
-  </details>
-</li>`;
+                <div id="faq-section__a-inner">
+                    <p id="faq-section__a-text">${answer}</p>
+                </div>
+            </details>
+        </li>`;
 }
 
 
@@ -53,18 +53,15 @@ function buildFaqHtml() {
     .map(renderFaqItem)
     .join('\n\n');
 
-  return `<meta charset="UTF-8">
-${faqStyle}
-<section id="faq-section" aria-labelledby="faq-section__title">
+  return `${faqStyle}
+<section id="faq-section" aria-label="faq-section__title">
 <div id="faq-section__header">
 <h2 id="faq-section__title">${escapeHtml(faqTitle)}</h2>
 </div>
 <ul id="faq-section__list" role="list">
 ${items}
 </ul>
-</section>
-
-<!-- O CSS estrutural do FAQ é carregado pelo link acima. -->`;
+</section>`;
 }
 
 function updateOutput() {
