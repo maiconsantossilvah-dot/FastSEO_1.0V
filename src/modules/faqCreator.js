@@ -1,4 +1,4 @@
-const faqStyle = String.raw`<link rel="stylesheet" href=https://imgprd.martinsatacado.com.br/catalogoimg/catalogo/style-faq-padrao-tecnica.css">`;
+const faqStyle = String.raw`<link rel="stylesheet" href=https://imgprd.martinsatacado.com.br/catalogoimg/catalogo/style-faq-padrao-tecnica.css?v=1">`;
 
 const state = {
   items: [
