@@ -209,7 +209,7 @@ export const Pipeline = {
     }
 
     // Metadados para Analytics.
-    const modeloAtual = document.getElementById('modelSel')?.value || 'gemini-2.5-flash-lite';
+    const modeloAtual = document.getElementById('modelSel')?.value || 'gemini-3.5-flash-lite';
     const mistralOk = mistralKey.length > 20;
     const categoriaAtual = AppState.categoriaAtiva?.nome || '';
     const pipelineMode = getPipelineMode();

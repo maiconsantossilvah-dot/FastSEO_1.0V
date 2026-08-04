@@ -34,7 +34,7 @@ export const Quota = {
 
   getLimit() {
     const m = document.getElementById('modelSel')?.value || '';
-    if (m.includes('2.5-pro'))    return 100;
+    if (m.includes('3.1-pro'))    return 100;
     if (m.includes('flash-lite')) return 1000;
     return 250;
   },

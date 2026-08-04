@@ -7,7 +7,7 @@ export const FIREBASE_CONFIG = {
   appId:             "1:460968097608:web:48b103fc710bd98bff657d",
   measurementId: "G-5QMCX3H979"
 };
-export const GEMINI_DEFAULT_MODEL = "gemini-2.0-flash";
+export const GEMINI_DEFAULT_MODEL = "gemini-3.5-flash-lite";
 export const MISTRAL_MODEL = "mistral-medium-latest";
 export const APP_CONFIG = {
   historyMaxItems: 50,

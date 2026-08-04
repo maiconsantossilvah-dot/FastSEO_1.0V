@@ -52,9 +52,9 @@ export const ConfigUI = {
 
   updateQuotaInfo() {
     const hints = {
-      'gemini-2.5-flash-lite': 'Recomendado - maior cota diária gratuita',
-      'gemini-2.5-flash':      'Boa qualidade, cota intermediária',
-      'gemini-2.5-pro':        'Apenas 100 req/dia - use para tarefas que exigem mais raciocínio',
+      'gemini-3.5-flash-lite': 'Recomendado - maior cota diária gratuita',
+      'gemini-3.5-flash':      'Boa qualidade, cota intermediária',
+      'gemini-3.1-pro-preview': 'Apenas 100 req/dia - use para tarefas que exigem mais raciocínio',
     };
     const hint = $('modelHint');
     if (hint) hint.textContent = hints[$('modelSel')?.value] || 'Modelo gratuito';
@@ -854,9 +854,9 @@ export const ConfigModal = {
 
     // Atualizar hint do modelo
     const hints = {
-      'gemini-2.5-flash-lite': 'Recomendado - maior cota diária gratuita',
-      'gemini-2.5-flash':      'Boa qualidade, cota intermediária',
-      'gemini-2.5-pro':        'Apenas 100 req/dia - use para tarefas que exigem mais raciocínio',
+      'gemini-3.5-flash-lite': 'Recomendado - maior cota diária gratuita',
+      'gemini-3.5-flash':      'Boa qualidade, cota intermediária',
+      'gemini-3.1-pro-preview': 'Apenas 100 req/dia - use para tarefas que exigem mais raciocínio',
     };
     const modelEl = document.getElementById('modelSel');
     const hintEl  = document.getElementById('modelHint');

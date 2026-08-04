@@ -115,7 +115,6 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
   if (!keys.length) throw new Error('API Key do Gemini não configurada.');
   const generationConfig = {
     maxOutputTokens: maxTokens,
-    temperature: options.jsonMode ? 0 : 0.3,
     ...(options.jsonMode ? { responseMimeType: 'application/json' } : {}),
   };
 
