@@ -125,7 +125,7 @@ As respostas devem possuir:
 * objetividade
 * contexto útil
 * leitura fluida
-* cerca de 120 caracteres
+* cerca de 260 caracteres
 Evite:
 * enrolação
 * repetição
@@ -224,7 +224,7 @@ Evite:
 * repetir exatamente a pergunta
 * repetir sempre a mesma estrutura
 * usar respostas curtas demais
-* usar respostas exageradamente longas (priorize cerca de 120 caracteres como padrão)
+* usar respostas exageradamente longas (priorize cerca de 260 caracteres como padrão)
 Tente fechar cada resposta com um benefício prático ou conclusão de valor para o consumidor.
 ━━━━ CURADORIA E ENQUADRAMENTO DE TEMAS SENSÍVEIS ━━━━━
 Nem todo dado da ficha técnica precisa virar pergunta.
