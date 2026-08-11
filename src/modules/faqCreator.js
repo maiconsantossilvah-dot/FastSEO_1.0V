@@ -111,6 +111,37 @@ function addItem() {
   $('faqEditor')?.querySelector('.faq-editor__item:last-child input')?.focus();
 }
 
+async function pasteBulkInput() {
+  const bulkInput = $('faqBulkInput');
+  const bulkStatus = $('faqBulkStatus');
+  if (!bulkInput) return;
+
+  try {
+    if (!navigator.clipboard?.readText) {
+      throw new Error('Leitura da área de transferência indisponível');
+    }
+
+    const clipboardText = await navigator.clipboard.readText();
+    bulkInput.value = clipboardText;
+    bulkInput.dispatchEvent(new Event('input', { bubbles: true }));
+    bulkInput.focus();
+
+    if (bulkStatus) {
+      bulkStatus.textContent = clipboardText
+        ? 'Texto colado. Clique em Preencher campos para continuar.'
+        : 'A área de transferência está vazia.';
+      bulkStatus.dataset.tone = clipboardText ? 'success' : 'warning';
+    }
+  } catch (err) {
+    if (bulkStatus) {
+      bulkStatus.textContent = 'Não foi possível colar automaticamente. Use Ctrl+V no campo de texto.';
+      bulkStatus.dataset.tone = 'error';
+    }
+    bulkInput.focus();
+    console.warn('FAQCreator clipboard:', err);
+  }
+}
+
 function parseBulkFaq(value = '') {
   const normalized = value.replace(/\r\n?/g, '\n');
   const items = [];
@@ -140,6 +171,7 @@ function fillFromBulk() {
   if (!parsedItems.length) {
     if (bulkStatus) {
       bulkStatus.textContent = 'Não encontrei perguntas no formato <Q>Pergunta</Q> <A>Resposta</A>';
+      bulkStatus.dataset.tone = 'error';
     }
     return;
   }
@@ -148,6 +180,7 @@ function fillFromBulk() {
 
   if (bulkStatus) {
     bulkStatus.textContent = `${parsedItems.length} pergunta${parsedItems.length === 1 ? '' : 's'} preenchida${parsedItems.length === 1 ? '' : 's'}.`;
+    bulkStatus.dataset.tone = 'success';
   }
 
   renderEditor();
@@ -212,10 +245,9 @@ function bindEvents() {
   });
 
   $('faqAddItem')?.addEventListener('click', addItem);
-  $('faqAddItemTop')?.addEventListener('click', addItem);
+  $('faqPasteBulk')?.addEventListener('click', pasteBulkInput);
   $('faqFillFromBulk')?.addEventListener('click', fillFromBulk);
   $('faqCopyHtml')?.addEventListener('click', copyGeneratedHtml);
-  $('faqCopyHtmlTop')?.addEventListener('click', copyGeneratedHtml);
 }
 
 export const FAQCreator = {

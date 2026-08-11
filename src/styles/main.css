@@ -3525,6 +3525,14 @@ select:focus,
   letter-spacing: .02em;
 }
 
+.faq-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .faq-panel__body {
   min-height: 0;
   padding: 16px;
@@ -3560,6 +3568,18 @@ select:focus,
   color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 800;
+}
+
+.faq-bulk-status[data-tone="success"] {
+  color: var(--color-accent);
+}
+
+.faq-bulk-status[data-tone="warning"] {
+  color: #D97706;
+}
+
+.faq-bulk-status[data-tone="error"] {
+  color: #DC2626;
 }
 
 .faq-editor {
