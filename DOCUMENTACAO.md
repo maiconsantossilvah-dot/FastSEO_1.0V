@@ -26,7 +26,7 @@ O acesso ao FastSEO é restrito a usuários autorizados.
 A aba Ficha Técnica é usada para processar dados brutos de produtos e gerar uma ficha formatada.
 
 1. Cole os dados do produto no campo Input.
-2. Se preferir, importe um PDF, planilha ou CSV pelo botão Importar arquivo.
+2. Se preferir, importe um PDF, documento Word (.docx), planilha ou CSV pelo botão Importar arquivo.
 3. Revise se as informações principais estão presentes.
 4. Clique em Processar ficha.
 5. Aguarde as etapas Formatador, Conferente e Copywriter.

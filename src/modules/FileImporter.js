@@ -13,6 +13,8 @@ const ACCEPT = [
   '.xls',
   '.csv',
   'text/csv',
+  '.docx',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ].join(',');
@@ -31,6 +33,10 @@ const FILE_HANDLERS = {
   xlsx: spreadsheetHandler,
   xls: spreadsheetHandler,
   csv: spreadsheetHandler,
+  docx: async file => {
+    const { WordReader } = await import('./WordReader.js');
+    return WordReader.process(file);
+  },
 };
 
 const getImportButton = () =>

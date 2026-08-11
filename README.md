@@ -29,6 +29,7 @@ src/
     firestore.js
   modules/
     PDFReader.js
+    WordReader.js
     categories.js
     history.js
     pipeline.js
@@ -54,7 +55,7 @@ src/
 - `src/config.js`: configurações Firebase, modelos e limites do app.
 - `src/firebase/`: inicialização Firebase e CRUD/listeners do Firestore.
 - `src/services/`: chamadas externas e serviços de infraestrutura, como IA, auth, analytics e Google Custom Search.
-- `src/modules/`: regras de negócio, estado, pipeline, histórico, cotas, prompts, categorias e leitura de PDF.
+- `src/modules/`: regras de negócio, estado, pipeline, histórico, cotas, prompts, categorias e leitura de arquivos.
 - `src/components/`: modais e elementos de interface.
 - `src/utils/`: helpers puros de sanitização, matching e clipboard.
 - `src/styles/`: CSS principal.
