@@ -29,6 +29,7 @@ src/
     firestore.js
   modules/
     PDFReader.js
+    TextReader.js
     WordReader.js
     categories.js
     history.js
