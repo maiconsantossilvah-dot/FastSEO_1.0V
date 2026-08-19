@@ -35,7 +35,7 @@ function renderFaqItem(item) {
             <details id="faq-section__details">
                 <summary id="faq-section__summary">
                     <h3 id="faq-section__q-text">${question}</h3>
-                    <p id="faq-section__icon" aria-hidden="true"></p>
+                    <span id="faq-section__icon" aria-hidden="true"></span>
                 </summary>
 
                 <div id="faq-section__a-inner">
