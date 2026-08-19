@@ -34,8 +34,8 @@ function renderFaqItem(item) {
 <li id="faq-section__item">
             <details id="faq-section__details">
                 <summary id="faq-section__summary">
-                    <span id="faq-section__q-text">${question}</span>
-                    <span id="faq-section__icon" aria-hidden="true"></span>
+                    <h3 id="faq-section__q-text">${question}</h3>
+                    <p id="faq-section__icon" aria-hidden="true"></p>
                 </summary>
 
                 <div id="faq-section__a-inner">
@@ -91,11 +91,11 @@ function renderEditor() {
 
   <div class="faq-editor__fields">
     <label class="faq-field">
-      <span>Pergunta</span>
+      <h3>Pergunta</h3>
       <input type="text" value="${escapeHtml(item.question)}" data-field="question" autocomplete="off">
     </label>
     <label class="faq-field">
-      <span>Resposta</span>
+      <p>Resposta</p>
       <textarea data-field="answer">${escapeHtml(item.answer)}</textarea>
     </label>
   </div>
