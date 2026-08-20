@@ -2,9 +2,10 @@ import { applicationDefault, cert, getApps, initializeApp } from 'firebase-admin
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { config } from './config.js';
+import { normalizePrivateKey } from './credentials.js';
 
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
-const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n').trim();
+const privateKey = normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY);
 
 if (Boolean(clientEmail) !== Boolean(privateKey)) {
   throw new Error('FIREBASE_CLIENT_EMAIL e FIREBASE_PRIVATE_KEY devem ser definidos juntos.');

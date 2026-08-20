@@ -76,7 +76,7 @@ O arquivo `render.yaml`, na raiz do repositório, descreve um Web Service gratui
 4. Confirme o serviço `fastseo-users-backend-maicons` no plano Free.
 5. Quando solicitado, preencha as duas variáveis marcadas como secretas:
    - `FIREBASE_CLIENT_EMAIL`: copie somente o valor `client_email` do JSON local da conta de serviço;
-   - `FIREBASE_PRIVATE_KEY`: copie somente o valor `private_key`. O valor pode ser colado com várias linhas ou com `\\n`.
+   - `FIREBASE_PRIVATE_KEY`: copie somente o valor `private_key`. O backend aceita várias linhas, `\\n` ou o valor completo entre aspas do JSON; não copie o nome do campo nem a vírgula final.
 6. Crie o Blueprint e aguarde o primeiro deploy terminar.
 7. Abra `https://fastseo-users-backend-maicons.onrender.com/health` e confirme a resposta `{"status":"ok"}`.
 
