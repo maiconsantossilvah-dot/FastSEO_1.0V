@@ -13,7 +13,7 @@ export const PromptModal = {
     overlay.className = 'modal-overlay modal-overlay--prompt';
     overlay.id = 'promptModalOverlay';
     overlay.innerHTML = `
-      <div class="modal modal--lg">
+      <div class="modal modal--lg modal--prompt-editor">
         <div class="modal-hdr">
           <span class="modal-title"><i data-lucide="braces" aria-hidden="true"></i> Prompts dos agentes</span>
           <button class="modal-close" id="promptModalCloseBtn" type="button" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button>

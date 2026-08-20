@@ -27,7 +27,7 @@ export const AnalyticsModal = {
       : `<div class="ui-empty-state"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><strong>Nenhum processamento registrado</strong><p>Execute o pipeline para começar a acompanhar volume, qualidade e tempo médio.</p><button class="btn btn-primary" id="analyticsStartBtn" type="button">Processar primeira ficha</button></div>`;
 
     overlay.innerHTML = `
-      <div class="modal" style="max-width:480px">
+      <div class="modal modal--analytics">
         <div class="modal-hdr"><span class="modal-title"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i> Analytics de uso</span><button class="modal-close" id="analyticsCloseBtn" type="button" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button></div>
         <div class="modal-body">${body}</div>
         <div class="modal-ftr" style="justify-content:flex-end"><button class="btn btn-primary" id="analyticsCloseBtnFtr">Fechar</button></div>

@@ -30,7 +30,7 @@ export const CategoriasModal = {
     overlay.innerHTML = `
       <div class="modal modal--cats">
         <div class="modal-hdr">
-          <span class="modal-title">Categorias de Referência</span>
+          <span class="modal-title"><i data-lucide="tags" aria-hidden="true"></i> Categorias de referência</span>
           <button class="modal-close" id="catsModalClose" type="button" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button>
         </div>
 
@@ -38,7 +38,7 @@ export const CategoriasModal = {
           <div class="cats-list-col">
             <div class="cats-search-row">
               <input type="text" id="catsBusca" placeholder="Buscar categoria..." autocomplete="off"/>
-              <button class="btn btn-primary" id="catsAddBtn" style="white-space:nowrap;padding:7px 14px;font-size:12px"><i data-lucide="plus" aria-hidden="true"></i> Nova</button>
+              <button class="btn btn-primary" id="catsAddBtn" type="button"><i data-lucide="plus" aria-hidden="true"></i> Nova</button>
             </div>
             <div class="cats-list" id="catsList"></div>
             <div class="cats-list-footer" id="catsFooter"></div>

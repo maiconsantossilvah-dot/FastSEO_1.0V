@@ -776,7 +776,7 @@ export const ConfigModal = {
     overlay.id = 'configModalOverlay';
     overlay.className = 'modal-overlay';
     overlay.innerHTML = `
-      <div class="modal modal--lg">
+      <div class="modal modal--lg modal--config">
         <div class="modal-hdr">
           <span class="modal-title"><i data-lucide="key-round" aria-hidden="true"></i> APIs e modelos</span>
           <button class="modal-close" id="configModalClose" type="button" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button>
