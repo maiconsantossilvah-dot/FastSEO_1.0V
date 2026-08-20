@@ -1,0 +1,56 @@
+import { loadEnvFile } from 'node:process';
+
+try {
+  loadEnvFile();
+} catch (error) {
+  if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+}
+
+function list(value: string | undefined): string[] {
+  return (value || '')
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function origins(value: string | undefined): string[] {
+  return list(value).map(item => {
+    try {
+      const url = new URL(item);
+      if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+      return url.origin;
+    } catch {
+      throw new Error(`Origem inválida em FRONTEND_ORIGINS: ${item}`);
+    }
+  });
+}
+
+const port = Number(process.env.PORT || 8787);
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  throw new Error('PORT deve ser um número entre 1 e 65535.');
+}
+
+const environment = process.env.NODE_ENV || 'development';
+const isProduction = environment === 'production';
+const frontendOrigins = origins(process.env.FRONTEND_ORIGINS);
+const bootstrapOwnerEmails = new Set(
+  list(process.env.BOOTSTRAP_OWNER_EMAILS).map(email => email.toLocaleLowerCase('pt-BR')),
+);
+
+if (isProduction && frontendOrigins.length === 0) {
+  throw new Error('FRONTEND_ORIGINS é obrigatório em produção.');
+}
+
+if (isProduction && bootstrapOwnerEmails.size > 0) {
+  throw new Error('BOOTSTRAP_OWNER_EMAILS deve permanecer vazio em produção.');
+}
+
+export const config = Object.freeze({
+  port,
+  host: process.env.HOST || '0.0.0.0',
+  environment,
+  isProduction,
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'fastseo-6a61b',
+  frontendOrigins,
+  bootstrapOwnerEmails,
+});

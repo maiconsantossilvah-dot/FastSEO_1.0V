@@ -13,6 +13,7 @@ const viewCommands = [
   { id: 'showFaqViewBtn', icon: 'messages-square', label: 'Criador de FAQ', description: 'Editar perguntas e copiar HTML', group: 'Trabalho' },
   { id: 'openHistoricoBtn', icon: 'history', label: 'Histórico', description: 'Consultar fichas geradas', group: 'Trabalho' },
   { id: 'openCategoriasBtn', icon: 'tags', label: 'Categorias', description: 'Editar referências e exemplos', group: 'Administração' },
+  { id: 'openUsersBtn', icon: 'users-round', label: 'Usuários', description: 'Gerenciar acessos, cargos e status', group: 'Administração' },
   { id: 'openSubcatBtn', icon: 'list-filter', label: 'Padrões de títulos', description: 'Gerenciar regras por subcategoria', group: 'Administração' },
   { id: 'openPromptsBtn', icon: 'braces', label: 'Prompts', description: 'Editar instruções dos agentes', group: 'Administração' },
   { id: 'openConfigBtn', icon: 'key-round', label: 'APIs e modelos', description: 'Configurar chaves e modelos', group: 'Administração' },
@@ -130,6 +131,8 @@ function renderCommands(query = '') {
   if (!results) return;
   const normalized = query.trim().toLocaleLowerCase('pt-BR');
   commandItems = viewCommands.filter(command => {
+    const target = $(command.id);
+    if (!target || target.hidden) return false;
     const content = `${command.label} ${command.description} ${command.group}`.toLocaleLowerCase('pt-BR');
     return !normalized || content.includes(normalized);
   });

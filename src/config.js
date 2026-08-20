@@ -9,10 +9,17 @@ export const FIREBASE_CONFIG = {
 };
 export const GEMINI_DEFAULT_MODEL = "gemini-3.5-flash-lite";
 export const MISTRAL_MODEL = "mistral-medium-latest";
+
+const LOCAL_USERS_API = 'http://localhost:8787/api';
+const CLOUD_RUN_USERS_API = 'https://fastseo-users-backend-460968097608.southamerica-east1.run.app/api';
+const isLocalHost = /^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostname || '');
+
 export const APP_CONFIG = {
   historyMaxItems: 50,
   logsMaxItems:    300,
   inputMaxChars:   12000,
   autoSaveDelay:   700,
   toastDuration:   2000,
+  usersApiBaseUrl: globalThis.FASTSEO_BACKEND_URL
+    || (isLocalHost ? LOCAL_USERS_API : CLOUD_RUN_USERS_API),
 };
