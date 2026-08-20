@@ -11,6 +11,12 @@ import { SidebarUI } from './components/SidebarUI.js';
 import { PipelineUI } from './components/PipelineUI.js';
 import { HistoryUI } from './components/HistoryUI.js';
 import { ConfigModal, ConfigUI } from './components/ConfigUI.js';
+import { AppShell } from './components/AppShell.js';
+import { AnalyticsModal } from './components/AnalyticsModal.js';
+import { CategoriasModal } from './components/CategoriasModal.js';
+import { HistoryModal } from './components/HistoryModal.js';
+import { PromptModal } from './components/PromptModal.js';
+import { SubcatModal } from './components/SubcatModal.js';
 import { AppState } from './modules/state.js';
 import { Utils } from './utils/index.js';
 
@@ -37,9 +43,10 @@ const Export = {
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById(btnId);
       if (!btn) return;
-      const original = btn.textContent;
-      btn.textContent = '✓ Copiado!';
-      setTimeout(() => { btn.textContent = original; }, 1800);
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="check" aria-hidden="true"></i><span>Copiado</span>';
+      AppShell.refreshIcons();
+      setTimeout(() => { btn.innerHTML = original; AppShell.refreshIcons(); }, 1800);
       PipelineUI.toast('Resultado copiado.', 'ok');
     }).catch(err => {
       PipelineUI.log(`Erro ao copiar: ${err.message}`, 'e');
@@ -376,9 +383,10 @@ Utilize as informações da ficha abaixo:`;
     const btn = document.getElementById('copyFichaComTextoBtn');
     if (!btn) return;
 
-    const original = btn.textContent;
-    btn.textContent = '✓ Copiado!';
-    setTimeout(() => { btn.textContent = original; }, 1800);
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="check" aria-hidden="true"></i><span>Copiado</span>';
+    AppShell.refreshIcons();
+    setTimeout(() => { btn.innerHTML = original; AppShell.refreshIcons(); }, 1800);
 
     PipelineUI.toast('Ficha com texto copiada.', 'ok');
   }).catch(err => {
@@ -439,7 +447,7 @@ document.addEventListener('fastseo:catsChanged', () => {
   SidebarUI.render();
   updateInputCategoryHint();
   if (document.getElementById('categoriasModalOverlay')) {
-    import('./components/CategoriasModal.js').then(({ CategoriasModal }) => CategoriasModal.onCatsChanged());
+    CategoriasModal.onCatsChanged();
   }
 });
 
@@ -502,18 +510,15 @@ const themeBtn = document.getElementById('themeToggleBtn');
 
 function setTheme(mode) {
   document.documentElement.setAttribute('data-theme', mode);
-  localStorage.setItem('fastseo_theme_mode', mode);
+  try { localStorage.setItem('fastseo_theme_mode', mode); } catch {}
 
   if (themeBtn) {
-    const isLight = mode === 'light';
-
-    themeBtn.textContent = isLight ? '☾' : '☀';
-    themeBtn.title = isLight ? 'Mudar para tema escuro' : 'Mudar para tema claro';
-    themeBtn.setAttribute('aria-label', themeBtn.title);
+    AppShell.renderThemeIcon(mode);
   }
 }
 
-const savedTheme = localStorage.getItem('fastseo_theme_mode') || 'dark';
+let savedTheme = 'dark';
+try { savedTheme = localStorage.getItem('fastseo_theme_mode') || 'dark'; } catch {}
 setTheme(savedTheme);
 
 themeBtn?.addEventListener('click', () => {
@@ -560,6 +565,10 @@ function showMainView(view) {
   } else {
     swapView();
   }
+  try {
+    history.replaceState(null, '', `#${view}`);
+    localStorage.setItem('fastseo_current_view', view);
+  } catch {}
 }
 
 document.getElementById('showFichaViewBtn')?.addEventListener('click', () => showMainView('ficha'));
@@ -576,25 +585,15 @@ document.getElementById('showDocsViewBtn')?.addEventListener('click', () => {
   showMainView('docs');
 });
 
-document.getElementById('openPromptsBtn')?.addEventListener('click', async () => {
-  const { PromptModal } = await import('./components/PromptModal.js');
-  PromptModal.open();
-});
-document.getElementById('openAnalyticsBtn')?.addEventListener('click', async () => {
-  const { AnalyticsModal } = await import('./components/AnalyticsModal.js');
-  AnalyticsModal.open();
-});
-document.getElementById('openSubcatBtn')?.addEventListener('click', async () => {
-  const { SubcatModal } = await import('./components/SubcatModal.js');
-  SubcatModal.open();
-});
+document.getElementById('openPromptsBtn')?.addEventListener('click', () => PromptModal.open());
+document.getElementById('openAnalyticsBtn')?.addEventListener('click', () => AnalyticsModal.open());
+document.getElementById('openSubcatBtn')?.addEventListener('click', () => SubcatModal.open());
 document.getElementById('openConfigBtn')?.addEventListener('click', async () => {
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateQuotaInfo();
   ConfigModal.open();
 });
-document.getElementById('openCategoriasBtn')?.addEventListener('click', async () => {
-  const { CategoriasModal } = await import('./components/CategoriasModal.js');
+document.getElementById('openCategoriasBtn')?.addEventListener('click', () => {
   CategoriasModal.open();
 
 });
@@ -686,20 +685,18 @@ document.getElementById('regenConteudoBtn')?.addEventListener('click', async () 
 
   // Feedback visual durante a geração
   btn.classList.add('regen-loading');
-  btn.textContent = 'Gerando...';
+  btn.innerHTML = '<span class="loading-spinner" aria-hidden="true"></span><span>Gerando...</span>';
 
   try {
     await Pipeline.rerunCopywriter();
   } finally {
     btn.classList.remove('regen-loading');
-    btn.textContent = 'Regenerar';
+    btn.innerHTML = '<i data-lucide="refresh-cw" aria-hidden="true"></i><span>Regenerar</span>';
+    AppShell.refreshIcons();
   }
 });
 
-document.getElementById('openHistoricoBtn')?.addEventListener('click', async () => {
-  const { HistoryModal } = await import('./components/HistoryModal.js');
-  HistoryModal.open();
-});
+document.getElementById('openHistoricoBtn')?.addEventListener('click', () => HistoryModal.open());
 // busca/filtro agora vivem dentro do HistoryModal
 // clearHistoricoBtn é dinâmico (dentro do modal) — usar delegação no document
 document.addEventListener('click', async e => {
@@ -723,4 +720,17 @@ document.addEventListener('click', async e => {
   }
 });
 // focus/blur do historicoBusca agora geridos dentro do HistoryModal
+
+// Shell visual, navegação responsiva, Lucide, atalhos e rascunhos.
+AppShell.init();
+
+let initialView = location.hash.slice(1) || 'ficha';
+try { initialView = location.hash.slice(1) || localStorage.getItem('fastseo_current_view') || 'ficha'; } catch {}
+const initialViewButton = {
+  ficha: 'showFichaViewBtn',
+  faq: 'showFaqViewBtn',
+  compiler: 'showCompilerViewBtn',
+  docs: 'showDocsViewBtn',
+}[initialView];
+if (initialViewButton && initialView !== 'ficha') document.getElementById(initialViewButton)?.click();
 

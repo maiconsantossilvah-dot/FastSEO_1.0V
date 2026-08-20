@@ -13,6 +13,7 @@ src/
   assets/
     img/
   components/
+    AppShell.js
     AnalyticsModal.js
     CategoriasModal.js
     CategoryModal.js
@@ -45,6 +46,7 @@ src/
     serp.js
   styles/
     main.css
+    redesign.css
   utils/
     index.js
     matching.js
@@ -60,6 +62,8 @@ src/
 - `src/components/`: modais e elementos de interface.
 - `src/utils/`: helpers puros de sanitização, matching e clipboard.
 - `src/styles/`: CSS principal.
+- `src/components/AppShell.js`: shell responsivo, Lucide, central de comandos, atalhos e rascunhos locais.
+- `src/styles/redesign.css`: tokens azul/branco, componentes reutilizáveis, responsividade e motion da interface atual.
 - `src/assets/img/`: imagens usadas por temas e placeholders.
 
 ## Como rodar
@@ -84,5 +88,12 @@ A aplicação usa:
 - Firestore para `categories`, `subcategories`, `prompts`, `history` e `usuarios_autorizados`.
 - `categories` usa `nome`, `camposObrigatorios`, `camposOpcionais`, `fichaIdeal` e `qaSchema`.
 - Categorias antigas com `campos` e `ficha` são migradas automaticamente para o novo formato.
+
+## Interface
+
+- A iconografia usa Lucide 1.31.0 carregado por CDN com versão fixa.
+- Animações e transições reutilizáveis ficam em CSS; JavaScript apenas coordena classes e estados.
+- `prefers-reduced-motion` desativa movimento não essencial.
+- A identidade visual usa o azul e o branco do favicon nos temas claro e escuro.
 
 Para autorizar um usuário, crie um documento na coleção `usuarios_autorizados` usando o e-mail como ID do documento.

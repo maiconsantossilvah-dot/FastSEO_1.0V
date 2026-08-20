@@ -73,11 +73,12 @@ O Histórico guarda fichas já geradas.
 A aba Criador de FAQ serve para montar um bloco de perguntas e respostas em HTML.
 
 1. Abra a aba Criador de FAQ.
-2. Preencha perguntas e respostas manualmente.
-3. Ou cole um bloco com perguntas e respostas no campo de preenchimento em massa.
-4. Clique em Preencher campos.
+2. Escolha **Manual** para editar cada pergunta ou **Em massa** para colar vários pares.
+3. No modo em massa, cole uma lista numerada ou blocos com tags `<Q>` e `<A>`.
+4. Clique em Interpretar conteúdo.
 5. Confira a prévia.
-6. Copie o HTML final.
+6. Alterne para a aba HTML se quiser revisar o código.
+7. Copie o HTML final.
 
 Formatos aceitos:
 
@@ -127,6 +128,14 @@ Somente fontes preenchidas entram no TXT final.
 7. Clique em Copiar TXT ou Baixar `.txt`.
 
 O arquivo TXT baixado usa o Código do Produto como nome. Exemplo: `111255.txt`.
+
+## Atalhos e Navegação
+
+- `Ctrl + K` ou `Cmd + K`: abre a busca de telas e ferramentas.
+- `Ctrl + Enter` ou `Cmd + Enter`: executa a ação principal da tela atual.
+- `Esc`: fecha a busca, dialogs ou navegação móvel.
+- Em notebooks e celulares, use o botão de menu para abrir a navegação.
+- O FastSEO salva rascunhos locais da Ficha Técnica, Compilador e FAQ para evitar perda acidental durante a navegação.
 
 ## Boas Práticas de Uso
 

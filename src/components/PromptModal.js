@@ -15,8 +15,8 @@ export const PromptModal = {
     overlay.innerHTML = `
       <div class="modal modal--lg">
         <div class="modal-hdr">
-          <span class="modal-title">✏️ Editar Prompts dos Agentes</span>
-          <button class="modal-close" id="promptModalCloseBtn">✕</button>
+          <span class="modal-title"><i data-lucide="braces" aria-hidden="true"></i> Prompts dos agentes</span>
+          <button class="modal-close" id="promptModalCloseBtn" type="button" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button>
         </div>
         <div class="modal-body" style="gap:14px">
           <div class="prompt-tab-row" id="promptTabs"></div>
@@ -25,7 +25,7 @@ export const PromptModal = {
         </div>
         <div class="modal-ftr">
           <button class="btn btn-secondary" id="promptRestoreBtn">Restaurar padrão</button>
-          <span class="modal-saved" id="promptSavedMsg">✓ Salvo</span>
+          <span class="modal-saved" id="promptSavedMsg"><i data-lucide="check" aria-hidden="true"></i> Salvo</span>
           <button class="btn btn-primary" id="promptCloseBtn">Fechar</button>
         </div>
       </div>`;
