@@ -1975,9 +1975,13 @@ input::placeholder {
 
 /* Acesso e administração de usuários */
 .access-screen {
+  width: 100%;
   min-height: 100vh;
-  display: grid;
-  place-items: center;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   padding: 24px;
   background:
     radial-gradient(circle at 50% 25%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 34%),
