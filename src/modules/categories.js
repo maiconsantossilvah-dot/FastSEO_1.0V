@@ -11,7 +11,6 @@ import {
   needsCategoryMigration,
   normalizeCategory,
 } from './categoryQaSchema.js';
-import { UserAccess } from '../services/userAccess.js';
 const LS_CATS = 'ficha_categorias'; // chave de cache local
 
 // Cache em memória (atualizado pelo listener em tempo real)
@@ -112,7 +111,6 @@ export const Categories = {
   },
 
   _migrateLegacyCategories(cats) {
-    if (!UserAccess.can('editContent')) return;
     (cats || []).forEach(cat => {
       if (!cat?.id || !needsCategoryMigration(cat) || _migrationQueue.has(cat.id)) return;
       _migrationQueue.add(cat.id);

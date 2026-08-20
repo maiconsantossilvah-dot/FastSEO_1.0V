@@ -192,7 +192,7 @@
   <div id="loginScreen" style="display:none">
     <div class="login-card">
       <div class="login-logo">Fast<span>SEO</span></div>
-      <p class="login-subtitle">Acesso restrito à equipe.<br />Entre com sua conta Google para solicitar ou validar o acesso.</p>
+      <p class="login-subtitle">Acesso restrito à equipe.<br />Entre com sua conta Google autorizada.</p>
       <button id="loginGoogleBtn">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
@@ -212,21 +212,6 @@
       </button>
       <div id="loginError"></div>
     </div>
-  </div>
-
-  <!-- Estado de acesso: pendente, rejeitado, suspenso ou backend indisponível -->
-  <div id="accessScreen" class="access-screen" style="display:none">
-    <section class="access-card" aria-labelledby="accessTitle">
-      <span class="access-card__icon" id="accessIcon"><i data-lucide="clock-3" aria-hidden="true"></i></span>
-      <span class="access-card__eyebrow">Acesso ao FastSEO</span>
-      <h1 id="accessTitle">Solicitação em análise</h1>
-      <p id="accessMessage">A solicitação de acesso está aguardando aprovação.</p>
-      <div class="access-account"><strong id="accessDisplayName"></strong><span id="accessEmail"></span></div>
-      <div class="access-actions">
-        <button class="btn btn-primary" id="accessRetryBtn" type="button"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Verificar novamente</span></button>
-        <button class="btn btn-secondary" id="accessLogoutBtn" type="button"><i data-lucide="log-out" aria-hidden="true"></i><span>Sair</span></button>
-      </div>
-    </section>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════
@@ -263,7 +248,7 @@
       </button>
       <div class="topbar-account">
         <span class="topbar-account__avatar" aria-hidden="true"><i data-lucide="user-round"></i></span>
-        <span class="topbar-account__identity"><span id="userDisplayName"></span><small id="userRoleLabel"></small></span>
+        <span id="userDisplayName"></span>
         <button id="logoutBtn" class="ui-quiet-btn" title="Sair" type="button">
           <i data-lucide="log-out" aria-hidden="true"></i><span>Sair</span>
         </button>
@@ -330,13 +315,6 @@
           <span>
             <strong>Categorias</strong>
             <small>Referências e exemplos</small>
-          </span>
-        </button>
-        <button id="openUsersBtn" class="app-nav-item" type="button" hidden>
-          <i data-lucide="users-round" aria-hidden="true"></i>
-          <span>
-            <strong>Usuários</strong>
-            <small>Acessos, cargos e status</small>
           </span>
         </button>
         <button id="openConfigBtn" class="app-nav-item" type="button">

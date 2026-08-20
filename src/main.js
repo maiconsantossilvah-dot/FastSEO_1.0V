@@ -1,5 +1,4 @@
 import { Auth } from './services/auth.js';
-import { UserAccess } from './services/userAccess.js';
 import { Categories } from './modules/categories.js';
 import { History } from './modules/history.js';
 import { Prompts } from './modules/prompts.js';
@@ -18,7 +17,6 @@ import { CategoriasModal } from './components/CategoriasModal.js';
 import { HistoryModal } from './components/HistoryModal.js';
 import { PromptModal } from './components/PromptModal.js';
 import { SubcatModal } from './components/SubcatModal.js';
-import { UsersModal } from './components/UsersModal.js';
 import { AppState } from './modules/state.js';
 import { Utils } from './utils/index.js';
 
@@ -427,74 +425,19 @@ Utilize as informações da ficha abaixo:`;
 function showLogin() {
   document.getElementById('appLoading').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('accessScreen').style.display = 'none';
   document.getElementById('appHeader').style.display = 'none';
   document.getElementById('appLayout').style.display = 'none';
-  if (_loginBtn) {
-    _loginBtn.disabled = false;
-    _loginBtn.innerHTML = _loginBtnHTML;
-  }
 }
 
 function showApp(user) {
   document.getElementById('appLoading').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('accessScreen').style.display = 'none';
   document.getElementById('appHeader').style.display = '';
   document.getElementById('appLayout').style.display = '';
 
   // Mostra nome do usuário no header
   const nameEl = document.getElementById('userDisplayName');
   if (nameEl) nameEl.textContent = user.displayName || user.email;
-}
-
-const ACCESS_COPY = {
-  pending: {
-    icon: 'clock-3',
-    title: 'Solicitação em análise',
-    message: 'A solicitação de acesso está aguardando aprovação. Assim que um administrador aprovar, a entrada será liberada como espectador.',
-  },
-  rejected: {
-    icon: 'circle-x',
-    title: 'Solicitação não aprovada',
-    message: 'Esta solicitação de acesso foi rejeitada. Entre em contato com um administrador do FastSEO se precisar de uma nova análise.',
-  },
-  suspended: {
-    icon: 'circle-pause',
-    title: 'Acesso suspenso',
-    message: 'Seu acesso ao FastSEO está temporariamente suspenso. Entre em contato com um administrador para solicitar a reativação.',
-  },
-  error: {
-    icon: 'cloud-off',
-    title: 'Não foi possível validar o acesso',
-    message: 'O serviço de usuários não respondeu. Inicie ou verifique o backend e tente novamente.',
-  },
-};
-
-function showAccessState(firebaseUser, status = 'pending', detail = '') {
-  const copy = ACCESS_COPY[status] || ACCESS_COPY.error;
-  document.getElementById('appLoading').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('accessScreen').style.display = 'flex';
-  document.getElementById('appHeader').style.display = 'none';
-  document.getElementById('appLayout').style.display = 'none';
-  document.getElementById('accessIcon').innerHTML = `<i data-lucide="${copy.icon}" aria-hidden="true"></i>`;
-  document.getElementById('accessTitle').textContent = copy.title;
-  document.getElementById('accessMessage').textContent = detail || copy.message;
-  document.getElementById('accessDisplayName').textContent = firebaseUser?.displayName || 'Conta Google';
-  document.getElementById('accessEmail').textContent = firebaseUser?.email || '';
-  AppShell.refreshIcons();
-}
-
-function applyAccessExperience() {
-  const { user, permissions } = UserAccess.current();
-  const roleLabels = { owner: 'Proprietário', admin: 'Administrador', collaborator: 'Colaborador', viewer: 'Espectador' };
-  const roleEl = document.getElementById('userRoleLabel');
-  if (roleEl) roleEl.textContent = roleLabels[user?.role] || '';
-  document.body.classList.toggle('is-read-only', permissions?.editContent === false);
-  document.getElementById('openUsersBtn')?.toggleAttribute('hidden', !permissions?.viewUsers);
-  document.getElementById('openPromptsBtn')?.toggleAttribute('hidden', !permissions?.viewPrompts);
-  UserAccess.enforceReadOnly(document);
 }
 
 // ── Inicialização do app (só roda uma vez após login) ─────────
@@ -508,19 +451,16 @@ document.addEventListener('fastseo:catsChanged', () => {
   }
 });
 
-let appCleanups = [];
 async function init() {
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateCharCount();
   ConfigUI.updateQuotaInfo();
   FAQCreator.init();
-  appCleanups = [
-    Categories.startSync(),
-    History.startSync(),
-    Prompts.startSync(),
-    SubcatModule.startSync(),
-  ].filter(cleanup => typeof cleanup === 'function');
-  if (UserAccess.can('editContent')) SubcatModule.migrateDefaultsToFirestore().catch(console.warn);
+  const _unsubCategories = Categories.startSync();
+  const _unsubHistory = History.startSync();
+  const _unsubPrompts = Prompts.startSync();
+  const _unsubSubcategories = SubcatModule.startSync();
+  SubcatModule.migrateDefaultsToFirestore().catch(console.warn);
   SidebarUI.render();
   updateRunReadiness();
   // Painel começa fechado — History.startSync() atualiza só o badge.
@@ -529,45 +469,17 @@ async function init() {
 
 // ── Observador de autenticação ────────────────────────────────
 let appStarted = false;
-let authRevision = 0;
-
-async function handleAuthenticatedUser(firebaseUser) {
-  const revision = ++authRevision;
-  document.getElementById('appLoading').style.display = 'flex';
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('accessScreen').style.display = 'none';
-  try {
-    const access = await UserAccess.initialize();
-    if (revision !== authRevision) return;
-    if (access.user?.status !== 'active' || !access.user?.role) {
-      showAccessState(firebaseUser, access.user?.status || 'pending');
-      return;
-    }
-    showApp(firebaseUser);
-    applyAccessExperience();
-    if (!appStarted) {
-      appStarted = true;
-      await init();
-      UserAccess.enforceReadOnly(document);
-    }
-  } catch (error) {
-    if (revision !== authRevision) return;
-    showAccessState(firebaseUser, 'error', error.message);
-  }
-}
 
 Auth.onChange(user => {
   if (user) {
-    handleAuthenticatedUser(user);
-    return;
+    showApp(user);
+    if (!appStarted) {
+      appStarted = true;
+      init();
+    }
+  } else {
+    showLogin();
   }
-  authRevision += 1;
-  UserAccess.clear();
-  document.body.classList.remove('is-read-only');
-  appCleanups.forEach(cleanup => cleanup());
-  appCleanups = [];
-  appStarted = false;
-  showLogin();
 });
 
 // ── Botão de login ────────────────────────────────────────────
@@ -592,11 +504,6 @@ _loginBtn?.addEventListener('click', async () => {
 
 // ── Botão de logout ───────────────────────────────────────────
 document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
-document.getElementById('accessLogoutBtn')?.addEventListener('click', () => Auth.logout());
-document.getElementById('accessRetryBtn')?.addEventListener('click', () => {
-  const user = Auth.currentUser();
-  if (user) handleAuthenticatedUser(user);
-});
 
 // ── Botão de tema claro/escuro ────────────────────────────────
 const themeBtn = document.getElementById('themeToggleBtn');
@@ -678,10 +585,7 @@ document.getElementById('showDocsViewBtn')?.addEventListener('click', () => {
   showMainView('docs');
 });
 
-document.getElementById('openPromptsBtn')?.addEventListener('click', () => {
-  if (UserAccess.can('viewPrompts')) PromptModal.open();
-});
-document.getElementById('openUsersBtn')?.addEventListener('click', () => UsersModal.open());
+document.getElementById('openPromptsBtn')?.addEventListener('click', () => PromptModal.open());
 document.getElementById('openAnalyticsBtn')?.addEventListener('click', () => AnalyticsModal.open());
 document.getElementById('openSubcatBtn')?.addEventListener('click', () => SubcatModal.open());
 document.getElementById('openConfigBtn')?.addEventListener('click', async () => {
@@ -702,7 +606,7 @@ function updateRunReadiness() {
   if (!btn) return;
 
   // Evita iniciar o pipeline sem dados brutos no campo principal.
-  const ready = input.length > 0 && UserAccess.can('editContent');
+  const ready = input.length > 0;
   btn.disabled = !ready;
   btn.title = ready ? 'Processar ficha técnica' : 'Cole os dados do produto para processar';
 }

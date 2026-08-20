@@ -14,7 +14,6 @@
  */
 
 import { db } from './firebase.js';
-import { UserAccess } from '../services/userAccess.js';
 
 import {
   collection,
@@ -56,7 +55,6 @@ export const CategoriesDB = {
   },
 
   async create(data) {
-    UserAccess.assert('editContent');
     const payload = cleanUndefined({
       ...data,
       nome: data.nome || 'Nova Categoria',
@@ -67,7 +65,6 @@ export const CategoriesDB = {
   },
 
   async update(id, data) {
-    UserAccess.assert('editContent');
     await updateDoc(doc(db, 'categories', id), {
       ...cleanUndefined(data),
       updatedAt: serverTimestamp(),
@@ -75,7 +72,6 @@ export const CategoriesDB = {
   },
 
   async delete(id) {
-    UserAccess.assert('editContent');
     await deleteDoc(doc(db, 'categories', id));
   },
 
@@ -98,7 +94,6 @@ export const SubcategoriesDB = {
   },
 
   async upsert(nome, data) {
-    UserAccess.assert('editContent');
     const id = nome.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
     await setDoc(doc(db, 'subcategories', id), {
       nome:    data.nome    || nome,
@@ -108,7 +103,6 @@ export const SubcategoriesDB = {
   },
 
   async delete(nome) {
-    UserAccess.assert('editContent');
     const id = nome.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
     await deleteDoc(doc(db, 'subcategories', id));
   },
@@ -122,7 +116,6 @@ export const SubcategoriesDB = {
   },
 
   async importBatch(rules) {
-    UserAccess.assert('editContent');
     const batch = writeBatch(db);
     for (const rule of rules) {
       const id = rule.nome.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
@@ -144,7 +137,6 @@ export const PromptsDB = {
   },
 
   async save(key, value) {
-    UserAccess.assert('editPrompts');
     await setDoc(doc(db, 'prompts', key), {
       key,
       value,
@@ -153,7 +145,6 @@ export const PromptsDB = {
   },
 
   async delete(key) {
-    UserAccess.assert('editPrompts');
     await deleteDoc(doc(db, 'prompts', key));
   },
 
@@ -182,7 +173,6 @@ export const HistoryDB = {
   },
 
   async save(data) {
-    UserAccess.assert('editContent');
     await addDoc(Refs.history(), {
       preview:  data.preview  || '',
       ficha:    data.ficha    || '',
@@ -194,7 +184,6 @@ export const HistoryDB = {
   },
 
   async clearAll() {
-    UserAccess.assert('editContent');
     const snap  = await getDocs(Refs.history());
     const batch = writeBatch(db);
     snap.docs.forEach(d => batch.delete(d.ref));

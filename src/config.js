@@ -15,8 +15,4 @@ export const APP_CONFIG = {
   inputMaxChars:   12000,
   autoSaveDelay:   700,
   toastDuration:   2000,
-  usersApiBaseUrl: globalThis.FASTSEO_BACKEND_URL
-    || (/^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostname || '')
-      ? 'http://localhost:8787/api'
-      : '/api'),
 };
