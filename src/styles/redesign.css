@@ -535,12 +535,20 @@ body.sidebar-collapsed {
 body.sidebar-collapsed .app-sidebar__header .app-sidebar-label,
 body.sidebar-collapsed .app-nav-item > span,
 body.sidebar-collapsed .app-sidebar-group-toggle .app-sidebar-label {
-  opacity: 0;
-  pointer-events: none;
+  display: none;
+}
+
+body.sidebar-collapsed .app-sidebar.app-sidebar--control,
+body.sidebar-collapsed .app-sidebar-section,
+body.sidebar-collapsed .app-sidebar-group {
+  min-width: 0;
 }
 
 body.sidebar-collapsed .app-sidebar__header {
-  padding: 0 6px;
+  width: 42px;
+  min-width: 0;
+  padding: 0;
+  align-self: center;
   justify-content: center;
 }
 
@@ -550,12 +558,18 @@ body.sidebar-collapsed .sidebar-collapse-btn .lucide {
 
 body.sidebar-collapsed .app-nav-item {
   width: 42px;
+  min-width: 42px;
+  max-width: 42px;
   min-height: 42px;
   margin-inline: auto;
   padding: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.sidebar-collapsed .app-nav-item > .lucide {
+  margin: auto;
 }
 
 body.sidebar-collapsed .app-sidebar-group-toggle {
@@ -1372,17 +1386,29 @@ input::placeholder {
   }
 
   body.sidebar-collapsed .app-sidebar__header .app-sidebar-label,
-  body.sidebar-collapsed .app-nav-item > span,
   body.sidebar-collapsed .app-sidebar-group-toggle .app-sidebar-label {
-    opacity: 1;
-    pointer-events: auto;
+    display: inline;
+  }
+
+  body.sidebar-collapsed .app-nav-item > span {
+    display: block;
+  }
+
+  body.sidebar-collapsed .app-sidebar__header {
+    width: 100%;
+    padding: 0 4px 0 8px;
+    align-self: stretch;
+    justify-content: space-between;
   }
 
   body.sidebar-collapsed .app-nav-item {
     width: 100%;
+    min-width: 0;
+    max-width: none;
     min-height: 48px;
     margin: 0;
     padding: 7px 9px;
+    display: grid;
     grid-template-columns: 20px minmax(0, 1fr);
     place-items: initial;
   }
