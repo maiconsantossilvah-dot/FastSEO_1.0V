@@ -772,29 +772,29 @@ export const ConfigModal = {
     overlay.innerHTML = `
       <div class="modal modal--lg">
         <div class="modal-hdr">
-          <span class="modal-title">&#9881; Configuração de APIs</span>
-          <button class="modal-close" id="configModalClose">&times;</button>
+          <span class="modal-title"><i data-lucide="key-round" aria-hidden="true"></i> APIs e modelos</span>
+          <button class="modal-close" id="configModalClose" type="button" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button>
         </div>
         <div class="modal-body" style="gap:20px">
 
           <div class="setup-grid">
             <div class="field">
-              <label>API Key do Gemini <span style="color:var(--color-success);font-weight:400">&middot; A2 e A3</span></label>
+              <label for="apiKey">API Key do Gemini <span style="color:var(--color-success);font-weight:400">&middot; A2 e A3</span></label>
               <div class="key-wrap" id="apiKeySlot"><span class="key-status" id="keyStatus"></span></div>
               <div class="hint">Obtenha grátis em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
             </div>
             <div class="field">
-              <label>API Key da Mistral <span style="color:var(--color-success);font-weight:400">&middot; A1</span></label>
+              <label for="mistralKey">API Key da Mistral <span style="color:var(--color-success);font-weight:400">&middot; A1</span></label>
               <div class="key-wrap" id="mistralKeySlot"><span class="key-status" id="mistralKeyStatus"></span></div>
               <div class="hint">Grátis em <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> &mdash; sem cartão &middot; usado no A1 (Formatador)</div>
             </div>
             <div class="field" style="grid-column:1/-1">
-              <label>Modelo Gemini</label>
+              <label for="modelSel">Modelo Gemini</label>
               <div id="modelSelSlot"></div>
               <div class="hint" id="modelHint"></div>
             </div>
             <div class="field">
-              <label>Modo de processamento</label>
+              <label for="pipelineModeSel">Modo de processamento</label>
               <select id="pipelineModeSel">
                 <option value="quality">Qualidade (A1 + A2 + A3 opcional)</option>
               </select>
@@ -810,25 +810,33 @@ export const ConfigModal = {
             </div>
           </div>
 
-          <div class="config-section-divider">
-            <span>Chaves de Fallback</span>
-            <div class="hint" style="margin-top:4px">Acionadas automaticamente quando a chave primária retornar 503, 529 ou sobrecarga.</div>
-          </div>
-
-          <div class="setup-grid">
-            <div class="field">
-              <label>Gemini &mdash; Chave 2 <span class="fallback-badge">fallback</span></label>
-              <div class="key-wrap" id="apiKey2Slot"><span class="key-status" id="keyStatus2"></span></div>
+          <details class="config-advanced">
+            <summary>
+              <span><i data-lucide="waypoints" aria-hidden="true"></i> Chaves de fallback</span>
+              <small>Configuração avançada</small>
+            </summary>
+            <div class="hint">Acionadas automaticamente quando a chave primária retornar 503, 529 ou sobrecarga.</div>
+            <div class="setup-grid">
+              <div class="field">
+                <label for="apiKey2">Gemini &mdash; Chave 2 <span class="fallback-badge">fallback</span></label>
+                <div class="key-wrap" id="apiKey2Slot"><span class="key-status" id="keyStatus2"></span></div>
+              </div>
+              <div class="field">
+                <label for="mistralKey2">Mistral &mdash; Chave 2 <span class="fallback-badge">fallback</span></label>
+                <div class="key-wrap" id="mistralKey2Slot"><span class="key-status" id="mistralKeyStatus2"></span></div>
+              </div>
+              <div class="field">
+                <label for="apiKey3">Gemini &mdash; Chave 3 <span class="fallback-badge">fallback</span></label>
+                <div class="key-wrap" id="apiKey3Slot"><span class="key-status" id="keyStatus3"></span></div>
+              </div>
             </div>
-            <div class="field">
-              <label>Mistral &mdash; Chave 2 <span class="fallback-badge">fallback</span></label>
-              <div class="key-wrap" id="mistralKey2Slot"><span class="key-status" id="mistralKeyStatus2"></span></div>
-            </div>
-            <div class="field">
-              <label>Gemini &mdash; Chave 3 <span class="fallback-badge">fallback</span></label>
-              <div class="key-wrap" id="apiKey3Slot"><span class="key-status" id="keyStatus3"></span></div>
-            </div>
-          </div>
+          </details>
+        </div>
+        <div class="modal-ftr">
+          <span class="modal-saved" id="configSavedMsg"><i data-lucide="check" aria-hidden="true"></i> Salvo</span>
+          <span style="flex:1"></span>
+          <button class="btn btn-primary" id="configModalClose2" type="button">Concluir</button>
+        </div>
       </div>`;
 
     document.body.appendChild(overlay);

@@ -20,17 +20,17 @@ export const HistoryModal = {
       <div class="modal modal--lg modal--hist">
         <div class="modal-hdr">
           <div style="display:flex;align-items:center;gap:10px">
-            <span class="modal-title">📂 Histórico de Fichas</span>
+            <span class="modal-title"><i data-lucide="history" aria-hidden="true"></i> Histórico de fichas</span>
             <span id="historicoCountModal" style="font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(99,102,241,.15);color:#a5b4fc;border:1px solid rgba(99,102,241,.25);display:none"></span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <button id="clearHistoricoBtn" class="btn btn-danger" style="font-size:11px;padding:5px 12px">Limpar tudo</button>
-            <button class="modal-close" id="historicoModalClose">✕</button>
+            <button class="modal-close" id="historicoModalClose" type="button" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button>
           </div>
         </div>
         <div class="modal-body" style="gap:12px">
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <input id="historicoBusca" type="text" placeholder="🔍 Buscar no histórico..."
+          <div id="historicoControls" style="display:flex;gap:8px;flex-wrap:wrap">
+            <input id="historicoBusca" type="search" placeholder="Buscar no histórico..." aria-label="Buscar no histórico"
               style="flex:1;min-width:180px"/>
             <select id="historicoFiltro">
               <option value="todos">Todos</option>

@@ -23,6 +23,44 @@ function setStatus(message, type = '') {
   status.dataset.type = type;
 }
 
+function setFieldError(id, message = '') {
+  const field = $(id);
+  const error = document.querySelector(`[data-error-for="${id}"]`);
+  field?.setAttribute('aria-invalid', String(Boolean(message)));
+  if (error) {
+    error.textContent = message;
+    if (!error.id) error.id = `${id}Error`;
+    field?.setAttribute('aria-describedby', error.id);
+  }
+}
+
+function updateSourceCount() {
+  const sourceIds = [
+    'compilerFichaM3',
+    'compilerSiteFornecedor',
+    'compilerPdf',
+    'compilerPlaceholder',
+    'compilerSimplus',
+    'compilerEmailFornecedor',
+  ];
+  const filled = sourceIds.filter(id => getValue(id)).length;
+  const count = $('compilerSourcesCount');
+  if (count) count.textContent = `${filled} de ${sourceIds.length} preenchida${filled === 1 ? '' : 's'}`;
+}
+
+function updateActionAvailability() {
+  const hasOutput = Boolean($('compilerOutput')?.value?.trim());
+  ['compilerCopyBtn', 'compilerDownloadBtn'].forEach(id => {
+    const button = $(id);
+    if (!button) return;
+    button.disabled = !hasOutput;
+    button.title = hasOutput ? '' : 'Gere o TXT antes de usar esta ação';
+  });
+  $('compilerOutput')?.closest('.compiler-output-body')?.classList.toggle('has-output', hasOutput);
+  const empty = $('compilerOutputEmpty');
+  if (empty) empty.hidden = hasOutput;
+}
+
 function addSection(parts, title, value) {
   if (!value) return;
   parts.push('', `${title}:`, '', value);
@@ -65,9 +103,14 @@ function buildTxt() {
 
 function ensureValid() {
   const missing = getMissingRequiredFields();
+  requiredFields.forEach(field => {
+    setFieldError(field.id, missing.includes(field.label) ? `${field.label} é obrigatório.` : '');
+  });
   if (!missing.length) return true;
 
   setStatus(`Preencha: ${missing.join(', ')}.`, 'error');
+  const firstMissing = requiredFields.find(field => missing.includes(field.label));
+  $(firstMissing?.id)?.focus();
   return false;
 }
 
@@ -76,6 +119,7 @@ function updateOutput() {
   if (!ensureValid()) {
     const output = $('compilerOutput');
     if (output) output.value = '';
+    updateActionAvailability();
     return '';
   }
 
@@ -83,6 +127,7 @@ function updateOutput() {
   const output = $('compilerOutput');
   if (output) output.value = text;
   setStatus('TXT gerado.', 'ok');
+  updateActionAvailability();
   return text;
 }
 
@@ -112,12 +157,15 @@ function updateOutputAfterImport(message) {
     const output = $('compilerOutput');
     if (output) output.value = '';
     setStatus(`${message} Preencha os obrigatórios para gerar o TXT.`, 'ok');
+    updateActionAvailability();
     return;
   }
 
   const output = $('compilerOutput');
   if (output) output.value = buildTxt();
   setStatus(message, 'ok');
+  updateSourceCount();
+  updateActionAvailability();
 }
 
 function setPdfButtonBusy(on) {
@@ -125,14 +173,14 @@ function setPdfButtonBusy(on) {
   if (!btn) return;
 
   if (on) {
-    btn.dataset.defaultText = btn.dataset.defaultText || btn.textContent;
-    btn.textContent = 'Lendo PDF...';
+    btn.innerHTML = '<span class="loading-spinner" aria-hidden="true"></span><span>Lendo PDF...</span>';
     btn.disabled = true;
     return;
   }
 
-  btn.textContent = btn.dataset.defaultText || 'Importar PDF';
+  btn.innerHTML = '<i data-lucide="file-up" aria-hidden="true"></i><span>Importar PDF</span>';
   btn.disabled = false;
+  window.lucide?.createIcons?.();
 }
 
 function ensurePdfInput() {
@@ -228,13 +276,20 @@ async function copyTxt() {
 }
 
 function clearFields() {
+  const hasContent = [...document.querySelectorAll('[data-compiler-field]')].some(field => field.value.trim());
+  if (hasContent && !window.confirm('Limpar todos os dados do compilador?')) return;
+
   document.querySelectorAll('[data-compiler-field]').forEach(field => {
     field.value = '';
   });
 
   const output = $('compilerOutput');
   if (output) output.value = '';
+  requiredFields.forEach(field => setFieldError(field.id, ''));
   setStatus('', '');
+  updateSourceCount();
+  updateActionAvailability();
+  try { localStorage.removeItem('fastseo_draft_compiler'); } catch { /* noop */ }
   $('compilerCodigo')?.focus();
 }
 
@@ -245,6 +300,12 @@ function bindEvents() {
   $('compilerDownloadBtn')?.addEventListener('click', downloadTxt);
   $('compilerCopyBtn')?.addEventListener('click', copyTxt);
   $('compilerClearBtn')?.addEventListener('click', clearFields);
+  document.querySelectorAll('[data-compiler-field]').forEach(field => {
+    field.addEventListener('input', () => {
+      updateSourceCount();
+      if (requiredFields.some(item => item.id === field.id) && field.value.trim()) setFieldError(field.id, '');
+    });
+  });
 }
 
 export const DataCompiler = {
@@ -252,5 +313,7 @@ export const DataCompiler = {
     if (initialized) return;
     initialized = true;
     bindEvents();
+    updateSourceCount();
+    updateActionAvailability();
   },
 };

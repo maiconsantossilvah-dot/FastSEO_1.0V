@@ -94,17 +94,27 @@ function _renderList() {
   const page  = filtered.slice(start, start + PAGE_SIZE);
 
   lista.innerHTML = '';
+  const hasSavedItems = History.getAll().length > 0;
+  const controls = $('historicoControls');
+  const clearButton = $('clearHistoricoBtn');
+  if (controls) controls.hidden = !hasSavedItems;
+  if (clearButton) clearButton.hidden = !hasSavedItems;
+  lista.classList.toggle('is-empty', !hasSavedItems);
 
   // Estado vazio
   if (filtered.length === 0) {
     const busca  = $('historicoBusca')?.value?.trim();
     const filtro = $('historicoFiltro')?.value;
-    lista.innerHTML = `
-      <p style="color:var(--color-text-muted);font-size:12px;text-align:center;padding:24px 0;">
-        ${busca || filtro !== 'todos'
-          ? 'Nenhum resultado encontrado para o filtro aplicado.'
-          : 'Nenhum resultado salvo ainda.'}
-      </p>`;
+    const filteredEmpty = busca || filtro !== 'todos';
+    lista.innerHTML = filteredEmpty
+      ? `<div class="ui-empty-state"><i data-lucide="search-x" aria-hidden="true"></i><strong>Nenhum resultado encontrado</strong><p>Ajuste a busca ou os filtros para tentar novamente.</p></div>`
+      : `<div class="ui-empty-state"><i data-lucide="history" aria-hidden="true"></i><strong>Nenhuma ficha salva ainda</strong><p>As fichas concluídas aparecerão aqui para consulta e reutilização.</p><button class="btn btn-primary" id="historyStartBtn" type="button">Processar primeira ficha</button></div>`;
+    $('historyStartBtn')?.addEventListener('click', () => {
+      import('./HistoryModal.js').then(({ HistoryModal }) => HistoryModal.close());
+      $('showFichaViewBtn')?.click();
+      $('inputText')?.focus();
+    });
+    window.lucide?.createIcons?.();
     return;
   }
 

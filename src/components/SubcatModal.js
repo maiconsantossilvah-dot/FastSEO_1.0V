@@ -19,7 +19,7 @@ export const SubcatModal = {
       <div class="modal modal--lg" style="max-width:700px">
         <div class="modal-hdr">
           <span class="modal-title">Padronização de Títulos</span>
-          <button class="modal-close" id="subcatCloseBtn">✕</button>
+          <button class="modal-close" id="subcatCloseBtn" type="button" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button>
         </div>
         <div class="modal-body" style="gap:12px">
           <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6;">
@@ -30,12 +30,12 @@ export const SubcatModal = {
           <div class="subcat-toolbar">
             <input type="text" class="subcat-search" id="subcatSearch" placeholder="Filtrar por nome de categoria..." value="${Utils.escHtml(_search)}"/>
             <span class="subcat-count" id="subcatCount"></span>
-            <button class="btn btn-ghost" id="subcatResetBtn" style="font-size:11px">↺ Restaurar padrão</button>
+            <button class="btn btn-ghost" id="subcatResetBtn" style="font-size:11px"><i data-lucide="rotate-ccw" aria-hidden="true"></i> Restaurar padrão</button>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <div class="subcat-list" id="subcatList"></div>
-          <button class="btn btn-ghost" id="subcatAddToggleBtn" style="align-self:flex-start;font-size:12px">＋ Nova regra</button>
-          <button class="btn btn-ghost" id="subcatExportBtn" style="align-self:flex-start;font-size:12px">Exportar planilha</button>
+          <button class="btn btn-ghost" id="subcatAddToggleBtn" style="align-self:flex-start;font-size:12px"><i data-lucide="plus" aria-hidden="true"></i> Nova regra</button>
+          <button class="btn btn-ghost" id="subcatExportBtn" style="align-self:flex-start;font-size:12px"><i data-lucide="file-spreadsheet" aria-hidden="true"></i> Exportar planilha</button>
           </div>
           <div class="subcat-add-panel" id="subcatAddPanel">
   <div class="sf-row"><label>Nome da categoria</label>
@@ -104,7 +104,7 @@ export const SubcatModal = {
             </div>
           </div>
           <div class="subcat-actions">
-            <button class="btn btn-icon sc-del-btn" title="Excluir">🗑</button>
+            <button class="btn btn-icon sc-del-btn" title="Excluir" aria-label="Excluir"><i data-lucide="trash-2" aria-hidden="true"></i></button>
           </div>
         </div>`;
       }
@@ -115,8 +115,8 @@ export const SubcatModal = {
           ${rule.ex ? `<div class="subcat-ex">Ex: ${Utils.escHtml(rule.ex)}</div>` : ''}
         </div>
         <div class="subcat-actions">
-          <button class="btn btn-icon sc-edit-btn" title="Editar">✏️</button>
-          <button class="btn btn-icon sc-del-btn"  title="Excluir">🗑</button>
+          <button class="btn btn-icon sc-edit-btn" title="Editar" aria-label="Editar"><i data-lucide="pencil" aria-hidden="true"></i></button>
+          <button class="btn btn-icon sc-del-btn" title="Excluir" aria-label="Excluir"><i data-lucide="trash-2" aria-hidden="true"></i></button>
         </div>
       </div>`;
     }).join('');
@@ -168,7 +168,8 @@ export const SubcatModal = {
     if (isOpen) { this._closeAddPanel(); }
     else {
       panel.classList.add('open');
-      $('subcatAddToggleBtn').textContent = '✕ Cancelar';
+      $('subcatAddToggleBtn').innerHTML = '<i data-lucide="x" aria-hidden="true"></i> Cancelar';
+      window.lucide?.createIcons?.();
       setTimeout(() => $('subcatAddNome')?.focus(), 50);
     }
   },
@@ -177,7 +178,8 @@ export const SubcatModal = {
     const panel = $('subcatAddPanel');
     if (!panel) return;
     panel.classList.remove('open');
-    $('subcatAddToggleBtn').textContent = '＋ Nova regra';
+    $('subcatAddToggleBtn').innerHTML = '<i data-lucide="plus" aria-hidden="true"></i> Nova regra';
+    window.lucide?.createIcons?.();
     ['subcatAddNome', 'subcatAddFormula', 'subcatAddEx'].forEach(id => { const el = $(id); if (el) el.value = ''; });
   },
 
