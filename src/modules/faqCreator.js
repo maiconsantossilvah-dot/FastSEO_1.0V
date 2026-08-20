@@ -1,55 +1,17 @@
-const faqStyle = String.raw`<link rel="stylesheet" href="https://imgprd.martinsatacado.com.br/catalogoimg/catalogo/style-faq-padrao-tecnica.css?v=1">
-<style>
-#faq-section .faq-section__item{margin:0;overflow:hidden;border:1px solid #e5e5e5;border-radius:12px;background:#fff}
-#faq-section .faq-section__details{width:100%}
-#faq-section .faq-section__summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:16px 20px;cursor:pointer;list-style:none;transition:background-color .15s ease}
-#faq-section .faq-section__summary::-webkit-details-marker{display:none}
-#faq-section .faq-section__summary::marker{content:""}
-#faq-section .faq-section__summary:hover,#faq-section .faq-section__details[open] .faq-section__summary{background:#f9f9f9}
-#faq-section .faq-section__summary:focus-visible{border-radius:11px;outline:2px solid #2f81f7;outline-offset:-2px}
-#faq-section .faq-section__q-text{flex:1;margin:0;color:#4e4e4e;font-size:14px;font-weight:700;line-height:1.4}
-#faq-section .faq-section__icon{position:relative;width:20px;height:20px;flex-shrink:0}
-#faq-section .faq-section__icon::before,#faq-section .faq-section__icon::after{position:absolute;border-radius:2px;background:#2e3538;content:"";transition:transform .25s ease,opacity .25s ease}
-#faq-section .faq-section__icon::before{top:9px;left:4px;width:12px;height:1.5px}
-#faq-section .faq-section__icon::after{top:4px;left:9px;width:1.5px;height:12px}
-#faq-section .faq-section__details[open] .faq-section__icon::after{opacity:0;transform:rotate(90deg)}
-#faq-section .faq-section__a-inner{padding:14px 20px 16px;border-top:1px solid #e5e5e5}
-#faq-section .faq-section__a-text{margin:0;color:#2e3538;font-size:12px;line-height:1.6}
-@media(max-width:480px){#faq-section .faq-section__summary{padding:14px 16px}#faq-section .faq-section__a-inner{padding:12px 16px 14px}}
-</style>`;
+const faqStyle = String.raw`<link rel="stylesheet" href=https://imgprd.martinsatacado.com.br/catalogoimg/catalogo/style-faq-padrao-tecnica.css?v=1">`;
 
 const state = {
   items: [
+    { question: '', answer: '' },
+    { question: '', answer: '' },
     { question: '', answer: '' },
   ],
 };
 
 let initialized = false;
-let saveTimer = null;
-const DRAFT_KEY = 'fastseo_draft_faq';
 
 const faqTitle = 'Dúvidas Frequentes';
 const $ = id => document.getElementById(id);
-
-function restoreDraft() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-    if (Array.isArray(saved) && saved.length) {
-      state.items = saved
-        .filter(item => item && typeof item.question === 'string' && typeof item.answer === 'string')
-        .map(item => ({ question: item.question, answer: item.answer }));
-    }
-  } catch {
-    // Um rascunho inválido não deve impedir o editor de abrir.
-  }
-}
-
-function scheduleDraftSave() {
-  window.clearTimeout(saveTimer);
-  saveTimer = window.setTimeout(() => {
-    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state.items)); } catch { /* noop */ }
-  }, 400);
-}
 
 function escapeHtml(value = '') {
   return value
@@ -64,21 +26,20 @@ function formatAnswer(value = '') {
   return escapeHtml(value.trim()).replace(/\r?\n/g, '<br>');
 }
 
-function renderFaqItem(item, index) {
+function renderFaqItem(item) {
   const question = escapeHtml(item.question.trim());
   const answer = formatAnswer(item.answer);
-  const suffix = index + 1;
 
   return `
-<li id="faq-section__item-${suffix}" class="faq-section__item">
-            <details id="faq-section__details-${suffix}" class="faq-section__details">
-                <summary id="faq-section__summary-${suffix}" class="faq-section__summary">
-                    <h3 id="faq-section__q-text-${suffix}" class="faq-section__q-text">${question}</h3>
-                    <span id="faq-section__icon-${suffix}" class="faq-section__icon" aria-hidden="true"></span>
+<li id="faq-section__item">
+            <details id="faq-section__details">
+                <summary id="faq-section__summary">
+                    <h3 id="faq-section__q-text">${question}</h3>
+                    <span id="faq-section__icon" aria-hidden="true"></span>
                 </summary>
 
-                <div id="faq-section__a-inner-${suffix}" class="faq-section__a-inner">
-                    <p id="faq-section__a-text-${suffix}" class="faq-section__a-text">${answer}</p>
+                <div id="faq-section__a-inner">
+                    <p id="faq-section__a-text">${answer}</p>
                 </div>
             </details>
         </li>`;
@@ -93,9 +54,9 @@ function buildFaqHtml() {
     .join('\n\n');
 
   return `
-${faqStyle}
-<section id="faq-section" aria-labelledby="faq-section__title">
+<section id="faq-section" aria-label="faq-section__title">
 <div id="faq-section__header">
+${faqStyle}
 <h2 id="faq-section__title">${escapeHtml(faqTitle)}</h2>
 </div>
 <ul id="faq-section__list" role="list">
@@ -114,25 +75,7 @@ function updateOutput() {
   if (generatedHtml) generatedHtml.value = html;
   if ('srcdoc' in previewFrame) previewFrame.srcdoc = html;
   else previewFrame.innerHTML = html;
-  const usedItems = state.items.filter(item => item.question.trim() || item.answer.trim());
-  const validItems = usedItems.filter(item => item.question.trim() && item.answer.trim());
-  const normalizedQuestions = validItems.map(item => item.question.trim().toLocaleLowerCase('pt-BR'));
-  const hasDuplicate = normalizedQuestions.some((question, index) => normalizedQuestions.indexOf(question) !== index);
-  const hasIncomplete = validItems.length !== usedItems.length;
-  if (copyStatus) {
-    copyStatus.textContent = hasDuplicate
-      ? 'Existem perguntas duplicadas.'
-      : hasIncomplete
-        ? 'Complete pergunta e resposta antes de copiar.'
-        : '';
-    copyStatus.dataset.tone = hasDuplicate || hasIncomplete ? 'warning' : '';
-  }
-  const copyButton = $('faqCopyHtml');
-  if (copyButton) {
-    const ready = validItems.length > 0 && !hasDuplicate && !hasIncomplete;
-    copyButton.disabled = !ready;
-    copyButton.title = ready ? 'Copiar HTML gerado' : 'Preencha pares completos e sem perguntas duplicadas';
-  }
+  if (copyStatus) copyStatus.textContent = '';
 }
 
 function renderEditor() {
@@ -140,10 +83,10 @@ function renderEditor() {
   if (!editor) return;
 
   editor.innerHTML = state.items.map((item, index) => `
-    <details class="faq-editor__item" data-index="${index}"${index === 0 ? ' open' : ''}>
+    <details class="faq-editor__item" data-index="${index}">
   <summary class="faq-editor__bar">
     <strong>Pergunta ${index + 1}</strong>
-    <button class="copy-btn faq-remove-btn" type="button" data-action="remove" aria-label="Remover pergunta ${index + 1}"><i data-lucide="trash-2" aria-hidden="true"></i><span>Remover</span></button>
+    <button class="copy-btn faq-remove-btn" type="button" data-action="remove">Remover</button>
   </summary>
 
   <div class="faq-editor__fields">
@@ -160,12 +103,10 @@ function renderEditor() {
   `).join('');
 
   updateOutput();
-  window.requestAnimationFrame(() => window.lucide?.createIcons?.());
 }
 
 function addItem() {
   state.items.push({ question: '', answer: '' });
-  scheduleDraftSave();
   renderEditor();
   $('faqEditor')?.querySelector('.faq-editor__item:last-child input')?.focus();
 }
@@ -217,22 +158,6 @@ function parseBulkFaq(value = '') {
     }
   }
 
-  if (items.length) return items;
-
-  // Também aceita blocos numerados com rótulos Pergunta/Resposta.
-  const blocks = normalized
-    .split(/(?=^\s*\d+[.)-]?\s*(?:pergunta\s*[:\-]|[^\n]+\?))/gim)
-    .map(block => block.trim())
-    .filter(Boolean);
-
-  blocks.forEach(block => {
-    const labelled = block.match(/^\s*\d+[.)-]?\s*(?:pergunta\s*[:\-]\s*)?(.+?\?)\s*(?:\n|\r)+\s*(?:resposta\s*[:\-]\s*)?([\s\S]+)$/i);
-    if (!labelled) return;
-    const question = labelled[1].replace(/\s+/g, ' ').trim();
-    const answer = labelled[2].replace(/^\s*(?:resposta\s*[:\-]\s*)/i, '').trim();
-    if (question && answer) items.push({ question, answer });
-  });
-
   return items;
 }
 
@@ -245,14 +170,13 @@ function fillFromBulk() {
 
   if (!parsedItems.length) {
     if (bulkStatus) {
-      bulkStatus.textContent = 'Não encontrei pares válidos. Use tags <Q>/<A> ou uma lista numerada com Pergunta e Resposta.';
+      bulkStatus.textContent = 'Não encontrei perguntas no formato <Q>Pergunta</Q> <A>Resposta</A>';
       bulkStatus.dataset.tone = 'error';
     }
     return;
   }
 
   state.items = parsedItems;
-  scheduleDraftSave();
 
   if (bulkStatus) {
     bulkStatus.textContent = `${parsedItems.length} pergunta${parsedItems.length === 1 ? '' : 's'} preenchida${parsedItems.length === 1 ? '' : 's'}.`;
@@ -260,35 +184,6 @@ function fillFromBulk() {
   }
 
   renderEditor();
-  setEditorMode('manual');
-}
-
-function setEditorMode(mode) {
-  const bulk = mode === 'bulk';
-  const bulkTab = $('faqBulkTab');
-  const manualTab = $('faqManualTab');
-  const bulkPanel = $('faqBulkPanel');
-  const manualPanel = $('faqManualPanel');
-  bulkTab?.classList.toggle('is-active', bulk);
-  manualTab?.classList.toggle('is-active', !bulk);
-  bulkTab?.setAttribute('aria-selected', String(bulk));
-  manualTab?.setAttribute('aria-selected', String(!bulk));
-  if (bulkPanel) bulkPanel.hidden = !bulk;
-  if (manualPanel) manualPanel.hidden = bulk;
-}
-
-function setOutputMode(mode) {
-  const preview = mode === 'preview';
-  const previewTab = $('faqPreviewTab');
-  const htmlTab = $('faqHtmlTab');
-  const previewShell = document.querySelector('#faqWorkspace .faq-preview-shell');
-  const generatedHtml = $('faqGeneratedHtml');
-  previewTab?.classList.toggle('is-active', preview);
-  htmlTab?.classList.toggle('is-active', !preview);
-  previewTab?.setAttribute('aria-selected', String(preview));
-  htmlTab?.setAttribute('aria-selected', String(!preview));
-  if (previewShell) previewShell.hidden = !preview;
-  if (generatedHtml) generatedHtml.hidden = preview;
 }
 
 async function copyGeneratedHtml() {
@@ -331,7 +226,6 @@ function bindEvents() {
     if (!Number.isFinite(index) || !state.items[index]) return;
 
     state.items[index][field] = event.target.value;
-    scheduleDraftSave();
     updateOutput();
   });
 
@@ -347,7 +241,6 @@ function bindEvents() {
 
     state.items.splice(index, 1);
     if (state.items.length === 0) state.items.push({ question: '', answer: '' });
-    scheduleDraftSave();
     renderEditor();
   });
 
@@ -355,17 +248,12 @@ function bindEvents() {
   $('faqPasteBulk')?.addEventListener('click', pasteBulkInput);
   $('faqFillFromBulk')?.addEventListener('click', fillFromBulk);
   $('faqCopyHtml')?.addEventListener('click', copyGeneratedHtml);
-  $('faqBulkTab')?.addEventListener('click', () => setEditorMode('bulk'));
-  $('faqManualTab')?.addEventListener('click', () => setEditorMode('manual'));
-  $('faqPreviewTab')?.addEventListener('click', () => setOutputMode('preview'));
-  $('faqHtmlTab')?.addEventListener('click', () => setOutputMode('html'));
 }
 
 export const FAQCreator = {
   init() {
     if (initialized) return;
     initialized = true;
-    restoreDraft();
     bindEvents();
     renderEditor();
   },

@@ -97,22 +97,11 @@ const docs = [
       'A aba Criador de FAQ monta um bloco de perguntas e respostas em HTML.',
     ],
     bullets: [
-      'Escolha Manual para editar cada pergunta ou Em massa para colar vários pares.',
-      'No modo em massa, cole uma lista numerada ou blocos com tags Q/A.',
-      'Clique em Interpretar conteúdo.',
-      'Confira a prévia ou abra a aba HTML para revisar o código.',
+      'Preencha perguntas e respostas manualmente.',
+      'Ou cole um bloco no preenchimento em massa.',
+      'Clique em Preencher campos.',
+      'Confira a prévia.',
       'Copie o HTML final.',
-    ],
-  },
-  {
-    category: 'Uso',
-    tag: 'atalhos',
-    title: 'Atalhos e navegação',
-    bullets: [
-      'Ctrl/Cmd + K abre a busca de telas e ferramentas.',
-      'Ctrl/Cmd + Enter executa a ação principal da tela atual.',
-      'Esc fecha a busca, dialogs ou navegação móvel.',
-      'Ficha Técnica, Compilador e FAQ preservam rascunhos locais.',
     ],
   },
   {

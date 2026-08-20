@@ -235,8 +235,8 @@ META DESCRIPTION: (máximo 140 caracteres) — termine com "Confira agora!"`,
 };
 
 export const PROMPT_LABELS = {
-  P1: 'Formatador · Padrão', P2: 'Conferente · Padrão',  P3: 'Copywriter · Padrão',
-  P1B:'Formatador · Bivolt', P2B:'Conferente · Bivolt',   P3B:'Copywriter · Bivolt',
+  P1: 'A1 — Ficha Padrão', P2: 'A2 — QA Padrão',  P3: 'A3 — Copy Padrão',
+  P1B:'A1 — Ficha Bivolt', P2B:'A2 — QA Bivolt',   P3B:'A3 — Copy Bivolt',
 };
 
 // ─── Cache em memória dos prompts customizados ───────────────

@@ -24,11 +24,11 @@ export const AnalyticsModal = {
         <div style="margin-top:12px;text-align:right">
           <button id="clearLogsBtn" style="font-size:11px;color:var(--color-text-muted);background:none;border:none;cursor:pointer;padding:4px 8px;transition:color .15s">Limpar logs</button>
         </div>`
-      : `<div class="ui-empty-state"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><strong>Nenhum processamento registrado</strong><p>Execute o pipeline para começar a acompanhar volume, qualidade e tempo médio.</p><button class="btn btn-primary" id="analyticsStartBtn" type="button">Processar primeira ficha</button></div>`;
+      : `<p style="text-align:center;color:var(--color-text-muted);font-size:13px;padding:20px 0">Nenhum processamento registrado ainda.<br>Execute o pipeline para ver as métricas.</p>`;
 
     overlay.innerHTML = `
       <div class="modal" style="max-width:480px">
-        <div class="modal-hdr"><span class="modal-title"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i> Analytics de uso</span><button class="modal-close" id="analyticsCloseBtn" type="button" aria-label="Fechar"><i data-lucide="x" aria-hidden="true"></i></button></div>
+        <div class="modal-hdr"><span class="modal-title">📊 Analytics de uso</span><button class="modal-close" id="analyticsCloseBtn">✕</button></div>
         <div class="modal-body">${body}</div>
         <div class="modal-ftr" style="justify-content:flex-end"><button class="btn btn-primary" id="analyticsCloseBtnFtr">Fechar</button></div>
       </div>`;
@@ -41,11 +41,6 @@ export const AnalyticsModal = {
     overlay._escHandler = escH;
     $('clearLogsBtn')?.addEventListener('click', () => {
       if (confirm('Apagar todos os logs?')) { Logs.clear(); this.close(); }
-    });
-    $('analyticsStartBtn')?.addEventListener('click', () => {
-      this.close();
-      $('showFichaViewBtn')?.click();
-      $('inputText')?.focus();
     });
   },
   close() {

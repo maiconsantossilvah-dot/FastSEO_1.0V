@@ -6,11 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fast SEO — Pipeline de Fichas Técnicas</title>
   <link rel="icon" type="image/svg+xml" href="src/assets/favicon.svg" />
-  <script>
-    try {
-      document.documentElement.dataset.theme = localStorage.getItem('fastseo_theme_mode') || 'dark';
-    } catch {}
-  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,7 +13,6 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="src/styles/main.css" />
-  <link rel="stylesheet" href="src/styles/redesign.css" />
   <style>
     /* ── Loading inicial (evita flash enquanto Firebase verifica auth) ── */
     #appLoading {
@@ -218,142 +212,126 @@
      APP (oculto até autenticação)
 ════════════════════════════════════════════════════════════ -->
 
-  <header class="header app-topbar" id="appHeader" style="display:none">
-    <div class="app-topbar__start">
-      <button id="sidebarMenuBtn" class="ui-icon-btn app-menu-btn" type="button" aria-label="Abrir navegação"
-        aria-controls="appSidebar" aria-expanded="false">
-        <i data-lucide="menu" aria-hidden="true"></i>
-      </button>
-      <a class="app-brand" href="#ficha" aria-label="FastSEO — início">
-        <img src="src/assets/favicon.svg" width="34" height="34" alt="" />
-        <span class="app-brand__name">Fast<span>SEO</span></span>
-      </a>
-      <div class="app-page-context" aria-live="polite">
-        <strong id="currentViewTitle">Ficha técnica</strong>
-        <span id="currentViewDescription">Transforme dados brutos em conteúdo revisado</span>
+  <header class="header" id="appHeader" style="display:none">
+    <div class="header-logo-area">
+      <div class="logo">
+        <div class="logo-icon">F</div>
+        <div>
+          <div class="logo-text">Fast<span>SEO</span></div><span class="logo-sub">Pipeline de Fichas</span>
+        </div>
       </div>
     </div>
-    <div class="app-topbar__actions">
-      <button id="commandPaletteBtn" class="ui-command-trigger" type="button" aria-haspopup="dialog">
-        <i data-lucide="search" aria-hidden="true"></i>
-        <span>Buscar</span>
-        <kbd>Ctrl K</kbd>
-      </button>
-      <button id="helpBtn" class="ui-icon-btn" type="button" title="Abrir ajuda" aria-label="Abrir ajuda">
-        <i data-lucide="circle-help" aria-hidden="true"></i>
-      </button>
-      <button id="themeToggleBtn" class="ui-icon-btn theme-toggle-btn" type="button" title="Mudar tema"
-        aria-label="Mudar tema">
-        <i data-lucide="moon" aria-hidden="true"></i>
-      </button>
-      <div class="topbar-account">
-        <span class="topbar-account__avatar" aria-hidden="true"><i data-lucide="user-round"></i></span>
-        <span id="userDisplayName"></span>
-        <button id="logoutBtn" class="ui-quiet-btn" title="Sair" type="button">
-          <i data-lucide="log-out" aria-hidden="true"></i><span>Sair</span>
-        </button>
-      </div>
-    </div>
+    <button id="themeToggleBtn" class="theme-toggle-btn" type="button" title="Mudar para tema claro"
+      aria-label="Mudar para tema claro">
+      ☀
+    </button>
   </header>
 
   <div class="layout app-layout--simple" id="appLayout" style="display:none">
-    <div class="app-sidebar-backdrop" id="sidebarBackdrop" hidden></div>
-    <aside class="app-sidebar app-sidebar--control" id="appSidebar" aria-label="Navegação principal">
-      <div class="app-sidebar__header">
-        <span class="app-sidebar-label">Trabalho</span>
-        <button id="sidebarCollapseBtn" class="ui-icon-btn sidebar-collapse-btn" type="button"
-          aria-label="Recolher navegação" aria-expanded="true">
-          <i data-lucide="panel-left-close" aria-hidden="true"></i>
-        </button>
-      </div>
+    <aside class="app-sidebar app-sidebar--control" aria-label="Barra lateral de ações">
       <div class="app-sidebar-section">
-        <button id="showFichaViewBtn" class="app-nav-item active" type="button" aria-current="page"
-          data-view-title="Ficha técnica" data-view-description="Transforme dados brutos em conteúdo revisado">
-          <i data-lucide="file-text" aria-hidden="true"></i>
+        <span class="app-sidebar-label">Telas</span>
+        <button id="showFichaViewBtn" class="app-nav-item active" type="button" aria-current="page">
+          <span class="app-nav-index">01</span>
           <span>
             <strong>Ficha técnica</strong>
-            <small>Gerar e revisar conteúdo</small>
+            <small>Input, output e agentes</small>
           </span>
         </button>
 
-        <button id="showCompilerViewBtn" class="app-nav-item" type="button"
-          data-view-title="Compilador de dados" data-view-description="Organize fontes e gere o TXT do produto">
-          <i data-lucide="notebook-tabs" aria-hidden="true"></i>
+        <button id="showFaqViewBtn" class="app-nav-item" type="button">
+          <span class="app-nav-index">02</span>
           <span>
-            <strong>Compilador</strong>
-            <small>Organizar fontes em TXT</small>
-          </span>
-        </button>
-
-        <button id="showFaqViewBtn" class="app-nav-item" type="button"
-          data-view-title="Criador de FAQ" data-view-description="Monte perguntas e exporte HTML válido">
-          <i data-lucide="messages-square" aria-hidden="true"></i>
-          <span>
-            <strong>FAQ</strong>
+            <strong>Criador de FAQ</strong>
             <small>Perguntas e HTML pronto</small>
           </span>
         </button>
 
-        <button id="openHistoricoBtn" class="app-nav-item" type="button">
-          <i data-lucide="history" aria-hidden="true"></i>
+        <button id="showCompilerViewBtn" class="app-nav-item" type="button">
+          <span class="app-nav-index">03</span>
           <span>
-            <strong>Histórico</strong>
-            <small>Fichas geradas <em id="historicoCount"></em></small>
+            <strong>Compilador de Dados</strong>
+            <small>Gerar TXT por fontes</small>
+          </span>
+        </button>
+
+        <button id="showDocsViewBtn" class="app-nav-item" type="button">
+          <span class="app-nav-index">04</span>
+          <span>
+            <strong>Guia Interno</strong>
+            <small>Regras e documentação</small>
           </span>
         </button>
       </div>
 
-      <div class="app-sidebar-section app-sidebar-section--admin" id="adminNavSection">
-        <button class="app-sidebar-group-toggle" id="adminNavToggle" type="button" aria-expanded="true"
-          aria-controls="adminNavItems">
-          <span class="app-sidebar-label">Administração</span>
-          <i data-lucide="chevron-down" aria-hidden="true"></i>
-        </button>
-        <div id="adminNavItems" class="app-sidebar-group">
+      <div class="app-sidebar-section sidebar-run-panel">
+        <span class="app-sidebar-label">Entrada</span>
+        <div class="sidebar-metric">
+          <span>Input</span>
+          <strong id="charCount">0 caracteres</strong>
+        </div>
+      </div>
+
+      <div class="app-sidebar-section">
+        <span class="app-sidebar-label">Referência ativa</span>
+        <div class="learn-indicator empty sidebar-indicator" id="learnIndicator">
+          <div class="learn-indicator-dot"></div>
+          <span id="learnIndicatorText">Nenhum exemplo configurado</span>
+        </div>
+      </div>
+
+      <div class="app-sidebar-section">
+        <span class="app-sidebar-label">Ferramentas</span>
         <button id="openCategoriasBtn" class="app-nav-item" type="button">
-          <i data-lucide="tags" aria-hidden="true"></i>
+          <span class="app-nav-index">01</span>
           <span>
             <strong>Categorias</strong>
             <small>Referências e exemplos</small>
           </span>
         </button>
-        <button id="openConfigBtn" class="app-nav-item" type="button">
-          <i data-lucide="key-round" aria-hidden="true"></i>
+        <button id="openHistoricoBtn" class="app-nav-item" type="button">
+          <span class="app-nav-index">02</span>
           <span>
-            <strong>APIs e modelos</strong>
+            <strong>Histórico</strong>
+            <small>Fichas geradas <em id="historicoCount"></em></small>
+          </span>
+        </button>
+        <button id="openConfigBtn" class="app-nav-item" type="button">
+          <span class="app-nav-index">03</span>
+          <span>
+            <strong>Configurações</strong>
             <small>APIs e modelo</small>
           </span>
         </button>
         <button id="openPromptsBtn" class="app-nav-item" type="button">
-          <i data-lucide="braces" aria-hidden="true"></i>
+          <span class="app-nav-index">04</span>
           <span>
             <strong>Prompts</strong>
             <small>Editar agentes</small>
           </span>
         </button>
         <button id="openSubcatBtn" class="app-nav-item" type="button">
-          <i data-lucide="list-filter" aria-hidden="true"></i>
+          <span class="app-nav-index">05</span>
           <span>
-            <strong>Padrões de títulos</strong>
+            <strong>Títulos</strong>
             <small>Padrões por subcategoria</small>
           </span>
         </button>
         <button id="openAnalyticsBtn" class="app-nav-item" type="button">
-          <i data-lucide="chart-no-axes-combined" aria-hidden="true"></i>
+          <span class="app-nav-index">06</span>
           <span>
             <strong>Analytics</strong>
             <small>Métricas do pipeline</small>
           </span>
         </button>
-        </div>
       </div>
 
-      <div class="app-sidebar-section app-sidebar__footer">
-        <button id="showDocsViewBtn" class="app-nav-item app-nav-item--quiet" type="button"
-          data-view-title="Guia interno" data-view-description="Consulte regras e orientações do FastSEO">
-          <i data-lucide="book-open-text" aria-hidden="true"></i>
-          <span><strong>Ajuda e documentação</strong><small>Regras do FastSEO</small></span>
-        </button>
+      <div class="app-sidebar-section sidebar-account">
+        <span class="app-sidebar-label">Conta</span>
+        <div class="user-info">
+          <span id="userDisplayName"></span>
+          <button id="logoutBtn" title="Sair">Sair</button>
+        </div>
       </div>
     </aside>
 
@@ -362,15 +340,11 @@
         <div class="workspace-input-stack">
           <section class="card workspace-card workspace-card--input">
             <div class="card-hdr">
-              <div>
-                <span class="card-eyebrow">Dados de entrada</span>
-                <h1 class="card-title">Conteúdo do produto</h1>
-              </div>
+              <span class="card-title">Input</span>
               <div class="input-actions">
                 <button id="importFileBtn" class="copy-btn" type="button"
-                  title="Importar dados de PDF, Word, TXT ou planilha"><i data-lucide="upload" aria-hidden="true"></i><span>Importar</span></button>
+                  title="Importar dados de PDF, Word, TXT ou planilha">Importar arquivo</button>
                 <button class="run-btn" id="runBtn" aria-label="Processar ficha técnica">
-                  <i data-lucide="sparkles" aria-hidden="true"></i>
                   <span class="run-icon">Processar ficha</span>
                   <div class="spinner"></div>
                 </button>
@@ -379,22 +353,13 @@
             <div class="card-body">
               <div id="inputCategoryHint" class="input-category-hint" hidden></div>
               <textarea id="inputText"
-                aria-label="Dados brutos do produto"
                 placeholder="Cole aqui os dados brutos do fornecedor ou arraste um PDF, Word, TXT ou planilha para cá"></textarea>
-            </div>
-            <div class="workspace-input-meta">
-              <span><i data-lucide="text-cursor-input" aria-hidden="true"></i><strong id="charCount">0 caracteres</strong></span>
-              <div class="learn-indicator empty" id="learnIndicator">
-                <div class="learn-indicator-dot"></div>
-                <span id="learnIndicatorText">Nenhuma referência configurada</span>
-              </div>
-              <span id="draftStatus" class="draft-status" aria-live="polite"></span>
             </div>
           </section>
 
           <div class="steps workspace-steps" aria-label="Etapas do pipeline">
             <div class="step" id="ps1">
-              <div class="step-num"><i data-lucide="wand-sparkles" aria-hidden="true"></i></div>
+              <div class="step-num">01</div>
               <div class="step-body">
                 <div class="step-name">Formatador</div>
                 <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time"
@@ -402,7 +367,7 @@
               </div>
             </div>
             <div class="step" id="ps2">
-              <div class="step-num"><i data-lucide="badge-check" aria-hidden="true"></i></div>
+              <div class="step-num">02</div>
               <div class="step-body">
                 <div class="step-name">Conferente</div>
                 <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time"
@@ -410,7 +375,7 @@
               </div>
             </div>
             <div class="step" id="ps3">
-              <div class="step-num"><i data-lucide="pen-line" aria-hidden="true"></i></div>
+              <div class="step-num">03</div>
               <div class="step-body">
                 <div class="step-name">Copywriter</div>
                 <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time"
@@ -423,7 +388,7 @@
         <section class="workspace-card workspace-card--output">
           <div class="results-placeholder" id="resultsPlaceholder">
             <img id="placeholderImg" src="" alt="" style="display:none" />
-            <div class="results-placeholder-icon" id="placeholderIcon"><i data-lucide="file-check-2" aria-hidden="true"></i></div>
+            <div class="results-placeholder-icon" id="placeholderIcon">OUT</div>
             <svg id="placeholderStar" style="display:none;width:120px;height:120px;opacity:.25" viewBox="0 0 120 120"
               fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M60 6 L71 40 L107 40 L79 62 L90 96 L60 74 L30 96 L41 62 L13 40 L49 40 Z" fill="#c9a0dc"
@@ -431,8 +396,7 @@
               <path d="M60 18 L68 42 L94 42 L73 57 L81 81 L60 66 L39 81 L47 57 L26 42 L52 42 Z" fill="#e8d0f4"
                 opacity=".4" />
             </svg>
-            <h2>Seu resultado aparecerá aqui</h2>
-            <p>Cole ou importe os dados do produto e processe a ficha para iniciar a revisão.</p>
+            <p>O output aparece aqui após processar a ficha</p>
           </div>
 
           <div class="results" id="results">
@@ -441,9 +405,9 @@
                 <span class="result-label">Output: ficha técnica</span>
                 <div class="result-actions">
                   <span id="bivoltBadge" class="badge badge-bivolt" style="display:none;">BIVOLT</span>
-                  <button class="copy-btn" id="exportTxtBtn" type="button"><i data-lucide="download" aria-hidden="true"></i><span>Baixar .txt</span></button>
-                  <button class="copy-btn" id="copyFichaBtn" type="button"><i data-lucide="copy" aria-hidden="true"></i><span>Copiar ficha</span></button>
-                  <button class="copy-btn" id="copyFichaComTextoBtn" type="button"><i data-lucide="copy-plus" aria-hidden="true"></i><span>Copiar com prompt</span></button>
+                  <button class="copy-btn" id="exportTxtBtn" type="button">Baixar .txt</button>
+                  <button class="copy-btn" id="copyFichaBtn" type="button">Copiar ficha</button>
+                  <button class="copy-btn" id="copyFichaComTextoBtn" type="button">Copiar com Prompt</button>
                 </div>
               </div>
               <div class="result-content" id="fichaOut"></div>
@@ -463,8 +427,8 @@
                 <span class="result-label">Output: conteúdo comercial</span>
                 <div class="result-actions">
                   <button class="copy-btn" id="regenConteudoBtn" type="button"
-                    title="Gerar novamente sem reprocessar os outros agentes"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Regenerar</span></button>
-                  <button class="copy-btn" id="copyConteudoBtn" type="button"><i data-lucide="copy" aria-hidden="true"></i><span>Copiar conteúdo</span></button>
+                    title="Gerar novamente sem reprocessar os outros agentes">Regenerar</button>
+                  <button class="copy-btn" id="copyConteudoBtn" type="button">Copiar conteúdo</button>
                 </div>
               </div>
               <div class="result-content" id="conteudoOut"></div>
@@ -484,55 +448,37 @@
         <section class="faq-layout" aria-label="Criador de FAQ">
           <div class="faq-panel faq-editor-panel">
             <div class="faq-panel__head">
-              <div>
-                <span class="card-eyebrow">Entrada</span>
-                <h2>Conteúdo</h2>
-              </div>
+              <h2>Conteúdo</h2>
               <div class="faq-panel__actions">
-                <button class="copy-btn" id="faqPasteBulk" type="button"><i data-lucide="clipboard-paste" aria-hidden="true"></i><span>Colar</span></button>
-                <button class="copy-btn" id="faqAddItem" type="button"><i data-lucide="plus" aria-hidden="true"></i><span>Adicionar</span></button>
+                <button class="copy-btn" id="faqPasteBulk" type="button">Colar</button>
+                <button class="copy-btn" id="faqAddItem" type="button">Adicionar</button>
               </div>
             </div>
             <div class="faq-panel__body">
-              <div class="ui-segmented" role="tablist" aria-label="Modo de edição do FAQ">
-                <button id="faqBulkTab" class="is-active" type="button" role="tab" aria-selected="true" aria-controls="faqBulkPanel">Em massa</button>
-                <button id="faqManualTab" type="button" role="tab" aria-selected="false" aria-controls="faqManualPanel">Manual</button>
-              </div>
-              <div class="faq-editor-tools" id="faqBulkPanel" role="tabpanel" aria-labelledby="faqBulkTab">
+              <div class="faq-editor-tools">
                 <label class="faq-field">
                   <span>Colar perguntas e respostas</span>
-                  <textarea class="faq-bulk-input" id="faqBulkInput" spellcheck="false"
-                    placeholder="&lt;Q&gt;Qual é a pergunta?&lt;/Q&gt;&#10;&lt;A&gt;Esta é a resposta.&lt;/A&gt;"></textarea>
+                  <textarea class="faq-bulk-input" id="faqBulkInput" spellcheck="false"></textarea>
                 </label>
                 <div class="faq-bulk-actions">
-                  <button class="copy-btn compiler-primary-action" id="faqFillFromBulk" type="button"><i data-lucide="list-plus" aria-hidden="true"></i><span>Interpretar conteúdo</span></button>
+                  <button class="copy-btn" id="faqFillFromBulk" type="button">Preencher campos</button>
                   <span class="faq-bulk-status" id="faqBulkStatus" aria-live="polite"></span>
                 </div>
               </div>
-              <div class="faq-editor" id="faqManualPanel" role="tabpanel" aria-labelledby="faqManualTab" hidden>
-                <div id="faqEditor"></div>
-              </div>
+              <div class="faq-editor" id="faqEditor"></div>
             </div>
           </div>
 
           <div class="faq-panel faq-output-panel">
             <div class="faq-panel__head">
-              <div>
-                <span class="card-eyebrow">Resultado</span>
-                <h2>Prévia</h2>
-              </div>
-              <button class="copy-btn" id="faqCopyHtml" type="button"><i data-lucide="copy" aria-hidden="true"></i><span>Copiar HTML</span></button>
+              <h2>Prévia</h2>
+              <button class="copy-btn" id="faqCopyHtml" type="button">Copiar HTML</button>
             </div>
             <div class="faq-panel__body faq-output">
-              <div class="ui-segmented" role="tablist" aria-label="Visualização do resultado">
-                <button id="faqPreviewTab" class="is-active" type="button" role="tab" aria-selected="true">Prévia</button>
-                <button id="faqHtmlTab" type="button" role="tab" aria-selected="false">HTML</button>
-              </div>
               <div class="faq-status" id="faqCopyStatus" aria-live="polite"></div>
               <div class="faq-preview-shell">
                 <iframe class="faq-preview-frame" id="faqPreviewFrame" title="Prévia do FAQ"></iframe>
               </div>
-              <textarea id="faqGeneratedHtml" class="faq-generated-code" readonly spellcheck="false" aria-label="HTML gerado" hidden></textarea>
             </div>
           </div>
         </section>
@@ -542,8 +488,8 @@
         <section class="compiler-layout" aria-label="Compilador de Dados">
           <div class="compiler-panel compiler-panel--editor">
             <div class="compiler-panel__head">
-              <div><span class="card-eyebrow">Entrada</span><h2>Dados do produto</h2></div>
-              <button class="copy-btn compiler-primary-action" id="compilerGenerateBtn" type="button"><i data-lucide="file-plus-2" aria-hidden="true"></i><span>Gerar TXT</span></button>
+              <h2>Dados do produto</h2>
+              <button class="copy-btn compiler-primary-action" id="compilerGenerateBtn" type="button">Gerar TXT</button>
             </div>
             <div class="compiler-panel__body compiler-form">
               <div class="compiler-required-fields">
@@ -551,23 +497,19 @@
                   <label class="compiler-field">
                     <span>Código</span>
                     <input id="compilerCodigo" data-compiler-field type="text" autocomplete="off" required>
-                    <small class="field-error" data-error-for="compilerCodigo"></small>
                   </label>
                   <label class="compiler-field">
                     <span>EAN</span>
-                    <input id="compilerEan" data-compiler-field type="text" inputmode="numeric" autocomplete="off" required>
-                    <small class="field-error" data-error-for="compilerEan"></small>
+                    <input id="compilerEan" data-compiler-field type="text" autocomplete="off" required>
                   </label>
                 </div>
                 <label class="compiler-field">
                   <span>Título</span>
                   <input id="compilerTitulo" data-compiler-field type="text" autocomplete="off" required>
-                  <small class="field-error" data-error-for="compilerTitulo"></small>
                 </label>
                 <label class="compiler-field">
                   <span>Fornecedor</span>
                   <input id="compilerFornecedor" data-compiler-field type="text" autocomplete="off" required>
-                  <small class="field-error" data-error-for="compilerFornecedor"></small>
                 </label>
               </div>
 
@@ -575,11 +517,11 @@
                 <div class="compiler-sources__head">
                   <div>
                     <h3 id="compilerSourcesTitle">Fontes</h3>
-                    <p>Preencha somente as fontes disponíveis. <strong id="compilerSourcesCount">0 de 6 preenchidas</strong></p>
+                    <p>Preencha somente as fontes disponíveis.</p>
                   </div>
                   <div class="compiler-sources__actions">
-                    <button class="copy-btn" id="compilerPdfBtn" type="button"><i data-lucide="file-up" aria-hidden="true"></i><span>Importar PDF</span></button>
-                    <button class="copy-btn" id="compilerClearBtn" type="button"><i data-lucide="trash-2" aria-hidden="true"></i><span>Limpar</span></button>
+                    <button class="copy-btn" id="compilerPdfBtn" type="button">Importar PDF</button>
+                    <button class="copy-btn" id="compilerClearBtn" type="button">Limpar</button>
                   </div>
                 </div>
                 <div class="compiler-sources__grid">
@@ -619,16 +561,11 @@
                 <div class="faq-status" id="compilerStatus" aria-live="polite"></div>
               </div>
               <div class="compiler-output-actions">
-                <button class="copy-btn" id="compilerCopyBtn" type="button"><i data-lucide="copy" aria-hidden="true"></i><span>Copiar</span></button>
-                <button class="copy-btn compiler-primary-action" id="compilerDownloadBtn" type="button"><i data-lucide="download" aria-hidden="true"></i><span>Baixar .txt</span></button>
+                <button class="copy-btn" id="compilerCopyBtn" type="button">Copiar</button>
+                <button class="copy-btn compiler-primary-action" id="compilerDownloadBtn" type="button">Baixar .txt</button>
               </div>
             </div>
             <div class="compiler-panel__body compiler-output-body">
-              <div class="compiler-output-empty" id="compilerOutputEmpty">
-                <i data-lucide="file-text" aria-hidden="true"></i>
-                <strong>O TXT aparecerá aqui</strong>
-                <p>Preencha os campos obrigatórios e gere o arquivo para revisar sua estrutura.</p>
-              </div>
               <textarea id="compilerOutput" readonly spellcheck="false" aria-label="TXT gerado"></textarea>
             </div>
           </div>
@@ -688,20 +625,6 @@
     <div id="logBox"></div>
   </div>
 
-  <div class="command-palette" id="commandPalette" hidden>
-    <div class="command-palette__backdrop" data-command-close></div>
-    <section class="command-palette__dialog" role="dialog" aria-modal="true" aria-labelledby="commandPaletteTitle">
-      <h2 id="commandPaletteTitle" class="sr-only">Buscar no FastSEO</h2>
-      <label class="command-palette__search">
-        <i data-lucide="search" aria-hidden="true"></i>
-        <input id="commandPaletteInput" type="search" autocomplete="off" aria-label="Buscar no FastSEO" placeholder="Ir para uma tela ou ferramenta..." />
-        <kbd>Esc</kbd>
-      </label>
-      <div class="command-palette__results" id="commandPaletteResults"></div>
-    </section>
-  </div>
-
-  <script src="https://unpkg.com/lucide@1.31.0/dist/umd/lucide.min.js"></script>
   <script type="module" src="src/main.js"></script>
 
 </body>
