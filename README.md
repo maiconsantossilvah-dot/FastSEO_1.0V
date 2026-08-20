@@ -9,7 +9,9 @@ index.html
 README.md
 firebase.json
 firestore.rules
+render.yaml
 backend/
+  Dockerfile
   src/
     auth/
     audit/
@@ -81,8 +83,8 @@ src/
 
 ES Modules precisam de servidor HTTP; abrir o HTML via `file://` pode falhar.
 
-```bash
-py -m http.server 5500
+```powershell
+pnpm dlx serve . --listen 5500
 ```
 
 Depois acesse:
@@ -113,7 +115,7 @@ O login Google permanece no Firebase Authentication. Depois do login, o frontend
 
 Para desenvolvimento, configure e inicie o serviço seguindo [backend/README.md](backend/README.md). O primeiro owner é criado por meio da variável temporária `BOOTSTRAP_OWNER_EMAILS`; usuários seguintes entram como pendentes e, quando aprovados, sempre começam como viewer.
 
-Em produção, o frontend permanece no GitHub Pages e o backend é executado no Cloud Run. O contêiner, a identidade de execução, o CORS e o procedimento via Google Cloud Shell estão documentados em [backend/README.md](backend/README.md). O arquivo JSON usado localmente nunca deve ser incluído no contêiner ou enviado ao repositório.
+Em produção, o frontend permanece no GitHub Pages e o backend é executado em um Web Service Docker no Render Free. O Blueprint, as variáveis secretas, o CORS e a ordem segura de ativação estão documentados em [backend/README.md](backend/README.md). O arquivo JSON usado localmente nunca deve ser incluído no contêiner ou enviado ao repositório.
 
 ### Ordem segura de ativação
 

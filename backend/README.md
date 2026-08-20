@@ -46,58 +46,52 @@ O Python não é necessário. A extensão Live Server do VS Code também pode se
 
 ## Local versus produção
 
-Localmente, o frontend usa `http://localhost:8787/api`. No GitHub Pages, ele usa a URL determinística do serviço `fastseo-users-backend` no Cloud Run, região `southamerica-east1`:
+Localmente, o frontend usa `http://localhost:8787/api`. No GitHub Pages, ele usa o serviço Docker no Render:
 
 ```text
-https://fastseo-users-backend-460968097608.southamerica-east1.run.app/api
+https://fastseo-users-backend-maicons.onrender.com/api
 ```
 
 `window.FASTSEO_BACKEND_URL` continua disponível como override antes de carregar `src/main.js`, caso o serviço seja movido ou receba um domínio próprio.
 
-Não publique a integração no `main` antes de o endpoint `/health` responder na URL do Cloud Run. O GitHub Pages publica somente o frontend e não executa a pasta `backend/`.
+Não integre esta branch ao `main` antes de o endpoint `/health` responder no Render. O GitHub Pages publica somente o frontend e não executa a pasta `backend/`.
 
-## Preparação para Cloud Run
+## Implantação no Render Free
 
-O backend inclui:
+O arquivo `render.yaml`, na raiz do repositório, descreve um Web Service gratuito com:
 
-- `Dockerfile` multi-stage com Node 24 e usuário não privilegiado;
-- `.dockerignore` e `.gcloudignore`, que excluem `.env`, logs, dependências e artefatos locais;
-- leitura do `PORT` injetado pelo Cloud Run e escuta em `0.0.0.0` dentro do contêiner;
-- encerramento gracioso em `SIGTERM`;
-- CORS restrito ao GitHub Pages em produção;
-- bloqueio de inicialização se `FRONTEND_ORIGINS` estiver vazio ou se `BOOTSTRAP_OWNER_EMAILS` for usado em produção;
-- credenciais automáticas por identidade do serviço, sem JSON dentro da imagem.
+- `Dockerfile` multi-stage, Node 24 e usuário não privilegiado;
+- leitura automática da porta definida pelo Render e escuta em `0.0.0.0`;
+- verificação de saúde em `/health` e encerramento gracioso em `SIGTERM`;
+- CORS restrito a `https://maiconsantossilvah-dot.github.io`;
+- limite de 120 requisições por IP a cada 15 minutos nas rotas `/api`, com resposta `429` e cabeçalhos `RateLimit`;
+- `BOOTSTRAP_OWNER_EMAILS` vazio em produção;
+- credenciais do Firebase em variáveis secretas, nunca dentro da imagem ou do Git.
 
-### Implantar sem administrador local
+### Criar o serviço
 
-Use o Google Cloud Shell no navegador. A partir de um clone/branch que contenha estes arquivos:
+1. Envie para o GitHub uma branch que contenha `render.yaml`.
+2. Acesse o [painel de Blueprints do Render](https://dashboard.render.com/blueprints) e escolha **New Blueprint Instance**.
+3. Conecte o repositório `FastSEO_1.0V` e selecione a branch preparada.
+4. Confirme o serviço `fastseo-users-backend-maicons` no plano Free.
+5. Quando solicitado, preencha as duas variáveis marcadas como secretas:
+   - `FIREBASE_CLIENT_EMAIL`: copie somente o valor `client_email` do JSON local da conta de serviço;
+   - `FIREBASE_PRIVATE_KEY`: copie somente o valor `private_key`. O valor pode ser colado com várias linhas ou com `\\n`.
+6. Crie o Blueprint e aguarde o primeiro deploy terminar.
+7. Abra `https://fastseo-users-backend-maicons.onrender.com/health` e confirme a resposta `{"status":"ok"}`.
 
-```bash
-cd FastSEO_1.0V/backend
-bash deploy-cloud-run.sh
-```
+Não envie o JSON inteiro ao Render, não use a opção de adicioná-lo ao repositório e nunca cole seus valores em commit, issue ou chat. As variáveis `sync: false` fazem o painel pedir os segredos sem gravá-los no `render.yaml`.
 
-O script:
-
-1. seleciona o projeto `fastseo-6a61b`;
-2. habilita Cloud Run, Cloud Build e Artifact Registry;
-3. cria identidades separadas para build (`fastseo-build`) e execução (`fastseo-backend`), se necessário;
-4. concede `roles/run.builder` somente à identidade de build e `roles/datastore.user` somente à identidade de execução;
-5. constrói e publica o contêiner em São Paulo;
-6. torna o endpoint HTTP público no nível do Cloud Run — as rotas `/api` continuam protegidas pelo Firebase ID Token;
-7. limita a escala a três instâncias e valida `/health`.
-
-Não configure `GOOGLE_APPLICATION_CREDENTIALS` nem envie o JSON local para o Cloud Shell/Cloud Run. A identidade vinculada ao serviço fornece as credenciais automaticamente.
-
-O usuário que executar o script precisa de permissões para habilitar APIs, criar/usar conta de serviço, alterar IAM e implantar no Cloud Run. Se algum comando retornar `PERMISSION_DENIED`, a etapa correspondente deve ser autorizada no IAM do projeto; não tente contornar isso adicionando a chave JSON ao repositório.
+O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limitações: o serviço pode adormecer após ficar sem tráfego e a primeira abertura pode demorar cerca de um minuto. O frontend tenta novamente durante esse despertar. Esse plano é indicado para uso pequeno/testes, não para uma operação crítica com disponibilidade garantida.
 
 ### Ordem segura de publicação
 
-1. Faça commit destas mudanças em uma branch de preparação.
-2. Use essa branch no Cloud Shell e execute `bash deploy-cloud-run.sh`.
-3. Confirme que `/health` responde e que uma requisição sem token para `/api/me` recebe `401`.
-4. Só então integre a branch ao `main`, permitindo que o GitHub Pages publique o frontend.
-5. Teste login, owner, viewer e uma operação administrativa na URL publicada.
+1. Faça commit destas mudanças na branch de preparação e envie-a ao GitHub.
+2. Crie o Blueprint usando essa branch.
+3. Confirme `/health` e verifique que uma requisição sem token para `/api/me` recebe `401`.
+4. Entre pela URL de teste e confirme o acesso do owner.
+5. Só então integre a branch ao `main`, permitindo que o GitHub Pages use a nova API.
+6. Teste login, owner, viewer e uma operação administrativa na URL publicada.
 
 ## Rotas
 
@@ -144,8 +138,8 @@ O deploy da CLI substitui as regras ativas no Firebase pelas regras locais. Semp
 - Nunca mova o JSON da conta de serviço para dentro do repositório.
 - Nunca faça commit de `.env`, chaves privadas, tokens ou arquivos `service-account*.json`.
 - A conta de serviço possui acesso privilegiado ao Firestore; não envie o arquivo por chat, e-mail ou mensagens.
-- Em produção no Google Cloud, prefira credenciais automáticas por IAM em vez de carregar um JSON no servidor.
-- No Cloud Run, nunca defina `GOOGLE_APPLICATION_CREDENTIALS`; use a identidade de serviço dedicada.
+- No Render, armazene `FIREBASE_CLIENT_EMAIL` e `FIREBASE_PRIVATE_KEY` somente como variáveis secretas.
+- Nunca configure `GOOGLE_APPLICATION_CREDENTIALS` com um caminho local no Render; esse arquivo não existe no contêiner.
 - Se a chave for exposta, revogue-a imediatamente no Firebase/Google Cloud e gere outra.
 - Restrinja `FRONTEND_ORIGINS` aos domínios reais usados pelo frontend.
 - Use HTTPS em produção; Firebase ID Tokens não devem trafegar por HTTP fora do ambiente local.

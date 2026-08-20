@@ -2,6 +2,8 @@ import { auth } from '../firebase/firebase.js';
 import { APP_CONFIG } from '../config.js';
 
 const EMPTY_STATE = Object.freeze({ user: null, permissions: null });
+const WAKE_RETRY_DELAYS = Object.freeze([0, 3000, 7000, 12000, 18000, 25000]);
+const RETRYABLE_STATUS = new Set([502, 503, 504]);
 let state = EMPTY_STATE;
 let readOnlyObserver = null;
 
@@ -14,37 +16,70 @@ export class UsersApiError extends Error {
   }
 }
 
+function delay(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
 async function request(path, options = {}) {
+  const { retryOnWake = false, ...fetchOptions } = options;
   const firebaseUser = auth.currentUser;
   if (!firebaseUser) throw new UsersApiError('Sua sessão expirou. Entre novamente.', 'AUTH_REQUIRED', 401);
 
   const token = await firebaseUser.getIdToken();
-  let response;
-  try {
-    response = await fetch(`${APP_CONFIG.usersApiBaseUrl}${path}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-        ...options.headers,
-      },
-    });
-  } catch {
-    throw new UsersApiError(
-      'O serviço de acesso está indisponível. Verifique se o backend foi iniciado.',
-      'BACKEND_UNAVAILABLE',
-    );
+  const retryDelays = retryOnWake ? WAKE_RETRY_DELAYS : [0];
+
+  for (const [attempt, wait] of retryDelays.entries()) {
+    if (wait) await delay(wait);
+
+    let response;
+    try {
+      response = await fetch(`${APP_CONFIG.usersApiBaseUrl}${path}`, {
+        ...fetchOptions,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
+          ...fetchOptions.headers,
+        },
+      });
+    } catch {
+      if (attempt < retryDelays.length - 1) continue;
+      throw new UsersApiError(
+        retryOnWake
+          ? 'O serviço gratuito ainda está iniciando. Aguarde alguns segundos e verifique novamente.'
+          : 'O serviço de acesso está indisponível. Verifique se o backend foi iniciado.',
+        'BACKEND_UNAVAILABLE',
+      );
+    }
+
+    if (RETRYABLE_STATUS.has(response.status)) {
+      if (attempt < retryDelays.length - 1) {
+        await response.body?.cancel().catch(() => {});
+        continue;
+      }
+      throw new UsersApiError(
+        retryOnWake
+          ? 'O serviço gratuito ainda está iniciando. Aguarde alguns segundos e verifique novamente.'
+          : 'O serviço de acesso está temporariamente indisponível.',
+        'BACKEND_UNAVAILABLE',
+        response.status,
+      );
+    }
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new UsersApiError(
+        payload?.error?.message || 'Não foi possível concluir a solicitação.',
+        payload?.error?.code || 'REQUEST_FAILED',
+        response.status,
+      );
+    }
+    return payload;
   }
 
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new UsersApiError(
-      payload?.error?.message || 'Não foi possível concluir a solicitação.',
-      payload?.error?.code || 'REQUEST_FAILED',
-      response.status,
-    );
-  }
-  return payload;
+  throw new UsersApiError(
+    'O serviço gratuito ainda está iniciando. Aguarde alguns segundos e verifique novamente.',
+    'BACKEND_UNAVAILABLE',
+  );
 }
 
 function isSearchControl(control) {
@@ -90,7 +125,7 @@ function observeReadOnlyUi() {
 
 export const UserAccess = {
   async initialize() {
-    const payload = await request('/access-requests', { method: 'POST' });
+    const payload = await request('/access-requests', { method: 'POST', retryOnWake: true });
     state = Object.freeze({ user: payload.user, permissions: payload.permissions });
     observeReadOnlyUi();
     document.dispatchEvent(new CustomEvent('fastseo:accessChanged', { detail: state }));

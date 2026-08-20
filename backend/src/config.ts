@@ -25,7 +25,15 @@ function origins(value: string | undefined): string[] {
   });
 }
 
-const port = Number(process.env.PORT || 8787);
+function positiveInteger(value: string | undefined, fallback: number, name: string): number {
+  const parsed = Number(value || fallback);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`${name} deve ser um número inteiro positivo.`);
+  }
+  return parsed;
+}
+
+const port = positiveInteger(process.env.PORT, 8787, 'PORT');
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('PORT deve ser um número entre 1 e 65535.');
 }
@@ -53,4 +61,6 @@ export const config = Object.freeze({
   firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'fastseo-6a61b',
   frontendOrigins,
   bootstrapOwnerEmails,
+  rateLimitWindowMs: positiveInteger(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000, 'RATE_LIMIT_WINDOW_MS'),
+  rateLimitMax: positiveInteger(process.env.RATE_LIMIT_MAX, 120, 'RATE_LIMIT_MAX'),
 });
