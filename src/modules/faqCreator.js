@@ -1,22 +1,4 @@
-const faqStyle = String.raw`<link rel="stylesheet" href="https://imgprd.martinsatacado.com.br/catalogoimg/catalogo/style-faq-padrao-tecnica.css?v=1">
-<style>
-#faq-section .faq-section__item{margin:0;overflow:hidden;border:1px solid #e5e5e5;border-radius:12px;background:#fff}
-#faq-section .faq-section__details{width:100%}
-#faq-section .faq-section__summary{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:16px 20px;cursor:pointer;list-style:none;transition:background-color .15s ease}
-#faq-section .faq-section__summary::-webkit-details-marker{display:none}
-#faq-section .faq-section__summary::marker{content:""}
-#faq-section .faq-section__summary:hover,#faq-section .faq-section__details[open] .faq-section__summary{background:#f9f9f9}
-#faq-section .faq-section__summary:focus-visible{border-radius:11px;outline:2px solid #2f81f7;outline-offset:-2px}
-#faq-section .faq-section__q-text{flex:1;margin:0;color:#4e4e4e;font-size:14px;font-weight:700;line-height:1.4}
-#faq-section .faq-section__icon{position:relative;width:20px;height:20px;flex-shrink:0}
-#faq-section .faq-section__icon::before,#faq-section .faq-section__icon::after{position:absolute;border-radius:2px;background:#2e3538;content:"";transition:transform .25s ease,opacity .25s ease}
-#faq-section .faq-section__icon::before{top:9px;left:4px;width:12px;height:1.5px}
-#faq-section .faq-section__icon::after{top:4px;left:9px;width:1.5px;height:12px}
-#faq-section .faq-section__details[open] .faq-section__icon::after{opacity:0;transform:rotate(90deg)}
-#faq-section .faq-section__a-inner{padding:14px 20px 16px;border-top:1px solid #e5e5e5}
-#faq-section .faq-section__a-text{margin:0;color:#2e3538;font-size:12px;line-height:1.6}
-@media(max-width:480px){#faq-section .faq-section__summary{padding:14px 16px}#faq-section .faq-section__a-inner{padding:12px 16px 14px}}
-</style>`;
+const faqStyle = String.raw`<link rel="stylesheet" href="https://imgprd.martinsatacado.com.br/catalogoimg/catalogo/style-faq-padrao-tecnica.css?v=1">`;
 
 const state = {
   items: [
