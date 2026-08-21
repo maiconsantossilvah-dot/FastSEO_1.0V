@@ -8,6 +8,7 @@ import {
 } from '../src/pipeline/pipeline.core.js';
 import type { CategoryResolution } from '../src/categories/types.js';
 import type { ExtractedProduct } from '../src/pipeline/types.js';
+import { extractionOutputBudget } from '../src/pipeline/pipeline.service.js';
 
 function resolution(): CategoryResolution {
   return {
@@ -38,6 +39,11 @@ function product(): ExtractedProduct {
 }
 
 describe('pipeline otimizado', () => {
+  it('dimensiona a saída do A1 sem usar o limite curto que truncava JSON', () => {
+    expect(extractionOutputBudget('compact', 500)).toBe(2600);
+    expect(extractionOutputBudget('technical', 20000)).toBe(8000);
+  });
+
   it('gera contrato compacto sem enviar a ficha ideal completa', () => {
     const contract = compactCategoryContract(resolution());
     const prompts = a1Prompts(['Garrafa Térmica Termolar', 'Fornecedor: Martins'], contract);
@@ -77,5 +83,20 @@ describe('pipeline otimizado', () => {
     expect(sheet).toContain('Marca: Não informado');
     expect(sheet).toContain('Capacidade: 1 Litro');
     expect(sheet).toContain('Fornecedor: Martins');
+  });
+
+  it('não trunca fichas técnicas com mais de 20 mil caracteres', () => {
+    const largeProduct = product();
+    largeProduct.facts = Array.from({ length: 100 }, (_, index) => ({
+      field: `Especificação ${index + 1}`,
+      value: `${String(index + 1).padStart(3, '0')} ${'detalhe técnico '.repeat(14)}`,
+      sourceLines: [1],
+      confidence: 'high' as const,
+      scope: 'common' as const,
+    }));
+    const validation = { issues: [], missingRequired: [], confirmedFields: [], needsAiReview: false, reviewReasons: [] };
+    const sheet = renderTechnicalSheet(largeProduct, compactCategoryContract(resolution()), validation);
+    expect(sheet.length).toBeGreaterThan(20000);
+    expect(sheet).toContain('Especificação 100');
   });
 });

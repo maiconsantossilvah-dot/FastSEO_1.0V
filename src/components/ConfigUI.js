@@ -7,6 +7,7 @@ import { Quota } from '../modules/quota.js';
 import { getGoogleApiKey, setGoogleApiKey, getGoogleCx, setGoogleCx, hasSerpApiKey } from '../services/serp.js';
 import { trackSerpApiConfigurada } from '../services/analytics.js';
 import { isValidGeminiKey } from '../utils/apiKeys.js';
+import { APP_CONFIG } from '../config.js';
 const $ = id => document.getElementById(id);
 
 // Cache de keys no localStorage (sem enviar ao servidor)
@@ -67,8 +68,8 @@ export const ConfigUI = {
       const v  = $('inputText')?.value || '';
       const el = $('charCount');
       if (!el) return;
-      el.textContent = `${v.length.toLocaleString()} caracteres`;
-      el.className   = `char-count${v.length > 10000 ? ' warn' : ''}`;
+      el.textContent = `${v.length.toLocaleString()} / ${APP_CONFIG.inputMaxChars.toLocaleString()} caracteres`;
+      el.className   = `char-count${v.length > APP_CONFIG.inputMaxChars * 0.9 ? ' warn' : ''}`;
     }, 120);
   },
 

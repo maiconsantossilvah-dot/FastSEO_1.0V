@@ -162,6 +162,7 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
         text: txt,
         provider: 'gemini',
         model,
+        finishReason: String(d?.candidates?.[0]?.finishReason || ''),
         durationMs: Date.now() - startedAt,
         usage: {
           inputTokens: Number(usage.promptTokenCount || 0),
@@ -236,6 +237,7 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
         text: txt,
         provider: 'mistral',
         model: MISTRAL_MODEL,
+        finishReason: String(d?.choices?.[0]?.finish_reason || ''),
         durationMs: Date.now() - startedAt,
         usage: {
           inputTokens: Number(d?.usage?.prompt_tokens || 0),

@@ -17,7 +17,7 @@ const isLocalHost = /^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostn
 export const APP_CONFIG = {
   historyMaxItems: 50,
   logsMaxItems:    300,
-  inputMaxChars:   12000,
+  inputMaxChars:   20000,
   autoSaveDelay:   700,
   toastDuration:   2000,
   usersApiBaseUrl: globalThis.FASTSEO_BACKEND_URL

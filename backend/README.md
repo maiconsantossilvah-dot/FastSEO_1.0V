@@ -128,6 +128,8 @@ As chaves do Gemini e da Mistral permanecem nos campos de configuração do nave
 
 O A1 retorna fatos em JSON com linhas de origem. TypeScript e Zod validam o contrato, enquanto regras determinísticas conferem evidência, identidade, conflitos, campos obrigatórios e categoria. O A2 recebe somente os riscos encontrados e é dispensado quando não há risco. O A3 recebe apenas fatos validados e até cinco palavras-chave SEO.
 
+O pipeline aceita até 20.000 caracteres de dados brutos e preserva fichas extensas de eletro e informática. O teto de saída do A1 varia conforme o tipo e o tamanho do produto, chegando a 8.192 tokens somente quando necessário.
+
 O frontend registra por execução os tokens de entrada, saída e total informados pelos provedores, além da duração e do motivo de acionamento do A2. Não existe cache de resultados do pipeline. O modo **Compatibilidade 1.0** pode ser selecionado nas configurações para rollback e também é usado automaticamente enquanto as novas rotas ainda não estiverem publicadas no backend.
 
 ## Migração segura das categorias

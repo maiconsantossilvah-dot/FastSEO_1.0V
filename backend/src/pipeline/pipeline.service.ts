@@ -20,10 +20,10 @@ function jsonValue(raw: string | Record<string, unknown>): unknown {
   throw new AppError(422, 'AI_INVALID_JSON', 'A IA não retornou o JSON estruturado esperado.');
 }
 
-function outputBudget(profileType: string | undefined): number {
-  if (profileType === 'technical') return 1100;
-  if (profileType === 'compact') return 650;
-  return 850;
+export function extractionOutputBudget(profileType: string | undefined, inputLength = 0): number {
+  const base = profileType === 'technical' ? 6000 : profileType === 'compact' ? 2600 : 4200;
+  const inputAdjustment = Math.min(2000, Math.floor(Math.max(0, inputLength) / 4000) * 400);
+  return Math.min(8192, base + inputAdjustment);
 }
 
 function compatibilityQa(
@@ -73,7 +73,7 @@ export async function prepareProduct(input: PipelinePrepareRequest) {
     pipelineVersion: PIPELINE_VERSION,
     category: categorySummary(contract),
     bivolt: /(?<!\d)(110|127)\s*v(?!\d)/i.test(cleanInput) && /(?<!\d)(220|240)\s*v(?!\d)/i.test(cleanInput),
-    extraction: { ...prompt, maxOutputTokens: outputBudget(contract?.profileType), jsonMode: true },
+    extraction: { ...prompt, maxOutputTokens: extractionOutputBudget(contract?.profileType, cleanInput.length), jsonMode: true },
   };
 }
 

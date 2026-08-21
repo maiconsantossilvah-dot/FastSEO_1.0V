@@ -4,12 +4,12 @@ import { FACT_CONFIDENCES, FACT_SCOPES } from './types.js';
 const shortText = z.string().trim().max(500).default('');
 
 export const pipelinePrepareSchema = z.object({
-  input: z.string().trim().min(2).max(12000),
+  input: z.string().trim().min(2).max(20000),
 });
 
 export const pipelineComposeSchema = pipelinePrepareSchema.extend({
-  extraction: z.union([z.string().trim().min(2).max(30000), z.record(z.string(), z.unknown())]),
-  review: z.union([z.string().trim().min(2).max(12000), z.record(z.string(), z.unknown())]).nullable().default(null),
+  extraction: z.union([z.string().trim().min(2).max(100000), z.record(z.string(), z.unknown())]),
+  review: z.union([z.string().trim().min(2).max(20000), z.record(z.string(), z.unknown())]).nullable().default(null),
   seoKeywords: z.array(z.string().trim().min(1).max(80)).max(5).default([]),
 });
 

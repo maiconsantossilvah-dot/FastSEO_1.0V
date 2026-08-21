@@ -24,7 +24,7 @@ export const categoryProfileInputSchema = z.object({
   negativeTerms: stringList(40),
   requiredFields: stringList(80),
   optionalFields: stringList(120),
-  idealSheet: optionalText(12000),
+  idealSheet: optionalText(20000),
   sheetNoticeType: z.string().trim().max(80).default('normal'),
   titleRule: z.object({
     formula: optionalText(1000),
@@ -46,7 +46,7 @@ export const categoryIdSchema = z.object({
 });
 
 export const categoryResolveSchema = z.object({
-  input: z.string().trim().min(2).max(12000),
+  input: z.string().trim().min(2).max(20000),
 });
 
 export const categoryImportSchema = z.object({

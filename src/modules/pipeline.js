@@ -456,7 +456,7 @@ export const Pipeline = {
 
     PipelineUI.setStep(1, 'active');
     PipelineUI.log('[A1] Extraindo fatos para JSON canônico...', 'i');
-    const a1 = await callAgentDetailed(
+    let a1 = await callAgentDetailed(
       prepared.extraction.system,
       prepared.extraction.user,
       prepared.extraction.maxOutputTokens,
@@ -469,7 +469,41 @@ export const Pipeline = {
     PipelineUI.setStep(1, 'done');
     PipelineUI.log(`[A1] Fatos extraídos (${a1.usage.totalTokens || '?'} tokens).`, 'o');
 
-    let composed = await OptimizedPipeline.compose({ input, extraction: a1.text, seoKeywords });
+    let composed;
+    try {
+      composed = await OptimizedPipeline.compose({ input, extraction: a1.text, seoKeywords });
+    } catch (error) {
+      if (error?.code !== 'AI_INVALID_JSON') throw error;
+
+      const wasTruncated = /max.?tokens|length/i.test(a1.finishReason || '');
+      PipelineUI.log(wasTruncated
+        ? '[A1] JSON truncado; repetindo a extração com limite ampliado...'
+        : '[A1] JSON inválido; executando recuperação automática...', 'w');
+
+      if (wasTruncated) {
+        a1 = await callAgentDetailed(
+          prepared.extraction.system,
+          prepared.extraction.user,
+          Math.min(8192, Math.ceil(prepared.extraction.maxOutputTokens * 1.25)),
+          signal,
+          1,
+          { jsonMode: true },
+        );
+      } else {
+        a1 = await callAgentDetailed(
+          'Corrija somente a sintaxe do JSON recebido. Não acrescente, remova, resuma ou altere fatos. Feche strings, objetos e arrays quando necessário. Responda exclusivamente com um objeto JSON válido.',
+          a1.text,
+          Math.min(8192, prepared.extraction.maxOutputTokens),
+          signal,
+          2,
+          { jsonMode: true },
+        );
+      }
+      calls.push({ agent: 'A1-recuperacao', ...a1 });
+      Quota.add(1);
+      composed = await OptimizedPipeline.compose({ input, extraction: a1.text, seoKeywords });
+      PipelineUI.log('[A1] JSON recuperado com sucesso.', 'o');
+    }
     let a2Raw = '';
     if (composed.phase === 'review_required') {
       PipelineUI.setStep(2, 'active');
