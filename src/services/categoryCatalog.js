@@ -127,8 +127,8 @@ export const CategoryCatalogApi = {
     return categoryFromBackend(payload.profile);
   },
 
-  async archive(id) {
-    return UserAccess.request(`/category-profiles/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  async delete(id) {
+    return UserAccess.request(`/category-profiles/${encodeURIComponent(id)}/permanent`, { method: 'DELETE' });
   },
 
   async publish(id) {

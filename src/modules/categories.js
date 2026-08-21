@@ -130,17 +130,24 @@ export const Categories = {
   async delete(id) {
     if (_backendAvailable) {
       UserAccess.assert('manageCategoryCatalog');
-      if (!_backendProfileIds.has(id)) {
-        throw new Error('Migre ou publique esta categoria legada antes de arquivá-la.');
-      }
       const beforeEditable = _editableCache;
+      const beforeLegacy = _legacyCache;
+      const beforePublished = _publishedBackendCache;
       _editableCache = _editableCache.filter(cat => cat.id !== id);
+      _legacyCache = _legacyCache.filter(cat => cat.id !== id);
+      _publishedBackendCache = _publishedBackendCache.filter(cat => cat.id !== id);
+      _backendProfileIds.delete(id);
+      this._writeCache(mergePublishedWithLegacy());
       emitChanged();
       try {
-        await CategoryCatalogApi.archive(id);
+        await CategoryCatalogApi.delete(id);
         await this.refresh();
       } catch (err) {
         _editableCache = beforeEditable;
+        _legacyCache = beforeLegacy;
+        _publishedBackendCache = beforePublished;
+        _backendProfileIds = new Set(beforeEditable.map(cat => cat.id));
+        this._writeCache(mergePublishedWithLegacy());
         emitChanged();
         throw err;
       }

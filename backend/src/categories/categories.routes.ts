@@ -11,7 +11,7 @@ import {
   categoryResolveSchema,
 } from './categories.schema.js';
 import {
-  archiveProfile,
+  deleteProfile,
   commitImport,
   commitLegacyMigration,
   createProfile,
@@ -98,7 +98,12 @@ categoriesRouter.post('/category-profiles/:id/publish', requireRole('manageCateg
   res.json(await publishProfile(actor(req), id));
 }));
 
+categoriesRouter.delete('/category-profiles/:id/permanent', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
+  const { id } = categoryIdSchema.parse(req.params);
+  res.json(await deleteProfile(actor(req), id));
+}));
+
 categoriesRouter.delete('/category-profiles/:id', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
   const { id } = categoryIdSchema.parse(req.params);
-  res.json(await archiveProfile(actor(req), id));
+  res.json(await deleteProfile(actor(req), id));
 }));

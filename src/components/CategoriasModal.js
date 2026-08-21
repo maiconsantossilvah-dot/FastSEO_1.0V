@@ -113,7 +113,7 @@ export const CategoriasModal = {
           <span class="cats-status cats-status--${this._esc(c.status || 'published')}">${status}</span>
           <div class="cats-item-actions">
             <button class="cats-btn-edit" data-id="${c.id}" title="${UserAccess.can('manageCategoryCatalog') ? 'Editar' : 'Visualizar'}">${UserAccess.can('manageCategoryCatalog') ? 'Editar' : 'Ver'}</button>
-            ${UserAccess.can('manageCategoryCatalog') && c.status !== 'legacy' ? `<button class="cats-btn-del" data-id="${c.id}" title="Arquivar">Arquivar</button>` : ''}
+            ${UserAccess.can('manageCategoryCatalog') ? `<button class="cats-btn-del" data-id="${c.id}" title="Excluir permanentemente">Excluir</button>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -169,6 +169,27 @@ export const CategoriasModal = {
             <span class="cats-status cats-status--${this._esc(cat.status || 'published')}">${cat.status === 'draft' ? 'Rascunho' : cat.status === 'archived' ? 'Arquivada' : cat.status === 'legacy' ? 'Legada' : 'Publicada'}</span>
             ${canManage && cat.status !== 'archived' ? '<button class="btn btn-ghost" id="catAnalyzeAiBtn" type="button"><i data-lucide="sparkles" aria-hidden="true"></i> Analisar com IA</button>' : ''}
             ${canManage && cat.status !== 'archived' ? '<button class="btn btn-primary" id="catPublishBtn" type="button"><i data-lucide="cloud-upload" aria-hidden="true"></i> Publicar</button>' : ''}
+          </div>
+        </div>
+        <div class="cats-ai-examples" id="catsAiExamples" hidden>
+          <div class="cats-ai-heading">
+            <div>
+              <strong>Base para análise da categoria</strong>
+              <span>Cole cinco fichas reais. A IA comparará recorrência, variações e complexidade antes de sugerir a estrutura.</span>
+            </div>
+            <span class="cats-ai-type" id="catsAiExamplesCount">0/5 prontas</span>
+          </div>
+          <div class="cats-ai-example-grid">
+            ${[1, 2, 3, 4, 5].map(number => `
+              <label class="cats-ai-example-field">
+                <span>Ficha ${number}</span>
+                <textarea class="cat-ai-example" data-example="${number}" minlength="40" maxlength="5000" placeholder="Cole uma ficha completa e representativa desta categoria..."></textarea>
+              </label>`).join('')}
+          </div>
+          <p class="cats-ai-token-note">Nenhum token é consumido ao preencher. A chamada acontece somente em “Gerar análise”. Serão considerados até 3.500 caracteres de cada ficha.</p>
+          <div class="cats-ai-actions">
+            <button class="btn btn-ghost" id="catCancelAiExamplesBtn" type="button">Cancelar</button>
+            <button class="btn btn-primary" id="catRunAiBtn" type="button" disabled><i data-lucide="sparkles" aria-hidden="true"></i> Gerar análise</button>
           </div>
         </div>
         <div class="cats-ai-suggestion" id="catsAiSuggestion" hidden></div>
@@ -252,7 +273,12 @@ export const CategoriasModal = {
     });
     ['catEditProfileType', 'catEditParent'].forEach(fieldId => $(fieldId)?.addEventListener('change', () => this._scheduleSave()));
     $('catPublishBtn')?.addEventListener('click', () => this._publish());
-    $('catAnalyzeAiBtn')?.addEventListener('click', () => this._analyzeWithAi());
+    $('catAnalyzeAiBtn')?.addEventListener('click', () => this._toggleAiExamples());
+    $('catCancelAiExamplesBtn')?.addEventListener('click', () => { if ($('catsAiExamples')) $('catsAiExamples').hidden = true; });
+    $('catRunAiBtn')?.addEventListener('click', () => this._analyzeWithAi());
+    document.querySelectorAll('#catsAiExamples .cat-ai-example').forEach(textarea => {
+      textarea.addEventListener('input', () => this._updateAiExamplesReady());
+    });
     $('catAddModifierBtn')?.addEventListener('click', () => this._addModifier());
     $('catEditModifiers')?.addEventListener('input', () => this._scheduleSave());
     $('catEditModifiers')?.addEventListener('click', event => {
@@ -333,16 +359,41 @@ export const CategoriasModal = {
     $('catEditModifiers')?.querySelector('.cat-modifier-row:last-child [data-mod-name]')?.focus();
   },
 
+  _toggleAiExamples() {
+    const panel = $('catsAiExamples');
+    if (!panel) return;
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) {
+      this._updateAiExamplesReady();
+      panel.querySelector('.cat-ai-example')?.focus();
+    }
+  },
+
+  _updateAiExamplesReady() {
+    const examples = [...document.querySelectorAll('#catsAiExamples .cat-ai-example')];
+    const ready = examples.filter(textarea => textarea.value.trim().length >= 40).length;
+    if ($('catsAiExamplesCount')) $('catsAiExamplesCount').textContent = `${ready}/5 prontas`;
+    if ($('catRunAiBtn')) $('catRunAiBtn').disabled = ready !== 5;
+  },
+
   async _analyzeWithAi() {
     if (!this._editingId || !UserAccess.can('manageCategoryCatalog')) return;
-    const button = $('catAnalyzeAiBtn');
+    const button = $('catRunAiBtn');
     const draft = this._getEditorDraft();
+    const examples = [...document.querySelectorAll('#catsAiExamples .cat-ai-example')]
+      .map(textarea => textarea.value.trim());
+    if (examples.length !== 5 || examples.some(example => example.length < 40)) {
+      alert('Preencha as cinco fichas com pelo menos 40 caracteres antes de solicitar a análise.');
+      return;
+    }
     const system = `Você é especialista em arquitetura de catálogos de e-commerce e fichas técnicas brasileiras.
-Analise somente uma categoria por chamada e devolva JSON válido, sem markdown.
+Compare as cinco fichas reais fornecidas para uma única categoria e devolva JSON válido, sem markdown.
 Escolha profileType entre compact, technical ou generic.
 Sugira apenas campos úteis para produtos dessa família e não invente valores de produtos.
 Limites: 12 aliases, 8 termos negativos, 12 campos obrigatórios, 24 opcionais e 6 modificadores.
-Campos obrigatórios devem ser realmente essenciais; dados variáveis ou frequentemente ausentes devem ser opcionais.
+Considere obrigatório somente um campo essencial e recorrente em pelo menos quatro das cinco fichas.
+Campos relevantes presentes em parte das fichas devem ser opcionais. Use modificadores para variações técnicas que não pertencem a todos os produtos.
+O tipo compact é para produtos simples; technical para produtos com especificações técnicas consistentes; generic somente quando a família é ampla ou pouco estruturada.
 Formato obrigatório:
 {"profileType":"compact","summary":"...","aliases":[],"negativeTerms":[],"requiredFields":[],"optionalFields":[],"idealSheet":"","titleRule":{"formula":"","example":""},"modifiers":[{"id":"","name":"","aliases":[],"negativeTerms":[],"addRequiredFields":[],"addOptionalFields":[],"titleSuffix":""}]}`;
     const payload = {
@@ -352,7 +403,8 @@ Formato obrigatório:
       currentRequiredFields: draft.camposObrigatorios.slice(0, 30),
       currentOptionalFields: draft.camposOpcionais.slice(0, 40),
       currentTitleRule: draft.titleRule,
-      instruction: 'Revise a estrutura atual e sugira uma configuração objetiva e reutilizável para esta categoria.',
+      exampleSheets: examples.map((example, index) => ({ number: index + 1, content: example.slice(0, 3500) })),
+      instruction: 'Encontre o melhor padrão comum entre as cinco fichas e sugira uma configuração objetiva e reutilizável para a categoria.',
     };
 
     if (button) {
@@ -391,13 +443,14 @@ Formato obrigatório:
       };
       this._aiSuggestion = suggestion;
       Quota.add(1);
+      if ($('catsAiExamples')) $('catsAiExamples').hidden = true;
       this._renderAiSuggestion();
     } catch (error) {
       alert(`Não foi possível analisar a categoria: ${error.message}`);
     } finally {
       if (button) {
         button.disabled = false;
-        button.innerHTML = '<i data-lucide="sparkles" aria-hidden="true"></i> Analisar com IA';
+        button.innerHTML = '<i data-lucide="sparkles" aria-hidden="true"></i> Gerar análise';
       }
     }
   },
@@ -420,9 +473,10 @@ Formato obrigatório:
         <p><strong>Opcionais:</strong> ${line(suggestion.optionalFields)}</p>
         <p><strong>Modificadores:</strong> ${line((suggestion.modifiers || []).map(item => item.name))}</p>
       </div>
+      <p class="cats-ai-replace-note">Ao aprovar, a estrutura atual será substituída por esta sugestão. Nome, herança e aviso obrigatório não serão alterados.</p>
       <div class="cats-ai-actions">
         <button class="btn btn-ghost" id="catDiscardAiBtn" type="button">Descartar</button>
-        <button class="btn btn-primary" id="catApplyAiBtn" type="button"><i data-lucide="check" aria-hidden="true"></i> Aplicar sugestões</button>
+        <button class="btn btn-primary" id="catApplyAiBtn" type="button"><i data-lucide="replace" aria-hidden="true"></i> Substituir estrutura</button>
       </div>`;
     $('catDiscardAiBtn')?.addEventListener('click', () => { this._aiSuggestion = null; box.hidden = true; });
     $('catApplyAiBtn')?.addEventListener('click', () => this._applyAiSuggestion());
@@ -431,22 +485,18 @@ Formato obrigatório:
   _applyAiSuggestion() {
     const suggestion = this._aiSuggestion;
     if (!suggestion) return;
-    const draft = this._getEditorDraft();
     const unique = values => [...new Set(values.map(value => String(value || '').trim()).filter(Boolean))];
     const setList = (id, values) => { if ($(id)) $(id).value = unique(values).join('\n'); };
     if ($('catEditProfileType')) $('catEditProfileType').value = suggestion.profileType;
-    setList('catEditAliases', [...draft.aliases, ...(suggestion.aliases || [])]);
-    setList('catEditNegativeTerms', [...draft.negativeTerms, ...(suggestion.negativeTerms || [])]);
-    setList('catEditObrigatorios', [...draft.camposObrigatorios, ...(suggestion.requiredFields || [])]);
-    setList('catEditOpcionais', [...draft.camposOpcionais, ...(suggestion.optionalFields || [])]);
-    if ($('catEditTitleFormula') && suggestion.titleRule?.formula) $('catEditTitleFormula').value = suggestion.titleRule.formula;
-    if ($('catEditTitleExample') && suggestion.titleRule?.example) $('catEditTitleExample').value = suggestion.titleRule.example;
-    if ($('catEditFichaIdeal') && !draft.fichaIdeal && suggestion.idealSheet) $('catEditFichaIdeal').value = suggestion.idealSheet;
+    setList('catEditAliases', suggestion.aliases || []);
+    setList('catEditNegativeTerms', suggestion.negativeTerms || []);
+    setList('catEditObrigatorios', suggestion.requiredFields || []);
+    setList('catEditOpcionais', suggestion.optionalFields || []);
+    if ($('catEditTitleFormula')) $('catEditTitleFormula').value = suggestion.titleRule?.formula || '';
+    if ($('catEditTitleExample')) $('catEditTitleExample').value = suggestion.titleRule?.example || '';
+    if ($('catEditFichaIdeal')) $('catEditFichaIdeal').value = suggestion.idealSheet || '';
 
-    const modifierNames = new Set(draft.modifiers.map(item => String(item.nome || '').toLocaleLowerCase('pt-BR')));
-    const suggestedModifiers = (suggestion.modifiers || [])
-      .filter(item => item?.name && !modifierNames.has(String(item.name).toLocaleLowerCase('pt-BR')))
-      .map((item, index) => ({
+    const suggestedModifiers = (suggestion.modifiers || []).map((item, index) => ({
         id: item.id || `modificador-ia-${index + 1}`,
         nome: item.name,
         aliases: item.aliases || [],
@@ -455,7 +505,7 @@ Formato obrigatório:
         camposOpcionais: item.addOptionalFields || [],
         titleSuffix: item.titleSuffix || '',
       }));
-    this._renderModifiers([...draft.modifiers, ...suggestedModifiers], true);
+    this._renderModifiers(suggestedModifiers, true);
     this._aiSuggestion = null;
     if ($('catsAiSuggestion')) $('catsAiSuggestion').hidden = true;
     this._updateQaPreview();
@@ -551,15 +601,19 @@ Formato obrigatório:
     if (!UserAccess.can('manageCategoryCatalog')) return;
     const cat = Categories.find(id);
     if (!cat) return;
-    if (!confirm(`Arquivar a categoria "${cat.nome}"? A versão publicada deixará de ser usada.`)) return;
-    await Categories.delete(id);
-    if (AppState.categories.active === id) {
-      AppState.categories.active = null;
-      this._editingId = null;
-      const col = $('catsEditor');
-      if (col) col.innerHTML = `<div class="cats-editor-empty"><span style="font-size:32px;opacity:.2">CAT</span><p>Selecione ou crie uma categoria para editar</p></div>`;
+    if (!confirm(`Excluir permanentemente a categoria "${cat.nome}"?\n\nO perfil, a versão publicada e os registros legados correspondentes serão apagados. Essa ação não pode ser desfeita.`)) return;
+    try {
+      await Categories.delete(id);
+      if (AppState.categories.active === id) {
+        AppState.categories.active = null;
+        this._editingId = null;
+        const col = $('catsEditor');
+        if (col) col.innerHTML = `<div class="cats-editor-empty"><span style="font-size:32px;opacity:.2">CAT</span><p>Selecione ou crie uma categoria para editar</p></div>`;
+      }
+      this._render();
+    } catch (error) {
+      alert(`Não foi possível excluir: ${error.message}`);
     }
-    this._render();
   },
 
   _showSaved(label = 'Salvo') {

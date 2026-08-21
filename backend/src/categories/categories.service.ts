@@ -160,27 +160,51 @@ export async function publishProfile(actor: UserDocument, id: string) {
   return { profile: publicProfile(result.profile), catalogVersion: result.version };
 }
 
-export async function archiveProfile(actor: UserDocument, id: string) {
+function legacySubcategoryId(name: string): string {
+  return name.toLocaleLowerCase('pt-BR').replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+}
+
+export async function deleteProfile(actor: UserDocument, id: string) {
   const working = profilesRef().doc(id);
   const published = publishedRef().doc(id);
+  const legacy = adminDb.collection('categories').doc(id);
   const meta = catalogMetaRef();
-  const version = await adminDb.runTransaction(async transaction => {
-    const [workingSnap, publishedSnap, metaSnap] = await Promise.all([
-      transaction.get(working), transaction.get(published), transaction.get(meta),
+  const result = await adminDb.runTransaction(async transaction => {
+    const [workingSnap, publishedSnap, legacySnap, metaSnap] = await Promise.all([
+      transaction.get(working), transaction.get(published), transaction.get(legacy), transaction.get(meta),
     ]);
-    if (!workingSnap.exists) throw new AppError(404, 'CATEGORY_NOT_FOUND', 'Categoria não encontrada.');
+    if (!workingSnap.exists && !publishedSnap.exists && !legacySnap.exists) {
+      throw new AppError(404, 'CATEGORY_NOT_FOUND', 'Categoria não encontrada.');
+    }
+    const name = String(workingSnap.data()?.name || publishedSnap.data()?.name || legacySnap.data()?.nome || '');
+    const legacyByNameSnap = name
+      ? await transaction.get(adminDb.collection('categories').where('nome', '==', name))
+      : null;
+    const legacySubcategory = name ? adminDb.collection('subcategories').doc(legacySubcategoryId(name)) : null;
+    const legacySubcategorySnap = legacySubcategory ? await transaction.get(legacySubcategory) : null;
     const nextVersion = Number(metaSnap.data()?.version || 0) + (publishedSnap.exists ? 1 : 0);
-    transaction.set(working, {
-      status: 'archived', updatedAt: FieldValue.serverTimestamp(), updatedBy: actor.uid,
-    }, { merge: true });
+    if (workingSnap.exists) transaction.delete(working);
     if (publishedSnap.exists) transaction.delete(published);
+    const legacyRefs = new Map<string, FirebaseFirestore.DocumentReference>();
+    if (legacySnap.exists) legacyRefs.set(legacy.path, legacy);
+    legacyByNameSnap?.docs.forEach(doc => legacyRefs.set(doc.ref.path, doc.ref));
+    legacyRefs.forEach(ref => transaction.delete(ref));
+    if (legacySubcategory && legacySubcategorySnap?.exists) transaction.delete(legacySubcategory);
     if (publishedSnap.exists) transaction.set(meta, {
       version: nextVersion, updatedAt: FieldValue.serverTimestamp(), updatedBy: actor.uid,
     }, { merge: true });
-    return nextVersion;
+    return {
+      version: nextVersion,
+      removed: {
+        working: workingSnap.exists,
+        published: publishedSnap.exists,
+        legacy: legacyRefs.size,
+        legacySubcategory: Boolean(legacySubcategorySnap?.exists),
+      },
+    };
   });
-  await audit('CATEGORY_ARCHIVED', actor, id, { catalogVersion: version });
-  return { id, status: 'archived', catalogVersion: version };
+  await audit('CATEGORY_DELETED', actor, id, { catalogVersion: result.version, ...result.removed });
+  return { id, deleted: true, catalogVersion: result.version, removed: result.removed };
 }
 
 export async function resolvePublishedCategory(input: string) {

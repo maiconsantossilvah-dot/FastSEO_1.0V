@@ -110,7 +110,7 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 - `POST /api/category-profiles`: cria um perfil em rascunho.
 - `PATCH /api/category-profiles/:id`: atualiza o rascunho sem afetar a versão publicada.
 - `POST /api/category-profiles/:id/publish`: publica uma nova versão do perfil.
-- `DELETE /api/category-profiles/:id`: arquiva o perfil e remove sua versão publicada.
+- `DELETE /api/category-profiles/:id/permanent`: apaga permanentemente perfil, publicação e registros legados correspondentes.
 - `POST /api/category-profiles/import/preview`: valida uma importação sem gravar.
 - `POST /api/category-profiles/import/commit`: importa perfis como rascunho.
 - `POST /api/category-profiles/migrate-legacy/preview`: converte `categories` e `subcategories` sem gravar.
@@ -118,7 +118,7 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 
 Todas as rotas recebem `Authorization: Bearer <Firebase ID Token>`. Cargo, status e UID do ator são sempre lidos do token validado e de `users/{uid}`; valores administrativos enviados pelo frontend não são usados como prova de autorização.
 
-Somente `admin` e `owner` possuem `manageCategoryCatalog`. Colaboradores e espectadores conseguem ler o catálogo publicado e resolver categorias, mas não conseguem consultar rascunhos nem criar, editar, importar, publicar ou arquivar perfis.
+Somente `admin` e `owner` possuem `manageCategoryCatalog`. Colaboradores e espectadores conseguem ler o catálogo publicado e resolver categorias, mas não conseguem consultar rascunhos nem criar, editar, importar, publicar ou excluir perfis.
 
 ## Migração segura das categorias
 
