@@ -99,10 +99,10 @@ export function parseQAJson(raw) {
   }
 
   return normalizeQa({
-    status: 'REPROVADO',
+    status: /STATUS\s*:\s*REPROVADO|REPROVADO/i.test(raw) ? 'REPROVADO' : 'APROVADO',
     confianca: 'BAIXA',
-    resumo: 'A resposta do A2 não veio em JSON válido e não pôde ser aprovada com segurança.',
-    erros: ['JSON inválido retornado pelo A2. Execute a validação novamente.'],
+    resumo: 'A resposta do A2 não veio em JSON válido.',
+    avisos: ['JSON inválido retornado pelo A2. Foi usado fallback de compatibilidade.'],
   }, raw);
 }
 

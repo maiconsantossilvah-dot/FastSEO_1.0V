@@ -1,6 +1,6 @@
 # Backend de usuários do FastSEO
 
-Backend incremental responsável por autenticação, usuários, catálogo de categorias e pelo núcleo determinístico do pipeline 2.0. As chaves e as chamadas de Gemini/Mistral continuam exclusivamente no frontend; o backend entrega contratos compactos, valida a extração e monta a ficha sem receber credenciais de IA.
+Backend incremental responsável somente por autenticação de requisições, solicitação/aprovação de acesso, cargos, suspensão/reativação e auditoria. As ferramentas operacionais e as integrações de IA continuam no frontend.
 
 ## Configuração local
 
@@ -105,8 +105,6 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 - `POST /api/users/:uid/reactivate`
 - `GET /api/category-catalog`: catálogo publicado usado pelo pipeline.
 - `POST /api/category-resolve`: classifica um produto e compila herança/modificadores.
-- `POST /api/pipeline/prepare`: resolve a categoria e entrega o prompt compacto do A1.
-- `POST /api/pipeline/compose`: valida o JSON do A1, solicita A2 apenas quando necessário e monta a ficha por código.
 - `GET /api/category-profiles`: lista rascunhos para admin/owner.
 - `GET /api/category-profiles/export`: exporta catálogo novo e coleções legadas em JSON.
 - `POST /api/category-profiles`: cria um perfil em rascunho.
@@ -121,16 +119,6 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 Todas as rotas recebem `Authorization: Bearer <Firebase ID Token>`. Cargo, status e UID do ator são sempre lidos do token validado e de `users/{uid}`; valores administrativos enviados pelo frontend não são usados como prova de autorização.
 
 Somente `admin` e `owner` possuem `manageCategoryCatalog`. Colaboradores e espectadores conseguem ler o catálogo publicado e resolver categorias, mas não conseguem consultar rascunhos nem criar, editar, importar, publicar ou excluir perfis.
-
-## Pipeline 2.0 e chaves de IA
-
-As chaves do Gemini e da Mistral permanecem nos campos de configuração do navegador e nunca são enviadas às rotas `/api/pipeline/*`. O fluxo é dividido em preparação no backend, chamada da IA pelo frontend e composição novamente no backend.
-
-O A1 retorna fatos em JSON com linhas de origem. TypeScript e Zod validam o contrato, enquanto regras determinísticas conferem evidência, identidade, conflitos, campos obrigatórios e categoria. O A2 recebe somente os riscos encontrados e é dispensado quando não há risco. O A3 recebe apenas fatos validados e até cinco palavras-chave SEO.
-
-O pipeline aceita até 20.000 caracteres de dados brutos e preserva fichas extensas de eletro e informática. O teto de saída do A1 varia conforme o tipo e o tamanho do produto, chegando a 8.192 tokens somente quando necessário.
-
-O frontend registra por execução os tokens de entrada, saída e total informados pelos provedores, além da duração e do motivo de acionamento do A2. Não existe cache de resultados do pipeline. O modo **Compatibilidade 1.0** pode ser selecionado nas configurações para rollback e também é usado automaticamente enquanto as novas rotas ainda não estiverem publicadas no backend.
 
 ## Migração segura das categorias
 
