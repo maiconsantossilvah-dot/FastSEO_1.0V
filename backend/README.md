@@ -103,8 +103,33 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 - `PATCH /api/users/:uid/role`
 - `POST /api/users/:uid/suspend`
 - `POST /api/users/:uid/reactivate`
+- `GET /api/category-catalog`: catálogo publicado usado pelo pipeline.
+- `POST /api/category-resolve`: classifica um produto e compila herança/modificadores.
+- `GET /api/category-profiles`: lista rascunhos para admin/owner.
+- `GET /api/category-profiles/export`: exporta catálogo novo e coleções legadas em JSON.
+- `POST /api/category-profiles`: cria um perfil em rascunho.
+- `PATCH /api/category-profiles/:id`: atualiza o rascunho sem afetar a versão publicada.
+- `POST /api/category-profiles/:id/publish`: publica uma nova versão do perfil.
+- `DELETE /api/category-profiles/:id`: arquiva o perfil e remove sua versão publicada.
+- `POST /api/category-profiles/import/preview`: valida uma importação sem gravar.
+- `POST /api/category-profiles/import/commit`: importa perfis como rascunho.
+- `POST /api/category-profiles/migrate-legacy/preview`: converte `categories` e `subcategories` sem gravar.
+- `POST /api/category-profiles/migrate-legacy/commit`: grava a conversão como rascunho.
 
 Todas as rotas recebem `Authorization: Bearer <Firebase ID Token>`. Cargo, status e UID do ator são sempre lidos do token validado e de `users/{uid}`; valores administrativos enviados pelo frontend não são usados como prova de autorização.
+
+Somente `admin` e `owner` possuem `manageCategoryCatalog`. Colaboradores e espectadores conseguem ler o catálogo publicado e resolver categorias, mas não conseguem consultar rascunhos nem criar, editar, importar, publicar ou arquivar perfis.
+
+## Migração segura das categorias
+
+1. Faça commit e backup das coleções legadas antes do deploy.
+2. Publique o backend e confirme `GET /health`.
+3. Entre como admin/owner e abra **Categorias de referência**.
+4. Use **Migrar legado** para revisar a quantidade de criações, atualizações e conflitos.
+5. Confirme a migração; todos os registros novos permanecem como rascunho.
+6. Revise aliases, herança, termos negativos, campos, título e modificadores.
+7. Publique família por família. O pipeline mantém como fallback as categorias legadas ainda não publicadas.
+8. Somente após concluir a validação, remova o matcher e as coleções legadas em uma atualização futura.
 
 ## Primeiro owner
 

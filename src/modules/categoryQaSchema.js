@@ -122,11 +122,23 @@ export function buildCategoryPayload(input = {}, previous = {}) {
 
   return {
     nome: merged.nome,
+    status: merged.status || 'draft',
+    profileType: merged.profileType || 'compact',
+    parentId: merged.parentId || null,
+    aliases: textToFieldList(merged.aliases),
+    negativeTerms: textToFieldList(merged.negativeTerms),
     camposObrigatorios: textToFieldList(merged.camposObrigatorios),
     camposOpcionais: textToFieldList(merged.camposOpcionais),
     fichaIdeal: text(merged.fichaIdeal),
     avisoFichaTipo: merged.avisoFichaTipo || 'normal',
+    titleRule: {
+      formula: text(merged.titleRule?.formula),
+      example: text(merged.titleRule?.example || merged.titleRule?.ex),
+    },
+    modifiers: Array.isArray(merged.modifiers) ? merged.modifiers : [],
     qaSchema: createQaSchemaFromCategory(merged),
+    schemaVersion: Number(merged.schemaVersion) || 2,
+    source: merged.source || 'manual',
   };
 }
 

@@ -91,7 +91,14 @@ export const Utils = {
    */
   matchCategories(input, allCats = []) {
     const validCats = allCats.filter(hasCategoryDefinition).map(normalizeCategory);
-    return rankMatches(input, validCats, item => item.nome, { scope: 'title' }).map(match => match.item);
+    const aliases = validCats.flatMap(category => {
+      const names = [category.nome, ...(category.aliases || [])].filter(Boolean);
+      return [...new Set(names)].map(name => ({ category, name }));
+    });
+    const seen = new Set();
+    return rankMatches(input, aliases, item => item.name, { scope: 'full' })
+      .map(match => match.item.category)
+      .filter(category => !seen.has(category.id) && seen.add(category.id));
   },
 
   showToast(msg, color = '#059669') {

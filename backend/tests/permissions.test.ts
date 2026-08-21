@@ -24,7 +24,15 @@ describe('permissões explícitas', () => {
       viewUsers: false,
       editPrompts: false,
       manageRoles: false,
+      manageCategoryCatalog: false,
     });
+  });
+
+  it('restringe o catálogo de categorias a admin e owner', () => {
+    expect(permissionsFor('viewer')?.manageCategoryCatalog).toBe(false);
+    expect(permissionsFor('collaborator')?.manageCategoryCatalog).toBe(false);
+    expect(permissionsFor('admin')?.manageCategoryCatalog).toBe(true);
+    expect(permissionsFor('owner')?.manageCategoryCatalog).toBe(true);
   });
 
   it('permite que admin gerencie apenas collaborator e viewer', () => {

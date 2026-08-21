@@ -124,6 +124,8 @@ function observeReadOnlyUi() {
 }
 
 export const UserAccess = {
+  request(path, options) { return request(path, options); },
+
   async initialize() {
     const payload = await request('/access-requests', { method: 'POST', retryOnWake: true });
     state = Object.freeze({ user: payload.user, permissions: payload.permissions });

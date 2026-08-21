@@ -144,10 +144,14 @@ export const Pipeline = {
     try {
       const input = document.getElementById('inputText')?.value || fichaText;
       const allCats = Categories.getAll().filter(hasCategoryDefinition);
-      const matched = Utils.matchCategories(input, Categories.getAll());
+      const backendMatched = await Categories.resolve(input);
+      const matched = backendMatched ?? Utils.matchCategories(input, Categories.getAll());
       const fewShot = Utils.buildFewShot(bivolt, matched);
 
-      const subcatRule = AppState.subcatRules.match(input);
+      const compiledTitleRule = matched[0]?.titleRule;
+      const subcatRule = compiledTitleRule?.formula
+        ? { nome: matched[0].nome, formula: compiledTitleRule.formula, ex: compiledTitleRule.example || '' }
+        : AppState.subcatRules.match(input);
       const subcatSnippet = AppState.subcatRules.buildSnippet(subcatRule);
 
       const sys3 = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;

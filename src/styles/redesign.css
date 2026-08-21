@@ -1411,6 +1411,105 @@ input::placeholder {
   min-height: 42px;
 }
 
+.modal--cats .cats-editor-hdr,
+.cats-catalog-footer,
+.cats-section-heading,
+.cats-publish-group,
+.cats-catalog-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal--cats .cats-editor-hdr,
+.cats-section-heading,
+.cats-catalog-footer {
+  justify-content: space-between;
+}
+
+.cats-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cats-profile-grid .cats-field {
+  border-bottom: 0;
+}
+
+.cats-profile-grid .cats-field + .cats-field {
+  border-left: 1px solid var(--color-border);
+}
+
+.cats-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.cats-status--published {
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 35%, transparent);
+}
+
+.cats-status--draft {
+  color: var(--color-warn);
+  border-color: color-mix(in srgb, var(--color-warn) 35%, transparent);
+}
+
+.cats-item .cats-status {
+  margin-left: auto;
+}
+
+.cats-modifiers {
+  display: grid;
+  gap: 8px;
+}
+
+.cat-modifier-row {
+  display: grid;
+  grid-template-columns: minmax(110px, .65fr) minmax(180px, 1fr) minmax(190px, 1fr) 36px;
+  gap: 8px;
+  align-items: center;
+}
+
+.cat-modifier-row input {
+  min-width: 0;
+  min-height: 38px;
+}
+
+.cats-modifiers-empty {
+  padding: 14px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.cats-catalog-footer {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .cats-profile-grid,
+  .cat-modifier-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cats-profile-grid .cats-field + .cats-field {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+  }
+}
+
 .config-advanced {
   overflow: hidden;
   border: 1px solid var(--color-border);
