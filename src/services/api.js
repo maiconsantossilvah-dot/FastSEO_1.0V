@@ -122,6 +122,7 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const startedAt = Date.now();
 
     try {
       const res = await _requestWithAutoWait('gemini', () => fetch(url, {
@@ -155,7 +156,19 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
       const d = await res.json();
       const txt = d?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
       if (!txt) throw new Error('Resposta vazia do Gemini.');
-      return txt;
+      if (!options.returnMeta) return txt;
+      const usage = d?.usageMetadata || {};
+      return {
+        text: txt,
+        provider: 'gemini',
+        model,
+        durationMs: Date.now() - startedAt,
+        usage: {
+          inputTokens: Number(usage.promptTokenCount || 0),
+          outputTokens: Number(usage.candidatesTokenCount || 0),
+          totalTokens: Number(usage.totalTokenCount || 0),
+        },
+      };
     } catch (err) {
       lastErr = err;
       if (err.name === 'AbortError') throw err;
@@ -178,6 +191,7 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
   let lastErr = null;
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
+    const startedAt = Date.now();
 
     try {
       const res = await _requestWithAutoWait('mistral', () => fetch('https://api.mistral.ai/v1/chat/completions', {
@@ -217,7 +231,18 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
       const d = await res.json();
       const txt = d?.choices?.[0]?.message?.content?.trim();
       if (!txt) throw new Error('Resposta vazia da Mistral.');
-      return txt;
+      if (!options.returnMeta) return txt;
+      return {
+        text: txt,
+        provider: 'mistral',
+        model: MISTRAL_MODEL,
+        durationMs: Date.now() - startedAt,
+        usage: {
+          inputTokens: Number(d?.usage?.prompt_tokens || 0),
+          outputTokens: Number(d?.usage?.completion_tokens || 0),
+          totalTokens: Number(d?.usage?.total_tokens || 0),
+        },
+      };
     } catch (err) {
       lastErr = err;
       if (err.name === 'AbortError') throw err;
@@ -232,10 +257,13 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
   throw lastErr || new Error('Mistral indisponível.');
 }
 
-export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
+export async function callAgent(system, userMsg, maxTokens, signal, agentNum, requestOptions = {}) {
   const mistralOk = _getMistralKeys().length > 0;
   const geminiOk  = _getGeminiKeys().length > 0;
-  const options = { jsonMode: agentNum === 2 };
+  const options = {
+    jsonMode: requestOptions.jsonMode ?? (agentNum === 2),
+    returnMeta: Boolean(requestOptions.returnMeta),
+  };
 
   // Decide a melhor API para cada agente e só troca de provedor quando há falha recuperável.
   const tryFallback = async (skipApi, label) => {
@@ -275,4 +303,8 @@ export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
     if (err.cotaEsgotada) return tryFallback('gemini', `Gemini indisponível no A${agentNum}`);
     throw err;
   }
+}
+
+export function callAgentDetailed(system, userMsg, maxTokens, signal, agentNum, options = {}) {
+  return callAgent(system, userMsg, maxTokens, signal, agentNum, { ...options, returnMeta: true });
 }

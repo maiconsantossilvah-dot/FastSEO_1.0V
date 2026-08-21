@@ -19,7 +19,8 @@
  *   services/analytics.js   -> track*
  */
 
-import { callAgent } from '../services/api.js';
+import { callAgent, callAgentDetailed } from '../services/api.js';
+import { OptimizedPipeline } from '../services/optimizedPipeline.js';
 import { Prompts } from './prompts.js';
 import { Categories } from './categories.js';
 import { Quota } from './quota.js';
@@ -72,6 +73,20 @@ function shouldAutoRunCopywriter() {
   catch { return true; }
 }
 
+function shouldUseOptimizedPipeline() {
+  try { return localStorage.getItem('fastseo_pipeline_v2') !== '0'; }
+  catch { return true; }
+}
+
+function summarizeAiCalls(calls = []) {
+  return calls.reduce((summary, call) => ({
+    inputTokens: summary.inputTokens + Number(call?.usage?.inputTokens || 0),
+    outputTokens: summary.outputTokens + Number(call?.usage?.outputTokens || 0),
+    totalTokens: summary.totalTokens + Number(call?.usage?.totalTokens || 0),
+    durationMs: summary.durationMs + Number(call?.durationMs || 0),
+  }), { inputTokens: 0, outputTokens: 0, totalTokens: 0, durationMs: 0 });
+}
+
 function inserirAvisoAntesDoFornecedor(ficha, aviso) {
   const texto = String(ficha || '').trim();
   const textoAviso = String(aviso || '').trim();
@@ -106,7 +121,7 @@ export const Pipeline = {
   // sem chamar A1 (Formatador) nem A2 (Conferente).
   // Consome apenas 1 requisição de cota.
   async rerunCopywriter() {
-    const { ficha, bivolt } = AppState.pipeline.result || {};
+    const { ficha, bivolt, optimizedCopyPrompt } = AppState.pipeline.result || {};
 
     // Fallback: lê do DOM caso o state tenha sido perdido (ex: reload parcial).
     const fichaText = ficha || document.getElementById('fichaOut')?.innerText?.trim() || '';
@@ -142,6 +157,33 @@ export const Pipeline = {
     PipelineUI.log('[A3] Regenerando conteúdo comercial...', 'i');
 
     try {
+      if (optimizedCopyPrompt) {
+        const result = await callAgentDetailed(
+          optimizedCopyPrompt.system,
+          optimizedCopyPrompt.user,
+          optimizedCopyPrompt.maxOutputTokens || 550,
+          signal,
+          3,
+          { jsonMode: false },
+        );
+        const conteudo = result.text;
+        Quota.add(1);
+        PipelineUI.setStep(3, 'done');
+        PipelineUI.log(`[A3] Conteúdo regenerado (${result.usage.totalTokens || '?'} tokens).`, 'o');
+        AppState.pipeline.result.conteudo = conteudo;
+        AppState.pipeline.result.telemetry = [
+          ...(AppState.pipeline.result.telemetry || []),
+          { agent: 'A3-regenerado', ...result },
+        ];
+        const outEl = document.getElementById('conteudoOut');
+        if (outEl) outEl.innerText = conteudo;
+        PipelineUI.showResults(fichaText, AppState.pipeline.result.validacao || '', conteudo, bivolt, false);
+        const copyBlock = document.getElementById('copyBlock');
+        if (copyBlock) copyBlock.style.display = '';
+        Quota.updateUI();
+        return;
+      }
+
       const input = document.getElementById('inputText')?.value || fichaText;
       const allCats = Categories.getAll().filter(hasCategoryDefinition);
       const backendMatched = await Categories.resolve(input);
@@ -239,6 +281,17 @@ export const Pipeline = {
 
       // Salva alterações pendentes em categoria antes de montar os prompts.
       await this._flushOpenEditor();
+
+      if (shouldUseOptimizedPipeline()) {
+        try {
+          await this._executeOptimized({ input, signal, autoA3, t0, modeloAtual, mistralOk });
+          return;
+        } catch (error) {
+          if (!OptimizedPipeline.canFallback(error)) throw error;
+          PipelineUI.resetSteps();
+          PipelineUI.log('Pipeline 2.0 ainda não disponível neste backend; usando fluxo compatível.', 'w');
+        }
+      }
 
       // Escolhe as categorias que servem como referência para este produto.
       const allCats = Categories.getAll().filter(hasCategoryDefinition);
@@ -382,6 +435,135 @@ export const Pipeline = {
     } finally {
       PipelineUI.setRunning(false);
     }
+  },
+
+  async _executeOptimized({ input, signal, autoA3, t0, modeloAtual, mistralOk }) {
+    PipelineUI.log('Pipeline 2.0: extração estruturada e validação seletiva.', 'i');
+    const prepared = await OptimizedPipeline.prepare(input);
+    const calls = [];
+    const categoryName = prepared.category?.name || '';
+    if (categoryName) PipelineUI.log(`Categoria aplicada: ${categoryName} (${prepared.category.profileType}).`, 'o');
+    else PipelineUI.log('Categoria não identificada; usando contrato genérico compacto.', 'w');
+    if (prepared.bivolt) PipelineUI.log('Modo bivolt detectado (110V + 220V).', 'o');
+
+    let seoKeywords = [];
+    if (autoA3 && hasSerpApiKey()) {
+      const query = categoryName || input.trim().split('\n')[0].slice(0, 60);
+      const result = await buscarKeywords(query);
+      seoKeywords = [...(result?.palavrasChave || []), ...(result?.termosRelacionados || [])].slice(0, 5);
+      if (seoKeywords.length) PipelineUI.log(`SEO reduzido a ${seoKeywords.length} palavras-chave para o A3.`, 'o');
+    }
+
+    PipelineUI.setStep(1, 'active');
+    PipelineUI.log('[A1] Extraindo fatos para JSON canônico...', 'i');
+    const a1 = await callAgentDetailed(
+      prepared.extraction.system,
+      prepared.extraction.user,
+      prepared.extraction.maxOutputTokens,
+      signal,
+      1,
+      { jsonMode: true },
+    );
+    calls.push({ agent: 'A1', ...a1 });
+    Quota.add(1);
+    PipelineUI.setStep(1, 'done');
+    PipelineUI.log(`[A1] Fatos extraídos (${a1.usage.totalTokens || '?'} tokens).`, 'o');
+
+    let composed = await OptimizedPipeline.compose({ input, extraction: a1.text, seoKeywords });
+    let a2Raw = '';
+    if (composed.phase === 'review_required') {
+      PipelineUI.setStep(2, 'active');
+      PipelineUI.log(`[A2] Revisão acionada por risco: ${composed.validation.reasons.join(', ')}.`, 'w');
+      const a2 = await callAgentDetailed(
+        composed.review.system,
+        composed.review.user,
+        composed.review.maxOutputTokens,
+        signal,
+        2,
+        { jsonMode: true },
+      );
+      calls.push({ agent: 'A2', ...a2 });
+      a2Raw = a2.text;
+      Quota.add(1);
+      composed = await OptimizedPipeline.compose({ input, extraction: a1.text, review: a2Raw, seoKeywords });
+    } else {
+      PipelineUI.setStep(2, 'skip');
+      PipelineUI.log('[A2] Dispensado: validação determinística não encontrou riscos.', 'o');
+    }
+
+    const qa = composed.qa;
+    const validacaoFormatada = formatQAReport(qa);
+    const reprovado = composed.reprovado;
+    if (composed.validation.aiReviewUsed) {
+      PipelineUI.setStep(2, reprovado ? 'error' : 'done');
+      PipelineUI.log(`[A2] ${qa.status} - confiança ${qa.confianca}.`, reprovado ? 'w' : 'o');
+    }
+
+    let conteudo = '';
+    if (!reprovado && autoA3 && composed.copy) {
+      PipelineUI.setStep(3, 'active');
+      PipelineUI.log('[A3] Gerando narrativa somente com fatos validados...', 'i');
+      const a3 = await callAgentDetailed(
+        composed.copy.system,
+        composed.copy.user,
+        composed.copy.maxOutputTokens,
+        signal,
+        3,
+        { jsonMode: false },
+      );
+      calls.push({ agent: 'A3', ...a3 });
+      conteudo = a3.text;
+      Quota.add(1);
+      PipelineUI.setStep(3, 'done');
+      PipelineUI.log(`[A3] Conteúdo gerado (${a3.usage.totalTokens || '?'} tokens).`, 'o');
+    } else {
+      PipelineUI.setStep(3, 'skip');
+      PipelineUI.log(reprovado ? '[A3] Pulado por reprovação.' : '[A3] Opcional - use Gerar quando precisar.', 'w');
+    }
+
+    const totals = summarizeAiCalls(calls);
+    const ficha = composed.ficha;
+    AppState.pipeline.result = {
+      ficha,
+      validacao: validacaoFormatada,
+      validacaoRaw: a2Raw || JSON.stringify(qa),
+      qa,
+      conteudo,
+      bivolt: composed.bivolt,
+      reprovado,
+      optimizedCopyPrompt: composed.copy,
+      telemetry: calls,
+      pipelineVersion: composed.pipelineVersion,
+    };
+    PipelineUI.showResults(ficha, validacaoFormatada, conteudo, composed.bivolt, reprovado);
+    PipelineUI.log(`Pipeline 2.0 concluído: ${calls.length} chamada(s), ${totals.totalTokens || '?'} tokens.`, 'o');
+
+    trackPipelineConcluido({
+      modelo: modeloAtual,
+      duracaoMs: Date.now() - t0,
+      temSEO: seoKeywords.length > 0,
+      bivolt: composed.bivolt,
+      reprovado,
+    });
+
+    const preview = (document.getElementById('inputText')?.value || '').slice(0, 100).trim();
+    await History.save({ preview, ficha, conteudo, bivolt: composed.bivolt });
+    await Logs.save({
+      status: reprovado ? 'reprovado' : 'aprovado',
+      duracao_ms: Date.now() - t0,
+      modelo: modeloAtual,
+      bivolt: composed.bivolt,
+      usou_mistral: mistralOk,
+      usou_seo: seoKeywords.length > 0,
+      pipeline_version: composed.pipelineVersion,
+      ai_calls: calls.length,
+      a2_acionado: composed.validation.aiReviewUsed,
+      tokens_entrada: totals.inputTokens,
+      tokens_saida: totals.outputTokens,
+      tokens_total: totals.totalTokens,
+      tempo_ia_ms: totals.durationMs,
+    });
+    Quota.updateUI();
   },
 
   // Sincroniza o editor de categorias aberto antes de processar.

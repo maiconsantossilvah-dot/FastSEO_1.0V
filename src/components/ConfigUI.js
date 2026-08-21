@@ -802,9 +802,10 @@ export const ConfigModal = {
             <div class="field">
               <label for="pipelineModeSel">Modo de processamento</label>
               <select id="pipelineModeSel">
-                <option value="quality">Qualidade (A1 + A2 + A3 opcional)</option>
+                <option value="optimized">Otimizado 2.0 (recomendado)</option>
+                <option value="legacy">Compatibilidade 1.0</option>
               </select>
-              <div class="hint">Mantém conferência separada para preservar qualidade.</div>
+              <div class="hint">No 2.0, o A2 só é chamado quando a validação em código encontra risco.</div>
             </div>
             <div class="field">
               <label>Conteúdo comercial</label>
@@ -878,7 +879,7 @@ export const ConfigModal = {
     const pipelineModeEl = document.getElementById('pipelineModeSel');
     const autoA3El = document.getElementById('autoA3Check');
     try {
-      if (pipelineModeEl) pipelineModeEl.value = localStorage.getItem('fastseo_pipeline_mode') || 'quality';
+      if (pipelineModeEl) pipelineModeEl.value = localStorage.getItem('fastseo_pipeline_v2') === '0' ? 'legacy' : 'optimized';
       if (autoA3El) autoA3El.checked = localStorage.getItem('fastseo_auto_a3') !== '0';
     } catch {}
 
@@ -891,7 +892,7 @@ export const ConfigModal = {
       this._showSaved();
     }, { signal });
     pipelineModeEl?.addEventListener('change', () => {
-      try { localStorage.setItem('fastseo_pipeline_mode', pipelineModeEl.value || 'quality'); } catch {}
+      try { localStorage.setItem('fastseo_pipeline_v2', pipelineModeEl.value === 'legacy' ? '0' : '1'); } catch {}
       this._showSaved();
     }, { signal });
     autoA3El?.addEventListener('change', () => {
