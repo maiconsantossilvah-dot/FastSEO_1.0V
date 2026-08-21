@@ -44,7 +44,7 @@ export function categoryFromBackend(profile = {}) {
 
 function modifierToBackend(modifier = {}, index = 0) {
   const name = modifier.nome || modifier.name || `Modificador ${index + 1}`;
-  const id = modifier.id || name.toLocaleLowerCase('pt-BR').normalize('NFD')
+  const id = String(modifier.id || name).toLocaleLowerCase('pt-BR').normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   return {
     id: id || `modificador-${index + 1}`,

@@ -15,12 +15,15 @@ import {
 } from '../modules/categoryQaSchema.js';
 import { CATEGORY_NOTICE_OPTIONS } from '../modules/categoryNotices.js';
 import { UserAccess } from '../services/userAccess.js';
+import { callGemini } from '../services/api.js';
+import { Quota } from '../modules/quota.js';
 
 const $ = id => document.getElementById(id);
 
 export const CategoriasModal = {
   _editingId: null,
   _saveTimer: null,
+  _aiSuggestion: null,
 
   open() {
     if ($('categoriasModalOverlay')) { this._render(); return; }
@@ -103,14 +106,14 @@ export const CategoriasModal = {
       list.innerHTML = cats.map(c => {
         const hasEx = hasCategoryDefinition(c);
         const active = AppState.categories.active === c.id;
-        const status = c.status === 'draft' ? 'Rascunho' : c.status === 'archived' ? 'Arquivada' : 'Publicada';
+        const status = c.status === 'draft' ? 'Rascunho' : c.status === 'archived' ? 'Arquivada' : c.status === 'legacy' ? 'Legada' : 'Publicada';
         return `<div class="cats-item${active ? ' active' : ''}" data-id="${c.id}">
           <span class="cats-item-dot" style="background:${hasEx ? '#4ade80' : 'rgba(255,255,255,.2)'}${hasEx ? ';box-shadow:0 0 6px rgba(74,222,128,.4)' : ''}"></span>
           <span class="cats-item-name">${this._esc(c.nome || 'Sem nome')}</span>
           <span class="cats-status cats-status--${this._esc(c.status || 'published')}">${status}</span>
           <div class="cats-item-actions">
             <button class="cats-btn-edit" data-id="${c.id}" title="${UserAccess.can('manageCategoryCatalog') ? 'Editar' : 'Visualizar'}">${UserAccess.can('manageCategoryCatalog') ? 'Editar' : 'Ver'}</button>
-            ${UserAccess.can('manageCategoryCatalog') ? `<button class="cats-btn-del" data-id="${c.id}" title="Arquivar">Arquivar</button>` : ''}
+            ${UserAccess.can('manageCategoryCatalog') && c.status !== 'legacy' ? `<button class="cats-btn-del" data-id="${c.id}" title="Arquivar">Arquivar</button>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -155,6 +158,7 @@ export const CategoriasModal = {
     AppState.categories.active = id;
     AppState.categories.editorOpen = true;
     this._editingId = id;
+    this._aiSuggestion = null;
     this._render();
 
     col.innerHTML = `
@@ -162,10 +166,12 @@ export const CategoriasModal = {
         <div class="cats-editor-hdr">
           <input class="cats-nome-input" id="catEditNome" type="text" value="${this._esc(cat.nome || '')}" placeholder="Nome da categoria" autocomplete="off"${disabled}/>
           <div class="cats-publish-group">
-            <span class="cats-status cats-status--${this._esc(cat.status || 'published')}">${cat.status === 'draft' ? 'Rascunho' : cat.status === 'archived' ? 'Arquivada' : 'Publicada'}</span>
+            <span class="cats-status cats-status--${this._esc(cat.status || 'published')}">${cat.status === 'draft' ? 'Rascunho' : cat.status === 'archived' ? 'Arquivada' : cat.status === 'legacy' ? 'Legada' : 'Publicada'}</span>
+            ${canManage && cat.status !== 'archived' ? '<button class="btn btn-ghost" id="catAnalyzeAiBtn" type="button"><i data-lucide="sparkles" aria-hidden="true"></i> Analisar com IA</button>' : ''}
             ${canManage && cat.status !== 'archived' ? '<button class="btn btn-primary" id="catPublishBtn" type="button"><i data-lucide="cloud-upload" aria-hidden="true"></i> Publicar</button>' : ''}
           </div>
         </div>
+        <div class="cats-ai-suggestion" id="catsAiSuggestion" hidden></div>
         <div class="cats-profile-grid">
           <div class="cats-field">
             <label>Tipo do perfil</label>
@@ -246,6 +252,7 @@ export const CategoriasModal = {
     });
     ['catEditProfileType', 'catEditParent'].forEach(fieldId => $(fieldId)?.addEventListener('change', () => this._scheduleSave()));
     $('catPublishBtn')?.addEventListener('click', () => this._publish());
+    $('catAnalyzeAiBtn')?.addEventListener('click', () => this._analyzeWithAi());
     $('catAddModifierBtn')?.addEventListener('click', () => this._addModifier());
     $('catEditModifiers')?.addEventListener('input', () => this._scheduleSave());
     $('catEditModifiers')?.addEventListener('click', event => {
@@ -324,6 +331,136 @@ export const CategoriasModal = {
     });
     this._renderModifiers(existing, true);
     $('catEditModifiers')?.querySelector('.cat-modifier-row:last-child [data-mod-name]')?.focus();
+  },
+
+  async _analyzeWithAi() {
+    if (!this._editingId || !UserAccess.can('manageCategoryCatalog')) return;
+    const button = $('catAnalyzeAiBtn');
+    const draft = this._getEditorDraft();
+    const system = `Você é especialista em arquitetura de catálogos de e-commerce e fichas técnicas brasileiras.
+Analise somente uma categoria por chamada e devolva JSON válido, sem markdown.
+Escolha profileType entre compact, technical ou generic.
+Sugira apenas campos úteis para produtos dessa família e não invente valores de produtos.
+Limites: 12 aliases, 8 termos negativos, 12 campos obrigatórios, 24 opcionais e 6 modificadores.
+Campos obrigatórios devem ser realmente essenciais; dados variáveis ou frequentemente ausentes devem ser opcionais.
+Formato obrigatório:
+{"profileType":"compact","summary":"...","aliases":[],"negativeTerms":[],"requiredFields":[],"optionalFields":[],"idealSheet":"","titleRule":{"formula":"","example":""},"modifiers":[{"id":"","name":"","aliases":[],"negativeTerms":[],"addRequiredFields":[],"addOptionalFields":[],"titleSuffix":""}]}`;
+    const payload = {
+      category: draft.nome,
+      currentProfileType: draft.profileType,
+      currentAliases: draft.aliases.slice(0, 20),
+      currentRequiredFields: draft.camposObrigatorios.slice(0, 30),
+      currentOptionalFields: draft.camposOpcionais.slice(0, 40),
+      currentTitleRule: draft.titleRule,
+      instruction: 'Revise a estrutura atual e sugira uma configuração objetiva e reutilizável para esta categoria.',
+    };
+
+    if (button) {
+      button.disabled = true;
+      button.innerHTML = '<span class="loading-spinner" aria-hidden="true"></span> Analisando';
+    }
+    try {
+      const response = await callGemini(system, JSON.stringify(payload), 1400, 1, null, { jsonMode: true });
+      const clean = response.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+      const raw = JSON.parse(clean);
+      if (!['compact', 'technical', 'generic'].includes(raw.profileType)) {
+        throw new Error('A IA retornou um tipo de perfil inválido.');
+      }
+      const array = (value, max) => Array.isArray(value) ? value.map(String).map(item => item.trim()).filter(Boolean).slice(0, max) : [];
+      const suggestion = {
+        profileType: raw.profileType,
+        summary: String(raw.summary || '').slice(0, 600),
+        aliases: array(raw.aliases, 12),
+        negativeTerms: array(raw.negativeTerms, 8),
+        requiredFields: array(raw.requiredFields, 12),
+        optionalFields: array(raw.optionalFields, 24),
+        idealSheet: String(raw.idealSheet || '').slice(0, 6000),
+        titleRule: {
+          formula: String(raw.titleRule?.formula || '').slice(0, 1000),
+          example: String(raw.titleRule?.example || '').slice(0, 1000),
+        },
+        modifiers: (Array.isArray(raw.modifiers) ? raw.modifiers : []).slice(0, 6).map((item, index) => ({
+          id: String(item?.id || `modificador-ia-${index + 1}`),
+          name: String(item?.name || '').trim(),
+          aliases: array(item?.aliases, 12),
+          negativeTerms: array(item?.negativeTerms, 8),
+          addRequiredFields: array(item?.addRequiredFields, 12),
+          addOptionalFields: array(item?.addOptionalFields, 20),
+          titleSuffix: String(item?.titleSuffix || '').slice(0, 500),
+        })).filter(item => item.name),
+      };
+      this._aiSuggestion = suggestion;
+      Quota.add(1);
+      this._renderAiSuggestion();
+    } catch (error) {
+      alert(`Não foi possível analisar a categoria: ${error.message}`);
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = '<i data-lucide="sparkles" aria-hidden="true"></i> Analisar com IA';
+      }
+    }
+  },
+
+  _renderAiSuggestion() {
+    const box = $('catsAiSuggestion');
+    const suggestion = this._aiSuggestion;
+    if (!box || !suggestion) return;
+    const typeLabel = { compact: 'Compacto', technical: 'Técnico', generic: 'Genérico' }[suggestion.profileType];
+    const line = values => (Array.isArray(values) ? values : []).map(value => this._esc(value)).join(', ') || 'Nenhum';
+    box.hidden = false;
+    box.innerHTML = `
+      <div class="cats-ai-heading">
+        <div><strong>Sugestão da IA</strong><span>${this._esc(suggestion.summary || 'Estrutura sugerida para revisão.')}</span></div>
+        <span class="cats-ai-type">Perfil ${typeLabel}</span>
+      </div>
+      <div class="cats-ai-preview">
+        <p><strong>Aliases:</strong> ${line(suggestion.aliases)}</p>
+        <p><strong>Obrigatórios:</strong> ${line(suggestion.requiredFields)}</p>
+        <p><strong>Opcionais:</strong> ${line(suggestion.optionalFields)}</p>
+        <p><strong>Modificadores:</strong> ${line((suggestion.modifiers || []).map(item => item.name))}</p>
+      </div>
+      <div class="cats-ai-actions">
+        <button class="btn btn-ghost" id="catDiscardAiBtn" type="button">Descartar</button>
+        <button class="btn btn-primary" id="catApplyAiBtn" type="button"><i data-lucide="check" aria-hidden="true"></i> Aplicar sugestões</button>
+      </div>`;
+    $('catDiscardAiBtn')?.addEventListener('click', () => { this._aiSuggestion = null; box.hidden = true; });
+    $('catApplyAiBtn')?.addEventListener('click', () => this._applyAiSuggestion());
+  },
+
+  _applyAiSuggestion() {
+    const suggestion = this._aiSuggestion;
+    if (!suggestion) return;
+    const draft = this._getEditorDraft();
+    const unique = values => [...new Set(values.map(value => String(value || '').trim()).filter(Boolean))];
+    const setList = (id, values) => { if ($(id)) $(id).value = unique(values).join('\n'); };
+    if ($('catEditProfileType')) $('catEditProfileType').value = suggestion.profileType;
+    setList('catEditAliases', [...draft.aliases, ...(suggestion.aliases || [])]);
+    setList('catEditNegativeTerms', [...draft.negativeTerms, ...(suggestion.negativeTerms || [])]);
+    setList('catEditObrigatorios', [...draft.camposObrigatorios, ...(suggestion.requiredFields || [])]);
+    setList('catEditOpcionais', [...draft.camposOpcionais, ...(suggestion.optionalFields || [])]);
+    if ($('catEditTitleFormula') && suggestion.titleRule?.formula) $('catEditTitleFormula').value = suggestion.titleRule.formula;
+    if ($('catEditTitleExample') && suggestion.titleRule?.example) $('catEditTitleExample').value = suggestion.titleRule.example;
+    if ($('catEditFichaIdeal') && !draft.fichaIdeal && suggestion.idealSheet) $('catEditFichaIdeal').value = suggestion.idealSheet;
+
+    const modifierNames = new Set(draft.modifiers.map(item => String(item.nome || '').toLocaleLowerCase('pt-BR')));
+    const suggestedModifiers = (suggestion.modifiers || [])
+      .filter(item => item?.name && !modifierNames.has(String(item.name).toLocaleLowerCase('pt-BR')))
+      .map((item, index) => ({
+        id: item.id || `modificador-ia-${index + 1}`,
+        nome: item.name,
+        aliases: item.aliases || [],
+        negativeTerms: item.negativeTerms || [],
+        camposObrigatorios: item.addRequiredFields || [],
+        camposOpcionais: item.addOptionalFields || [],
+        titleSuffix: item.titleSuffix || '',
+      }));
+    this._renderModifiers([...draft.modifiers, ...suggestedModifiers], true);
+    this._aiSuggestion = null;
+    if ($('catsAiSuggestion')) $('catsAiSuggestion').hidden = true;
+    this._updateQaPreview();
+    this._scheduleSave();
+    this._showSaved('Sugestões aplicadas');
   },
 
   async _publish() {

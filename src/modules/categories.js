@@ -22,6 +22,8 @@ let _legacyCache = [];
 let _publishedBackendCache = [];
 let _backendAvailable = false;
 let _catalogVersion = 0;
+let _backendProfileIds = new Set();
+const _promotionQueue = new Map();
 let _changeTimer = null; // throttle do evento catsChanged
 const _migrationQueue = new Set();
 
@@ -41,7 +43,14 @@ function mergePublishedWithLegacy() {
 export const Categories = {
   // ─── Cache local ─────────────────────────────────────────
   getAll() { return _cache; },
-  getEditable() { return _editableCache.length || _cache; },
+  getEditable() {
+    if (!_backendAvailable || !UserAccess.can('manageCategoryCatalog')) return _cache;
+    const workingNames = new Set(_editableCache.map(cat => String(cat.nome || '').toLocaleLowerCase('pt-BR').trim()));
+    const legacyOnly = _legacyCache
+      .filter(cat => !workingNames.has(String(cat.nome || '').toLocaleLowerCase('pt-BR').trim()))
+      .map(cat => normalizeCategory({ ...cat, status: 'legacy' }));
+    return [..._editableCache, ...legacyOnly];
+  },
   catalogVersion() { return _catalogVersion; },
   usesBackend() { return _backendAvailable; },
 
@@ -55,7 +64,8 @@ export const Categories = {
     catch { return []; }
   },
 
-  find(id) { return _editableCache.find(c => c.id === id) || _cache.find(c => c.id === id) || null; },
+  find(id) { return this.getEditable().find(c => c.id === id) || _cache.find(c => c.id === id) || null; },
+  isBackendProfile(id) { return _backendProfileIds.has(id); },
 
   // ─── CRUD assíncrono (Firestore) ─────────────────────────
   async create() {
@@ -70,6 +80,7 @@ export const Categories = {
       UserAccess.assert('manageCategoryCatalog');
       const created = normalizeCategory(await CategoryCatalogApi.create(data));
       _editableCache = [..._editableCache, created];
+      _backendProfileIds.add(created.id);
       emitChanged();
       return created;
     }
@@ -88,11 +99,12 @@ export const Categories = {
     const next = normalizeCategory({ ...previous, ...payload, id });
     if (_backendAvailable) {
       UserAccess.assert('manageCategoryCatalog');
+      await this._ensureBackendProfile(id);
       const beforeEditable = _editableCache;
       _editableCache = _editableCache.map(cat => cat.id === id ? next : cat);
       emitChanged();
       try {
-        const saved = normalizeCategory(await CategoryCatalogApi.update(id, payload));
+        const saved = normalizeCategory(await CategoryCatalogApi.update(id, { ...payload, status: 'draft' }));
         _editableCache = _editableCache.map(cat => cat.id === id ? saved : cat);
         emitChanged();
         return saved;
@@ -118,6 +130,9 @@ export const Categories = {
   async delete(id) {
     if (_backendAvailable) {
       UserAccess.assert('manageCategoryCatalog');
+      if (!_backendProfileIds.has(id)) {
+        throw new Error('Migre ou publique esta categoria legada antes de arquivá-la.');
+      }
       const beforeEditable = _editableCache;
       _editableCache = _editableCache.filter(cat => cat.id !== id);
       emitChanged();
@@ -191,6 +206,7 @@ export const Categories = {
     if (UserAccess.can('manageCategoryCatalog')) {
       const working = await CategoryCatalogApi.getProfiles();
       _editableCache = working.profiles.map(normalizeCategory);
+      _backendProfileIds = new Set(_editableCache.map(cat => cat.id));
     } else {
       _editableCache = catalog.profiles.map(normalizeCategory);
     }
@@ -201,9 +217,27 @@ export const Categories = {
   async publish(id) {
     UserAccess.assert('manageCategoryCatalog');
     if (!_backendAvailable) throw new Error('Publique categorias somente após atualizar o backend.');
+    await this._ensureBackendProfile(id);
     await CategoryCatalogApi.publish(id);
     await this.refresh();
     return this.find(id);
+  },
+
+  async _ensureBackendProfile(id) {
+    if (_backendProfileIds.has(id)) return this.find(id);
+    if (_promotionQueue.has(id)) return _promotionQueue.get(id);
+    const legacy = _legacyCache.find(cat => cat.id === id) || _cache.find(cat => cat.id === id);
+    if (!legacy) throw new Error('Categoria não encontrada no catálogo local.');
+
+    const promotion = (async () => {
+      await CategoryCatalogApi.commitImport([{ ...legacy, status: 'draft', source: 'legacy-migration' }]);
+      await this.refresh();
+      const promoted = _editableCache.find(cat => cat.id === id);
+      if (!promoted) throw new Error('Não foi possível promover a categoria legada para rascunho.');
+      return promoted;
+    })().finally(() => _promotionQueue.delete(id));
+    _promotionQueue.set(id, promotion);
+    return promotion;
   },
 
   async resolve(input) {
