@@ -16,7 +16,13 @@ export const History = {
   getAll() { return _items; },
 
   async save(data) {
-    await HistoryDB.save(data);
+    const id = await HistoryDB.save(data);
+    // O listener em tempo real atualizará _items e re-renderizará
+    return id;
+  },
+
+  async updateResult(id, data) {
+    await HistoryDB.updateResult(id, data);
     // O listener em tempo real atualizará _items e re-renderizará
   },
 

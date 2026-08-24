@@ -420,7 +420,7 @@
               <div class="step-body">
                 <div class="step-name">Formatador</div>
                 <div class="step-meta"><span class="step-api" id="ps1Api"></span><span class="step-time"
-                    id="ps1Time"></span></div>
+                    id="ps1Time"></span><span class="step-tokens" id="ps1Tokens"></span></div>
               </div>
             </div>
             <div class="step" id="ps2">
@@ -428,7 +428,7 @@
               <div class="step-body">
                 <div class="step-name">Conferente</div>
                 <div class="step-meta"><span class="step-api" id="ps2Api"></span><span class="step-time"
-                    id="ps2Time"></span></div>
+                    id="ps2Time"></span><span class="step-tokens" id="ps2Tokens"></span></div>
               </div>
             </div>
             <div class="step" id="ps3">
@@ -436,7 +436,7 @@
               <div class="step-body">
                 <div class="step-name">Copywriter</div>
                 <div class="step-meta"><span class="step-api" id="ps3Api"></span><span class="step-time"
-                    id="ps3Time"></span></div>
+                    id="ps3Time"></span><span class="step-tokens" id="ps3Tokens"></span></div>
               </div>
             </div>
           </div>
@@ -463,12 +463,34 @@
                 <span class="result-label">Output: ficha técnica</span>
                 <div class="result-actions">
                   <span id="bivoltBadge" class="badge badge-bivolt" style="display:none;">BIVOLT</span>
+                  <details class="result-token-usage" id="tokenUsage" hidden>
+                    <summary aria-label="Ver detalhes do consumo de tokens desta ficha">
+                      <i data-lucide="coins" aria-hidden="true"></i>
+                      <span>Uso de IA:</span>
+                      <strong id="tokenUsageTotal">0</strong>
+                      <span>tokens</span>
+                      <span class="token-usage-link">Ver detalhes</span>
+                      <i class="token-usage-chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+                    </summary>
+                    <div class="token-usage-popover">
+                      <div class="token-usage-title">Consumo desta ficha</div>
+                      <div class="token-usage-list" id="tokenUsageList"></div>
+                      <div class="token-usage-total-row">
+                        <span>Total</span>
+                        <strong id="tokenUsageGrandTotal">0 tokens</strong>
+                      </div>
+                    </div>
+                  </details>
                   <button class="copy-btn" id="exportTxtBtn" type="button"><i data-lucide="download" aria-hidden="true"></i><span>Baixar .txt</span></button>
                   <button class="copy-btn" id="copyFichaBtn" type="button"><i data-lucide="copy" aria-hidden="true"></i><span>Copiar ficha</span></button>
                   <button class="copy-btn" id="copyFichaComTextoBtn" type="button"><i data-lucide="copy-plus" aria-hidden="true"></i><span>Copiar com prompt</span></button>
                 </div>
               </div>
               <div class="result-content" id="fichaOut"></div>
+              <div class="result-usage-footer" id="tokenUsageFooter" hidden>
+                <i data-lucide="gauge" aria-hidden="true"></i>
+                <span id="tokenUsageFooterText"></span>
+              </div>
             </div>
 
             <details class="card result-details">

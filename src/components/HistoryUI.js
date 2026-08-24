@@ -40,8 +40,14 @@ export const HistoryUI = {
   },
 
   _restore(item) {
-    AppState.pipeline.result = { ficha: item.ficha, conteudo: item.conteudo, bivolt: item.bivolt };
-    PipelineUI.showResults(item.ficha, '', item.conteudo, item.bivolt, false);
+    AppState.pipeline.result = {
+      ficha: item.ficha,
+      conteudo: item.conteudo,
+      bivolt: item.bivolt,
+      tokenUsage: item.tokenUsage || null,
+      historyId: item.id || '',
+    };
+    PipelineUI.showResults(item.ficha, '', item.conteudo, item.bivolt, false, item.tokenUsage);
     const vo = $('validacaoOut'); if (vo) vo.textContent = '';
     $('results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     PipelineUI.toast('Ficha restaurada do histórico.', 'ok');
@@ -131,6 +137,7 @@ function _renderList() {
       <div class="hist-meta">
         <span class="hist-date">${Utils.escHtml(item.data || '')}</span>
         ${item.bivolt ? '<span class="hist-bivolt-tag">⚡ BIVOLT</span>' : ''}
+        ${item.tokenUsage?.totalTokens ? `<span class="hist-token-tag">${Number(item.tokenUsage.totalTokens).toLocaleString('pt-BR')} tokens</span>` : ''}
       </div>
       <div class="hist-preview">${Utils.escHtml(item.preview || '(sem preview)')}</div>
     `;

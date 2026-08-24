@@ -23,6 +23,17 @@ function _getGeminiKey()  { return document.getElementById('apiKey')?.value.trim
 function _getMistralKey() { return document.getElementById('mistralKey')?.value.trim() || ''; }
 function _getModel()      { return document.getElementById('modelSel')?.value || GEMINI_DEFAULT_MODEL; }
 
+function _tokenCount(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : 0;
+}
+
+function _reportUsage(options, usage) {
+  if (typeof options?.onUsage !== 'function') return;
+  try { options.onUsage(usage); }
+  catch (err) { console.warn('[FastSEO] Não foi possível atualizar o contador de tokens.', err); }
+}
+
 // Reúne a chave principal e as chaves de fallback, removendo duplicadas.
 function _getGeminiKeys() {
   return [_getGeminiKey(), _ls('fastseo_apiKey2'), _ls('fastseo_apiKey3')]
@@ -155,6 +166,16 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
       const d = await res.json();
       const txt = d?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
       if (!txt) throw new Error('Resposta vazia do Gemini.');
+      const metadata = d?.usageMetadata || {};
+      _reportUsage(options, {
+        provider: 'gemini',
+        model: d?.modelVersion || model,
+        inputTokens: _tokenCount(metadata.promptTokenCount),
+        outputTokens: _tokenCount(metadata.candidatesTokenCount),
+        thinkingTokens: _tokenCount(metadata.thoughtsTokenCount),
+        cachedTokens: _tokenCount(metadata.cachedContentTokenCount),
+        totalTokens: _tokenCount(metadata.totalTokenCount),
+      });
       return txt;
     } catch (err) {
       lastErr = err;
@@ -217,6 +238,16 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
       const d = await res.json();
       const txt = d?.choices?.[0]?.message?.content?.trim();
       if (!txt) throw new Error('Resposta vazia da Mistral.');
+      const metadata = d?.usage || {};
+      _reportUsage(options, {
+        provider: 'mistral',
+        model: d?.model || MISTRAL_MODEL,
+        inputTokens: _tokenCount(metadata.prompt_tokens),
+        outputTokens: _tokenCount(metadata.completion_tokens),
+        thinkingTokens: 0,
+        cachedTokens: _tokenCount(metadata.prompt_tokens_details?.cached_tokens),
+        totalTokens: _tokenCount(metadata.total_tokens),
+      });
       return txt;
     } catch (err) {
       lastErr = err;
@@ -232,10 +263,16 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
   throw lastErr || new Error('Mistral indisponível.');
 }
 
-export async function callAgent(system, userMsg, maxTokens, signal, agentNum) {
+export async function callAgent(system, userMsg, maxTokens, signal, agentNum, tracking = {}) {
   const mistralOk = _getMistralKeys().length > 0;
   const geminiOk  = _getGeminiKeys().length > 0;
-  const options = { jsonMode: agentNum === 2 };
+  const options = {
+    jsonMode: agentNum === 2,
+    onUsage(usage) {
+      PipelineUI.setStepApi(agentNum, usage.provider === 'mistral' ? 'Mistral' : 'Gemini');
+      tracking.onUsage?.(usage);
+    },
+  };
 
   // Decide a melhor API para cada agente e só troca de provedor quando há falha recuperável.
   const tryFallback = async (skipApi, label) => {
