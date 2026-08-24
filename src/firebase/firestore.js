@@ -10,7 +10,7 @@
  *   /categories/{docId}       → { id, nome, campos, ficha, copy, updatedAt }
  *   /subcategories/{docId}    → { nome, formula, ex }
  *   /prompts/{docId}          → { key, value, updatedAt }
- *   /history/{docId}          → { preview, ficha, conteudo, bivolt, data, ts }
+ *   /history/{docId}          → { preview, ficha, conteudo, bivolt, tokenUsage, data, ts }
  */
 
 import { db } from './firebase.js';
@@ -183,13 +183,25 @@ export const HistoryDB = {
 
   async save(data) {
     UserAccess.assert('editContent');
-    await addDoc(Refs.history(), {
+    const ref = await addDoc(Refs.history(), {
       preview:  data.preview  || '',
       ficha:    data.ficha    || '',
       conteudo: data.conteudo || '',
       bivolt:   !!data.bivolt,
+      tokenUsage: data.tokenUsage || null,
       data:     new Date().toLocaleString('pt-BR'),
       ts:       serverTimestamp(),
+    });
+    return ref.id;
+  },
+
+  async updateResult(id, data) {
+    UserAccess.assert('editContent');
+    if (!id) return;
+    await updateDoc(doc(db, 'history', id), {
+      conteudo: data.conteudo || '',
+      tokenUsage: data.tokenUsage || null,
+      updatedAt: serverTimestamp(),
     });
   },
 

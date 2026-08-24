@@ -32,6 +32,8 @@ import { parseQAJson, formatQAReport } from './qa.js';
 import { getCategoryNotice } from './categoryNotices.js';
 import { buildCategoryQaSchemaPrompt, hasCategoryDefinition, textToFieldList } from './categoryQaSchema.js';
 import { isValidGeminiKey } from '../utils/apiKeys.js';
+import { addTokenCall, createTokenUsage } from './tokenUsage.js';
+import { UsageAnalytics } from '../services/usageAnalytics.js';
 
 // Integrações opcionais: SEO enriquece prompts; Analytics registra uso e erros.
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -107,6 +109,9 @@ export const Pipeline = {
   // Consome apenas 1 requisição de cota.
   async rerunCopywriter() {
     const { ficha, bivolt } = AppState.pipeline.result || {};
+    const tokenUsage = createTokenUsage(AppState.pipeline.result?.tokenUsage);
+    const regenerationUsage = createTokenUsage();
+    const regenerationStartedAt = Date.now();
 
     // Fallback: lê do DOM caso o state tenha sido perdido (ex: reload parcial).
     const fichaText = ficha || document.getElementById('fichaOut')?.innerText?.trim() || '';
@@ -156,7 +161,13 @@ export const Pipeline = {
 
       const sys3 = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
 
-      const conteudo = await callAgent(sys3, fichaText, 800, signal, 3);
+      const conteudo = await callAgent(sys3, fichaText, 800, signal, 3, {
+        onUsage(usage) {
+          addTokenCall(tokenUsage, 3, usage, 'regeneration');
+          addTokenCall(regenerationUsage, 3, usage, 'regeneration');
+          PipelineUI.updateTokenUsage(tokenUsage);
+        },
+      });
 
       Quota.add(1);
       PipelineUI.setStep(3, 'done');
@@ -164,13 +175,30 @@ export const Pipeline = {
 
       // Mantém o estado interno e a tela sincronizados após regenerar o conteúdo.
       AppState.pipeline.result.conteudo = conteudo;
+      AppState.pipeline.result.tokenUsage = tokenUsage;
       const outEl = document.getElementById('conteudoOut');
       if (outEl) outEl.innerText = conteudo;
-      PipelineUI.showResults(fichaText, AppState.pipeline.result.validacao || '', conteudo, bivolt, false);
+      PipelineUI.showResults(fichaText, AppState.pipeline.result.validacao || '', conteudo, bivolt, false, tokenUsage);
 
       // Garante que o bloco esteja visível.
       const copyBlock = document.getElementById('copyBlock');
       if (copyBlock) copyBlock.style.display = '';
+
+      if (AppState.pipeline.result.historyId) {
+        try {
+          await History.updateResult(AppState.pipeline.result.historyId, { conteudo, tokenUsage });
+        } catch (historyError) {
+          PipelineUI.log(`Histórico não atualizado: ${historyError.message}`, 'w');
+        }
+      }
+
+      UsageAnalytics.record({
+        status: 'aprovado',
+        durationMs: Date.now() - regenerationStartedAt,
+        category: AppState.pipeline.result.category || '',
+        bivolt: Boolean(bivolt),
+        calls: regenerationUsage.calls,
+      });
 
       Quota.updateUI();
 
@@ -217,6 +245,8 @@ export const Pipeline = {
     const mistralOk = mistralKey.length > 20;
     const categoriaAtual = AppState.categoriaAtiva?.nome || '';
     const pipelineMode = getPipelineMode();
+    const telemetryContext = { category: categoriaAtual, bivolt: false };
+    let telemetryRecorded = false;
 
     // Analytics: pipeline iniciado.
     trackPipelineIniciado({
@@ -230,12 +260,18 @@ export const Pipeline = {
     AppState.pipeline.result = {};
     PipelineUI.resetSteps();
     PipelineUI.setRunning(true);
+    const tokenUsage = createTokenUsage();
+    const trackStageUsage = stage => usage => {
+      addTokenCall(tokenUsage, stage, usage);
+      PipelineUI.updateTokenUsage(tokenUsage);
+    };
 
     try {
       const input = Utils.sanitize(inputRaw);
       if (!input) throw new Error('Input vazio após sanitização.');
 
       const bivolt = Utils.detectBivolt(input);
+      telemetryContext.bivolt = bivolt;
 
       // Salva alterações pendentes em categoria antes de montar os prompts.
       await this._flushOpenEditor();
@@ -243,6 +279,7 @@ export const Pipeline = {
       // Escolhe as categorias que servem como referência para este produto.
       const allCats = Categories.getAll().filter(hasCategoryDefinition);
       const matched = Utils.matchCategories(input, Categories.getAll());
+      telemetryContext.category = matched[0]?.nome || categoriaAtual || '';
       const categoriaComAviso = matched.find(cat => getCategoryNotice(cat.avisoFichaTipo).text);
       const aviso = categoriaComAviso ? getCategoryNotice(categoriaComAviso.avisoFichaTipo).text : '';
       const avisoValidacao = aviso
@@ -290,7 +327,9 @@ export const Pipeline = {
       // AGENTE 1 - Formatador
       PipelineUI.setStep(1, 'active');
       PipelineUI.log(`[A1] Formatando ficha${bivolt ? ' bivolt' : ''}...`, 'i');
-      let ficha = await callAgent(sys1, `Dados do produto:\n${input}`, tok1, signal, 1);
+      let ficha = await callAgent(sys1, `Dados do produto:\n${input}`, tok1, signal, 1, {
+        onUsage: trackStageUsage(1),
+      });
       Quota.add(1);
       PipelineUI.setStep(1, 'done');
       PipelineUI.log('[A1] Ficha formatada.', 'o');
@@ -305,7 +344,7 @@ export const Pipeline = {
       const validacao = await callAgent(
         sys2,
         `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}${avisoValidacao}${qaSchemaPrompt ? `\n\n---\nJSON DE VALIDAÇÃO DA CATEGORIA:\n${qaSchemaPrompt}` : ''}`,
-        2000, signal, 2
+        2000, signal, 2, { onUsage: trackStageUsage(2) }
       );
       Quota.add(1);
       const qa = parseQAJson(validacao);
@@ -321,7 +360,9 @@ export const Pipeline = {
         PipelineUI.setStep(3, 'active');
         PipelineUI.log('[A3] Gerando conteúdo comercial...', 'i');
         etapaErro = 'A3-copywriter';
-        conteudo = await callAgent(sys3, ficha, 800, signal, 3);
+        conteudo = await callAgent(sys3, ficha, 800, signal, 3, {
+          onUsage: trackStageUsage(3),
+        });
         Quota.add(1);
         PipelineUI.setStep(3, 'done');
         PipelineUI.log('[A3] Conteúdo gerado.', 'o');
@@ -331,8 +372,18 @@ export const Pipeline = {
       }
 
       // Salva o resultado em memória antes de atualizar a interface.
-      AppState.pipeline.result = { ficha, validacao: validacaoFormatada, validacaoRaw: validacao, qa, conteudo, bivolt, reprovado };
-      PipelineUI.showResults(ficha, validacaoFormatada, conteudo, bivolt, reprovado);
+      AppState.pipeline.result = {
+        ficha,
+        validacao: validacaoFormatada,
+        validacaoRaw: validacao,
+        qa,
+        conteudo,
+        bivolt,
+        reprovado,
+        category: telemetryContext.category,
+        tokenUsage,
+      };
+      PipelineUI.showResults(ficha, validacaoFormatada, conteudo, bivolt, reprovado, tokenUsage);
       PipelineUI.log('Pipeline concluído.', 'o');
 
       // Analytics: pipeline concluído com sucesso.
@@ -344,9 +395,18 @@ export const Pipeline = {
         reprovado: !!reprovado,
       });
 
+      telemetryRecorded = UsageAnalytics.record({
+        status: reprovado ? 'reprovado' : 'aprovado',
+        durationMs: Date.now() - t0,
+        category: telemetryContext.category,
+        bivolt: telemetryContext.bivolt,
+        calls: tokenUsage.calls,
+      });
+
       // Persistência (Firestore + localStorage como cache local).
       const preview = (document.getElementById('inputText')?.value || '').slice(0, 100).trim();
-      await History.save({ preview, ficha, conteudo, bivolt });
+      const historyId = await History.save({ preview, ficha, conteudo, bivolt, tokenUsage });
+      AppState.pipeline.result.historyId = historyId;
       await Logs.save({
         status: reprovado ? 'reprovado' : 'aprovado',
         duracao_ms: Date.now() - t0,
@@ -354,11 +414,23 @@ export const Pipeline = {
         bivolt: !!bivolt,
         usou_mistral: mistralOk,
         usou_seo: !!contextoSEO,
+        total_tokens: tokenUsage.totalTokens,
+        input_tokens: tokenUsage.inputTokens,
+        output_tokens: tokenUsage.outputTokens,
       });
 
       Quota.updateUI();
 
     } catch (err) {
+      if (!telemetryRecorded && tokenUsage.calls.length) {
+        UsageAnalytics.record({
+          status: 'erro',
+          durationMs: Date.now() - t0,
+          category: telemetryContext.category,
+          bivolt: telemetryContext.bivolt,
+          calls: tokenUsage.calls,
+        });
+      }
       if (err.name === 'AbortError') {
         [1, 2, 3].forEach(n => {
           if (document.getElementById(`ps${n}`)?.classList.contains('active')) PipelineUI.setStep(n, '');

@@ -40,6 +40,16 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // Telemetria é escrita e consultada somente pelo backend. Isso impede que
+    // clientes forjem métricas ou leiam o consumo de outros usuários.
+    match /usageEvents/{eventId} {
+      allow read, create, update, delete: if false;
+    }
+
+    match /usageDaily/{aggregateId} {
+      allow read, create, update, delete: if false;
+    }
+
     // Coleções operacionais atuais: o backend não interfere no fluxo existente.
     match /categories/{document=**} {
       allow read: if isActive();
