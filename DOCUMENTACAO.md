@@ -4,9 +4,11 @@ Este guia resume as regras de manutenção do FastSEO. Ele serve para orientar a
 
 ## Visão Geral
 
-O FastSEO é uma aplicação frontend modular para gerar fichas técnicas, conferir dados, criar FAQs e compilar informações de produtos em arquivos TXT.
+O FastSEO é uma aplicação modular para gerar fichas técnicas, conferir dados, criar conteúdo comercial, montar FAQs e compilar informações de produtos em arquivos TXT.
 
-O projeto roda no navegador, usa Firebase para autenticação e dados, e mantém funcionalidades independentes em módulos separados.
+O frontend roda no GitHub Pages, o backend Node.js/Express roda no Render e o Firebase fornece autenticação e Firestore. As integrações com Gemini e Mistral continuam no frontend, usando a chave individual configurada por cada usuário.
+
+Em produção, o frontend usa `https://fastseo-users-backend-maicons.onrender.com/api`. O endpoint `/health` pode ser usado para conferir se o backend está disponível.
 
 ## Guia de Uso
 
@@ -19,7 +21,15 @@ O acesso ao FastSEO é restrito a usuários autorizados.
 1. Abra o FastSEO no navegador.
 2. Clique em Entrar com Google.
 3. Use uma conta Google autorizada.
-4. Caso o acesso seja negado, solicite a liberação do e-mail no Firebase.
+4. No primeiro acesso, envie a solicitação pela própria tela.
+5. Aguarde a aprovação de um proprietário ou administrador.
+
+Papéis atuais:
+
+- `owner`: acesso integral e garantia de continuidade do último proprietário ativo.
+- `admin`: administra usuários, prompts, categorias e analytics, mas não gerencia proprietários ou outros administradores.
+- `collaborator`: usa o pipeline e pode editar conteúdo operacional.
+- `viewer`: usa o FastSEO e consulta conteúdo publicado, sem permissão de edição.
 
 ## Como Usar a Ficha Técnica
 
@@ -29,8 +39,10 @@ A aba Ficha Técnica é usada para processar dados brutos de produtos e gerar um
 2. Se preferir, importe um PDF, documento Word (.docx), arquivo TXT, planilha ou CSV pelo botão Importar arquivo.
 3. Revise se as informações principais estão presentes.
 4. Clique em Processar ficha.
-5. Aguarde as etapas Formatador, Conferente e Copywriter.
+5. Aguarde as etapas A1 Formatador, A2 Conferente e A3 Copywriter.
 6. Revise o resultado gerado.
+
+O contador de tokens é atualizado conforme cada agente responde. Ele separa entrada, saída e total por chamada e mostra o resumo do processamento, sem incluir ou transmitir a chave da IA.
 
 Resultados disponíveis:
 
@@ -47,17 +59,41 @@ Ações disponíveis:
 
 ## Como Usar Categorias
 
-A área de Categorias serve para cadastrar referências e exemplos que ajudam o pipeline a formatar produtos corretamente.
+A área de Categorias serve para cadastrar referências e exemplos que ajudam o pipeline a identificar famílias de produtos e formatá-las corretamente. O catálogo de trabalho e a versão publicada são gerenciados pelo backend.
 
 Use categorias quando quiser orientar o padrão de uma linha de produtos, como eletrodomésticos, cosméticos, alimentos, eletrônicos ou outras famílias.
+
+Somente `owner` e `admin` podem criar, editar, importar, publicar ou excluir categorias. Colaboradores e espectadores usam apenas o catálogo publicado.
 
 O que cadastrar:
 
 - Nome da categoria.
+- Tipo do perfil e categoria pai, quando houver herança.
+- Aliases, sinônimos e nomes comerciais.
+- Termos negativos para reduzir falsos positivos.
 - Campos obrigatórios.
 - Campos opcionais.
 - Ficha ideal.
-- Regras ou exemplos de preenchimento.
+- Regras de título, avisos e modificadores.
+
+Fluxo recomendado:
+
+1. Crie ou selecione uma categoria.
+2. Para pedir uma sugestão à IA, cole cinco fichas reais e representativas.
+3. Clique no botão de análise somente quando desejar gastar tokens.
+4. Revise a proposta; ao aprová-la, ela substitui os campos atuais do rascunho.
+5. Salve e publique apenas depois da revisão. Alterar o rascunho não muda a versão já publicada.
+6. Use Backup antes de migrações ou importações em massa.
+
+Excluir uma categoria é uma operação permanente: remove o perfil, sua versão publicada e os registros legados correspondentes.
+
+## Analytics de Tokens
+
+O FastSEO registra no backend somente metadados de consumo: usuário, agente, provedor, modelo, categoria, duração, status e quantidades de tokens. A chave da API e o conteúdo completo da ficha não fazem parte desse evento.
+
+Somente `owner` e `admin` possuem acesso ao painel Analytics. O painel permite consultar períodos de 7, 30 ou 90 dias e comparar consumo por usuário, agente, modelo e categoria. O custo monetário estimado não faz parte da versão atual.
+
+As coleções `usageEvents` e `usageDaily` são bloqueadas para acesso direto pelo frontend. A gravação e a leitura ocorrem exclusivamente pelo backend usando o Firebase Admin SDK.
 
 ## Como Usar Histórico
 
@@ -146,6 +182,7 @@ O arquivo TXT baixado usa o Código do Produto como nome. Exemplo: `111255.txt`.
 - Em PDFs escaneados como imagem, o texto pode não ser extraído.
 - Revise o resultado antes de copiar ou baixar.
 - Use o Compilador de Dados quando não quiser usar IA.
+- Nunca compartilhe sua chave Gemini ou Mistral nem a inclua em prints, commits ou chamados.
 
 ## Problemas Comuns
 
@@ -163,7 +200,15 @@ Verifique se Código do Produto, Título, EAN e Fornecedor foram preenchidos.
 
 ### O login não funciona
 
-Confirme se o e-mail está autorizado no Firebase.
+Confirme se o domínio está autorizado no Firebase Authentication e se o backend responde em `/health`. Se a conta estiver pendente, um `owner` ou `admin` precisa aprová-la no FastSEO.
+
+### O backend demora para responder
+
+O plano gratuito do Render pode adormecer sem tráfego. A primeira requisição pode levar cerca de um minuto; o frontend tenta novamente durante esse despertar.
+
+### A categoria não foi aplicada
+
+Confirme se a categoria foi publicada. Rascunhos são visíveis para administração, mas o pipeline consome o catálogo publicado.
 
 ### O resultado veio incompleto
 
@@ -182,9 +227,11 @@ Se uma ferramenta for removida, as outras devem continuar funcionando normalment
 - Não misturar funcionalidades independentes com o pipeline principal.
 - Não alterar o formato final da ficha técnica sem aprovação.
 - Não alterar o formato final do TXT do Compilador de Dados sem aprovação.
+- Não alterar `renderFaqItem()` ou `buildFaqHtml()` sem solicitação específica.
 - Não adicionar CSS novo dentro do `index.html`.
 - Não colocar regras de negócio diretamente no HTML.
 - Não expor novas chaves sensíveis no frontend sem avaliar segurança.
+- Não enviar chaves Gemini/Mistral, prompts completos ou conteúdo de fichas para o analytics.
 - Não remover suporte existente a PDF, Word, TXT, planilhas ou CSV.
 
 ## O Que Pode Fazer
@@ -204,7 +251,7 @@ Se uma ferramenta for removida, as outras devem continuar funcionando normalment
 - A feature deve ficar isolada em arquivo próprio quando tiver lógica relevante.
 - A ligação com a interface deve passar pelo `main.js` somente quando necessário.
 - IDs de elementos devem ser claros e consistentes.
-- Alterações em layout devem ficar em `src/styles/main.css`.
+- Alterações de interface reutilizáveis devem ficar preferencialmente em `src/styles/redesign.css` ou em componentes JavaScript, sem CSS inline no `index.html`.
 - Antes do commit, testar manualmente a tela alterada no navegador.
 
 ## Áreas Sensíveis
@@ -212,14 +259,46 @@ Se uma ferramenta for removida, as outras devem continuar funcionando normalment
 Alterar estas áreas com cuidado:
 
 - `src/modules/pipeline.js`
+- `src/modules/tokenUsage.js`
+- `src/services/usageAnalytics.js`
+- `src/services/categoryCatalog.js`
+- `src/services/userAccess.js`
 - `src/services/api.js`
 - `src/firebase/`
+- `backend/src/auth/`
+- `backend/src/categories/`
+- `backend/src/usage/`
+- `firestore.rules`
+- `render.yaml`
 - `src/components/ConfigUI.js`
 - `src/modules/history.js`
 - `src/modules/prompts.js`
 - `src/modules/PDFReader.js`
 
 Esses arquivos podem afetar autenticação, chamadas de IA, histórico, prompts, leitura de arquivos e geração das fichas.
+
+## Backend e Publicação
+
+O GitHub Pages publica somente o frontend. Mudanças em `backend/` exigem um novo deploy do serviço no Render. Mudanças em `firestore.rules` exigem uma publicação separada pelo Firebase CLI.
+
+Verificações de produção:
+
+```text
+https://fastseo-users-backend-maicons.onrender.com/health
+https://fastseo-users-backend-maicons.onrender.com/api/me
+```
+
+`/health` deve responder `status: ok`. `/api/me` sem token deve responder `401`, confirmando que a rota está protegida.
+
+Para publicar as regras:
+
+```powershell
+cd C:\Users\maicons\Documents\GitHub\FastSEO_1.0V
+pnpm --dir backend firebase:login
+pnpm --dir backend deploy:rules
+```
+
+Revise e faça commit de `firestore.rules` antes do deploy. Nunca envie `backend/.env`, a conta de serviço ou chaves privadas ao Git.
 
 ## Compilador de Dados
 
@@ -258,3 +337,6 @@ Exemplos:
 - Testar a aba alterada.
 - Verificar se não apareceu erro no console.
 - Conferir se os formatos de saída continuam iguais.
+- Se alterou o backend, executar testes e confirmar `/health` após o deploy.
+- Se alterou permissões ou coleções, revisar e publicar `firestore.rules` separadamente.
+- Testar as permissões de `owner`, `admin`, `collaborator` e `viewer` quando a mudança envolver acesso.
