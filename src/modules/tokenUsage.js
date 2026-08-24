@@ -72,4 +72,3 @@ export function getStageTokenUsage(summary, stage) {
 export function formatTokenCount(value) {
   return asTokenCount(value).toLocaleString('pt-BR');
 }
-

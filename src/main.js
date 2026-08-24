@@ -1,5 +1,6 @@
 import { Auth } from './services/auth.js';
 import { UserAccess } from './services/userAccess.js';
+import { UsageAnalytics } from './services/usageAnalytics.js';
 import { Categories } from './modules/categories.js';
 import { History } from './modules/history.js';
 import { Prompts } from './modules/prompts.js';
@@ -494,6 +495,7 @@ function applyAccessExperience() {
   document.body.classList.toggle('is-read-only', permissions?.editContent === false);
   document.getElementById('openUsersBtn')?.toggleAttribute('hidden', !permissions?.viewUsers);
   document.getElementById('openPromptsBtn')?.toggleAttribute('hidden', !permissions?.viewPrompts);
+  document.getElementById('openAnalyticsBtn')?.toggleAttribute('hidden', !permissions?.viewUsageAnalytics);
   UserAccess.enforceReadOnly(document);
 }
 
@@ -514,6 +516,7 @@ async function init() {
   ConfigUI.updateCharCount();
   ConfigUI.updateQuotaInfo();
   FAQCreator.init();
+  UsageAnalytics.initialize();
   appCleanups = [
     Categories.startSync(),
     History.startSync(),
@@ -682,7 +685,9 @@ document.getElementById('openPromptsBtn')?.addEventListener('click', () => {
   if (UserAccess.can('viewPrompts')) PromptModal.open();
 });
 document.getElementById('openUsersBtn')?.addEventListener('click', () => UsersModal.open());
-document.getElementById('openAnalyticsBtn')?.addEventListener('click', () => AnalyticsModal.open());
+document.getElementById('openAnalyticsBtn')?.addEventListener('click', () => {
+  if (UserAccess.can('viewUsageAnalytics')) AnalyticsModal.open();
+});
 document.getElementById('openSubcatBtn')?.addEventListener('click', () => SubcatModal.open());
 document.getElementById('openConfigBtn')?.addEventListener('click', async () => {
   ConfigUI.restoreSavedKeys();

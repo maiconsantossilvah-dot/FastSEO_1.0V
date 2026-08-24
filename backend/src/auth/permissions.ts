@@ -10,7 +10,8 @@ export type Permission =
   | 'editPrompts'
   | 'approveAccess'
   | 'manageRoles'
-  | 'manageCategoryCatalog';
+  | 'manageCategoryCatalog'
+  | 'viewUsageAnalytics';
 
 type PermissionSet = Readonly<Record<Permission, boolean>>;
 
@@ -24,6 +25,7 @@ const viewer: PermissionSet = Object.freeze({
   approveAccess: false,
   manageRoles: false,
   manageCategoryCatalog: false,
+  viewUsageAnalytics: false,
 });
 
 const collaborator: PermissionSet = Object.freeze({
@@ -40,6 +42,7 @@ const admin: PermissionSet = Object.freeze({
   approveAccess: true,
   manageRoles: true,
   manageCategoryCatalog: true,
+  viewUsageAnalytics: true,
 });
 
 export const PERMISSIONS: Readonly<Record<UserRole, PermissionSet>> = Object.freeze({

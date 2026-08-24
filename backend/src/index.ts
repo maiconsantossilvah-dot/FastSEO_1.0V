@@ -6,6 +6,7 @@ import { AppError, errorHandler, notFoundHandler } from './errors.js';
 import { apiRateLimiter } from './rateLimit.js';
 import { usersRouter } from './users/users.routes.js';
 import { categoriesRouter } from './categories/categories.routes.js';
+import { usageRouter } from './usage/usage.routes.js';
 
 export function createApp() {
   const app = express();
@@ -23,7 +24,7 @@ export function createApp() {
   }));
   app.use(express.json({ limit: '512kb' }));
   app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'fastseo-users' }));
-  app.use('/api', apiRateLimiter, usersRouter, categoriesRouter);
+  app.use('/api', apiRateLimiter, usersRouter, categoriesRouter, usageRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;

@@ -34,6 +34,7 @@ import { buildCategoryQaSchemaPrompt, hasCategoryDefinition, textToFieldList } f
 import { isValidGeminiKey } from '../utils/apiKeys.js';
 import { addTokenCall, createTokenUsage } from './tokenUsage.js';
 import { compactProductInput, stabilizeFichaOutput, validateFichaOutput } from './outputGuards.js';
+import { UsageAnalytics } from '../services/usageAnalytics.js';
 
 // Integrações opcionais: SEO enriquece prompts; Analytics registra uso e erros.
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -110,6 +111,8 @@ export const Pipeline = {
   async rerunCopywriter() {
     const { ficha, bivolt } = AppState.pipeline.result || {};
     const tokenUsage = createTokenUsage(AppState.pipeline.result?.tokenUsage);
+    const regenerationUsage = createTokenUsage();
+    const regenerationStartedAt = Date.now();
 
     // Fallback: lê do DOM caso o state tenha sido perdido (ex: reload parcial).
     const fichaText = ficha || document.getElementById('fichaOut')?.innerText?.trim() || '';
@@ -162,6 +165,7 @@ export const Pipeline = {
       const conteudo = await callAgent(sys3, fichaText, 800, signal, 3, {
         onUsage(usage) {
           addTokenCall(tokenUsage, 3, usage, 'regeneration');
+          addTokenCall(regenerationUsage, 3, usage, 'regeneration');
           PipelineUI.updateTokenUsage(tokenUsage);
         },
       });
@@ -188,6 +192,14 @@ export const Pipeline = {
           PipelineUI.log(`Histórico não atualizado: ${historyError.message}`, 'w');
         }
       }
+
+      UsageAnalytics.record({
+        status: 'aprovado',
+        durationMs: Date.now() - regenerationStartedAt,
+        category: AppState.pipeline.result.category || '',
+        bivolt: Boolean(bivolt),
+        calls: regenerationUsage.calls,
+      });
 
       Quota.updateUI();
 
@@ -234,6 +246,8 @@ export const Pipeline = {
     const mistralOk = mistralKey.length > 20;
     const categoriaAtual = AppState.categoriaAtiva?.nome || '';
     const pipelineMode = getPipelineMode();
+    const telemetryContext = { category: categoriaAtual, bivolt: false };
+    let telemetryRecorded = false;
 
     // Analytics: pipeline iniciado.
     trackPipelineIniciado({
@@ -258,6 +272,7 @@ export const Pipeline = {
       if (!input) throw new Error('Input vazio após sanitização.');
 
       const bivolt = Utils.detectBivolt(input);
+      telemetryContext.bivolt = bivolt;
 
       // Salva alterações pendentes em categoria antes de montar os prompts.
       await this._flushOpenEditor();
@@ -266,6 +281,7 @@ export const Pipeline = {
       const allCats = Categories.getAll().filter(hasCategoryDefinition);
       const matchedCandidates = Utils.matchCategories(input, Categories.getAll());
       const matched = matchedCandidates.slice(0, 1);
+      telemetryContext.category = matched[0]?.nome || categoriaAtual || '';
       const categoriaComAviso = matched.find(cat => getCategoryNotice(cat.avisoFichaTipo).text);
       const aviso = categoriaComAviso ? getCategoryNotice(categoriaComAviso.avisoFichaTipo).text : '';
       const avisoValidacao = aviso
@@ -372,6 +388,7 @@ export const Pipeline = {
         conteudo,
         bivolt,
         reprovado,
+        category: telemetryContext.category,
         tokenUsage,
       };
       PipelineUI.showResults(ficha, validacaoFormatada, conteudo, bivolt, reprovado, tokenUsage);
@@ -384,6 +401,14 @@ export const Pipeline = {
         temSEO: !!contextoSEO,
         bivolt: !!bivolt,
         reprovado: !!reprovado,
+      });
+
+      telemetryRecorded = UsageAnalytics.record({
+        status: reprovado ? 'reprovado' : 'aprovado',
+        durationMs: Date.now() - t0,
+        category: telemetryContext.category,
+        bivolt: telemetryContext.bivolt,
+        calls: tokenUsage.calls,
       });
 
       // Persistência (Firestore + localStorage como cache local).
@@ -405,6 +430,15 @@ export const Pipeline = {
       Quota.updateUI();
 
     } catch (err) {
+      if (!telemetryRecorded && tokenUsage.calls.length) {
+        UsageAnalytics.record({
+          status: 'erro',
+          durationMs: Date.now() - t0,
+          category: telemetryContext.category,
+          bivolt: telemetryContext.bivolt,
+          calls: tokenUsage.calls,
+        });
+      }
       if (err.name === 'AbortError') {
         [1, 2, 3].forEach(n => {
           if (document.getElementById(`ps${n}`)?.classList.contains('active')) PipelineUI.setStep(n, '');

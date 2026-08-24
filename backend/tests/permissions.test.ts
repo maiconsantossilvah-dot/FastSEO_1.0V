@@ -25,7 +25,15 @@ describe('permissões explícitas', () => {
       editPrompts: false,
       manageRoles: false,
       manageCategoryCatalog: false,
+      viewUsageAnalytics: false,
     });
+  });
+
+  it('restringe analytics globais a admin e owner', () => {
+    expect(permissionsFor('viewer')?.viewUsageAnalytics).toBe(false);
+    expect(permissionsFor('collaborator')?.viewUsageAnalytics).toBe(false);
+    expect(permissionsFor('admin')?.viewUsageAnalytics).toBe(true);
+    expect(permissionsFor('owner')?.viewUsageAnalytics).toBe(true);
   });
 
   it('restringe o catálogo de categorias a admin e owner', () => {
