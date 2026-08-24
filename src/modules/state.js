@@ -40,7 +40,6 @@ export const AppState = {
       if (!rule) return '';
       let s = `\n\n-- PADRÃO DE TÍTULO PARA "${rule.nome}" --\n`;
       s += `Estrutura do título: ${rule.formula}\n`;
-      if (rule.ex) s += `Exemplo: ${rule.ex}\n`;
       s += 'Siga exatamente essa estrutura ao gerar o TÍTULO SEO desta ficha.';
       return s;
     },

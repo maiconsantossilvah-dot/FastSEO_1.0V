@@ -833,11 +833,16 @@ input::placeholder {
 .workspace-steps .step {
   position: relative;
   min-width: 0;
-  min-height: 50px;
+  min-height: 62px;
   padding: 8px;
   gap: 7px;
   border-color: var(--color-border);
   box-shadow: none;
+}
+
+.workspace-steps .step-body {
+  flex: 1;
+  min-width: 0;
 }
 
 .workspace-steps .step:not(:last-child)::after {
@@ -869,7 +874,17 @@ input::placeholder {
 }
 
 .workspace-steps .step-meta {
+  min-width: 0;
+  flex-wrap: wrap;
+  column-gap: 4px;
+  row-gap: 1px;
   font-size: 8px;
+}
+
+.workspace-steps .step-tokens {
+  flex: 0 0 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .step.active {

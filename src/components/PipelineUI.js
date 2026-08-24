@@ -114,7 +114,7 @@ export const PipelineUI = {
       const tokenEl = $(`ps${stage}Tokens`);
       if (!tokenEl) return;
       tokenEl.textContent = stageUsage.totalTokens > 0
-        ? `· ${formatTokenCount(stageUsage.totalTokens)} tokens`
+        ? `${formatTokenCount(stageUsage.totalTokens)} tokens`
         : '';
       tokenEl.title = stageUsage.totalTokens > 0
         ? `${_stageNames[stage]}: ${formatTokenCount(stageUsage.totalTokens)} tokens oficiais`

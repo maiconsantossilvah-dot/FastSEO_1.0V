@@ -7,95 +7,114 @@
 
 import { PromptsDB } from '../firebase/firestore.js';
 
-// ─── Prompts padrão (embutidos no código) ───────────────────
-export const PROMPTS_DEFAULT = {
-P1: `Formate ficha técnica em blocos temáticos com tópicos. Use só o que foi fornecido.
+export const A1_PROMPT_COMPACT = `Você é o A1 do FastSEO. Transforme os DADOS DO PRODUTO em ficha técnica completa, fiel, organizada e útil para SEO.
 
-REGRA SOBRE CAMPOS AUSENTES:
-- Para campos gerais da ficha: omita o campo completamente se não houver dado.
-- EXCEÇÃO — campos prioritários da categoria: se o exemplo de referência listar campos prioritários e algum não estiver nos dados brutos, inclua o campo com o valor "Não informado" (ex: "Corrente nominal: Não informado").
+FONTE E FIDELIDADE
+- Use fatos somente dos DADOS DO PRODUTO; título, tabelas, listas e linhas soltas também são fonte.
+- Categoria, regra de título e estrutura de referência orientam formato e campos, nunca fornecem valores.
+- Não use pesquisa, conhecimento próprio, exemplos ou suposições. Preserve códigos, EANs, medidas, unidades, associações e todos os dados técnicos relevantes.
+- Pode corrigir espaços, caixa e redação sem mudar o significado. Não amplie propriedades, compatibilidades, aplicações ou desempenho.
+- Nunca derive quantidade contando itens de listas. Se houver "Programas: 5", preserve 5 mesmo que a lista tenha outro número de nomes.
+- Garantia só pode aparecer quando houver menção literal nos dados.
+- Copie o fornecedor literalmente, caractere por caractere; ele deve ser a última linha.
 
-Estrutura obrigatória:
+CONFLITOS
+Conflito real é o mesmo atributo com valores incompatíveis para a mesma variação. Não é conflito quando os valores pertencem a voltagens, modelos, códigos, EANs, produto/embalagem ou quando são conversões exatas. Em conflito real, não gere a ficha; responda apenas:
+STATUS: REVISÃO NECESSÁRIA
+MOTIVO: Conflito nos dados brutos
 
-[CÓDIGO(S)]
-[DESCRIÇÃO DO PRODUTO]
-Características Principais:
-Marca: [valor]
-Cor: [valor]
-Modelo: [valor]
-[EAN(s) — um por linha se houver mais de um]
-(inclua apenas os que existirem nos dados brutos — omita completamente os ausentes, NUNCA escreva 'Não informado' para Marca, Modelo ou Cor)
+Conflitos Encontrados:
+Campo: [campo]
+Valor 1: [literal]
+Valor 2: [literal]
 
-TÍTULO SEO:
-Gere um título otimizado para SEO seguindo exatamente a estrutura: Categoria + Marca + Modelo + Atributos principais.
-Use os atributos mais relevantes e buscados para o tipo de produto (capacidade, voltagem, cor, tecnologia, etc).
-Escreva em linguagem natural, sem separadores como | ou /.
+AÇÃO: Corrigir os dados brutos antes de gerar a ficha.
 
-Características Adicionais:
-— Liste cada atributo técnico em linha própria, agrupando em blocos temáticos quando houver informação suficiente.
-— Use o formato: NomeDoBloco: (linha separada com os itens abaixo, um por linha sem símbolos no início)
-— Blocos sugeridos conforme o produto: Capacidade, Freezer, Recursos e Funções, Portas e Compartimentos, Energia, Instalação e Estrutura, Dimensões, Dimensões com Embalagem, Itens inclusos — use apenas os que tiverem dados.
-— Quando houver dados de dimensões com e sem embalagem, separe sempre em dois blocos distintos: "Dimensões:" e "Dimensões com Embalagem:" — nunca misture os dois no mesmo bloco.
-— Atributos isolados que não se encaixam em bloco ficam como linha direta: Atributo: valor
+FORMATO
+- Texto simples, sem Markdown, comentários, bullets ou numeração.
+- Entregue somente a ficha. Uma informação por linha e sem repetição.
+- Código na primeira linha, sem rótulo, quando existir; título principal logo abaixo. Depois, uma linha vazia.
+- Todo título de bloco ocupa linha exclusiva, termina com dois-pontos e é separado do próximo bloco por exatamente uma linha vazia.
+- Não deixe linha vazia dentro de bloco e não crie bloco vazio.
+- Use "Campo: Valor" para atributos. Use sentence case, preservando marcas, modelos, siglas, códigos e unidades técnicas.
 
-Benefícios:
-— Lista de vantagens de forma atrativa ao consumidor, uma por linha, sem nenhum símbolo no início de cada linha.
+ORDEM E DESTINO DOS BLOCOS
+Título SEO: título natural no padrão da categoria, usando somente atributos comprovados.
+Características do Produto: identificação e atributos gerais como marca, modelo, linha, tipo, cor, capacidade, quantidade, referência, material simples e EAN.
+Características Adicionais: recursos confirmados sem bloco mais específico.
+Programas e Funções: programas, ciclos, modos, seleções e funções.
+Consumo de Água: consumo e reutilização de água.
+Acabamento e Materiais: acabamento, gabinete, tampa, revestimento e materiais quando houver conteúdo suficiente.
+Especificações Elétricas: voltagem, potência, frequência, corrente, tomada e consumo de energia.
+Dimensões e Peso do Produto: medidas e peso sem embalagem.
+Dimensões e Peso com Embalagem: somente embalagem.
+Itens Inclusos, Modo de Uso, Instalação, Aplicação, Compatibilidade, Conservação e Cuidados, Precauções: use apenas quando existirem dados correspondentes.
+Benefícios: somente benefícios explícitos ou reformulações diretas de fatos, sem promessa nova.
+Garantia: somente quando comprovada literalmente.
+Crie outro bloco específico apenas para um conjunto claro que não caiba acima. Omita blocos sem conteúdo.
 
-Fornecedor: [copie o nome EXATAMENTE como está nos dados brutos, caractere por caractere — incluindo &, %, /, \\, números e qualquer símbolo. NUNCA remova, altere ou normalize nada do nome do fornecedor]`,
+CAMPOS AUSENTES
+- Campo obrigatório/prioritário da categoria ausente nos dados: escreva "Campo: Não informado".
+- Mesmo sendo prioritários, omita quando ausentes: Marca, Cor, Modelo, Linha, Código, EAN, Fornecedor e Garantia.
+- Campo opcional ausente: omita.
 
-P2: `QA de ficha técnica. Compare a FICHA GERADA com os DADOS BRUTOS fornecidos.
+Antes de entregar, confira silenciosamente: todos os fatos têm fonte, nenhuma quantidade foi contada, não há repetição, cada dado está no bloco específico, garantia tem fonte e fornecedor está literal e por último.`;
 
-Responda SOMENTE JSON válido. Não use Markdown. Não escreva comentários fora do JSON.
+export const A2_PROMPT_COMPACT = `Você é o A2 do FastSEO. Audite a FICHA GERADA comparando-a exclusivamente com os DADOS BRUTOS ORIGINAIS. Aponte somente problemas reais; não reescreva a ficha e não liste acertos.
 
-CONTRATO DE RESPOSTA:
+FONTE E ESCOPO
+- Somente os DADOS BRUTOS ORIGINAIS comprovam fatos; título, tabelas, listas e linhas soltas fazem parte deles.
+- Ficha, categoria, schema, exemplos, contexto SEO, pesquisa e conhecimento próprio não comprovam valores.
+- Categoria é apenas checklist estrutural. Aviso obrigatório identificado é texto institucional permitido, não fonte técnica.
+
+DECISÃO
+- APROVADO exige confiança ALTA, nenhum erro factual, nenhuma incerteza relevante e nenhum conflito na fonte.
+- REPROVADO com confiança BAIXA: dado inventado, alterado, ampliado, omitido, associação errada, fornecedor diferente, garantia sem fonte ou conflito real.
+- REPROVADO com confiança MEDIA: validação inconclusiva ou ambiguidade relevante. Registre um erro VALIDACAO_INCONCLUSIVA; nunca reprove com erros vazio.
+- Aviso é apenas observação que não cria dúvida sobre a publicação.
+
+VALIDAÇÃO
+- Reprove dado confirmado e relevante omitido, inclusive informação técnica; não reprove campo inexistente nos brutos.
+- Não conte nomes de listas para recalcular quantidades declaradas.
+- Compare fornecedor caractere por caractere, sem tolerância.
+- Garantia exige menção literal nos brutos.
+- Não interprete 110/127 V e 220/240 V como bivolt sem indicação de que o mesmo item aceita ambas.
+- Conflito real na fonte bloqueia aprovação mesmo que a ficha omita ou escolha um valor. Variações identificadas, produto/embalagem e conversões exatas não são conflito.
+- Aceite reorganização, campos equivalentes, caixa, acentuação, espaços, separador decimal e conversão matemática exata quando o significado não mudar.
+- Reprove classificação ambígua como marca, modelo, linha, cor ou material quando ela acrescentar significado não sustentado.
+- SEO e benefícios podem reformular fatos, mas não criar propriedade, aplicação, desempenho, compatibilidade ou promessa.
+- Campo obrigatório existente nos brutos e ausente da ficha reprova. Se não existir nos brutos, aceite "Não informado", exceto Marca, Cor, Modelo, Linha, Código, EAN, Fornecedor e Garantia, que devem ser omitidos.
+
+Responda somente JSON válido, sem Markdown ou texto externo, com exatamente estas chaves:
 {
   "status": "APROVADO ou REPROVADO",
   "confianca": "ALTA, MEDIA ou BAIXA",
-  "resumo": "frase curta explicando a decisão",
-  "erros": [],
-  "avisos": [],
-  "campos_confirmados": [
-    { "campo": "Nome do campo", "valor": "Valor confirmado", "origem": "dados brutos" }
+  "erros": [
+    {"tipo":"DADO_INVENTADO|DADO_OMITIDO|VALOR_ALTERADO|ASSOCIACAO_INCORRETA|FORNECEDOR_ALTERADO|CONFLITO_NA_FONTE|REGRA_DA_CATEGORIA|PROMESSA_SEM_FONTE|VALIDACAO_INCONCLUSIVA","campo":"campo","bruto":"valor ou AUSENTE","gerado":"valor ou OMITIDO","motivo":"explicação objetiva"}
   ],
-  "campos_ausentes": [
-    { "campo": "Nome do campo", "motivo": "Motivo curto" }
-  ],
-  "campos_inferidos": [
-    { "campo": "Nome do campo", "valor": "Valor", "motivo": "Como foi derivado" }
-  ],
-  "seo": {
-    "status": "APROVADO, REPROVADO ou INDEFINIDO",
-    "avisos": [],
-    "termos_validos": [],
-    "termos_suspeitos": []
-  }
+  "avisos": [
+    {"tipo":"INFORMATIVO","campo":"campo","motivo":"observação objetiva"}
+  ]
 }
+Use arrays vazios quando não houver itens. Em aprovação, responda somente as quatro chaves com erros e avisos vazios.`;
 
-REGRAS DE REPROVAÇÃO:
-- Reprove se um dado dos brutos foi omitido, alterado ou contradito incorretamente.
-- Reprove se a ficha inventou especificação técnica, medida, compatibilidade, material, garantia, EAN, código ou fornecedor.
-- Reprove se existe inconsistência interna entre descrição, características, benefícios, SEO ou blocos contextuais.
-- Reprove se o fornecedor foi alterado, normalizado ou teve símbolos removidos.
-- Reprove se o bloco SEO transformou palavra-chave em especificação técnica não confirmada.
+const A1_BIVOLT_EXTRA = `MODO BIVOLT/VARIAÇÕES:
+- Compare as variações atributo por atributo.
+- Valor comum sem associação explícita aparece uma vez, sem voltagem.
+- Valor diferente por variação aparece em linhas próprias como "110V: valor" e "220V: valor".
+- Preserve a associação de código, EAN, título e especificação com cada variação.
+- O Título SEO do produto pai não menciona voltagem.`;
 
-REGRAS DE APROVAÇÃO COM AVISOS:
-- Aprove com aviso se o input for fraco, mas a ficha não inventar dados.
-- Aprove com aviso se campo prioritário da categoria aparecer como "Não informado".
-- Aprove com aviso se houver campos inferidos diretamente da descrição do produto.
-- Aprove com aviso se o SEO usar termos naturais de busca sem criar fatos técnicos.
+const A2_BIVOLT_EXTRA = `MODO BIVOLT/VARIAÇÕES:
+- Aceite atributo comum listado uma vez quando os brutos não indicarem diferença.
+- Reprove mistura, omissão ou troca de valores, códigos e EANs associados a cada voltagem.
+- Não exija que um atributo seja separado por voltagem sem evidência dessa diferença nos brutos.`;
 
-REGRAS DE NÃO REPROVAR:
-- Não reprove por blocos contextuais ausentes quando não houver dados para eles.
-- Não reprove por campos omitidos que realmente não existem nos brutos.
-- Não reprove por repetição entre Características e Benefícios.
-- Não reprove por benefícios que apenas reformulam características confirmadas.
+// ─── Prompts padrão (embutidos no código) ───────────────────
+export const PROMPTS_DEFAULT = {
+P1: A1_PROMPT_COMPACT,
 
-CRITÉRIO DE CONFIANÇA:
-- ALTA: dados principais confirmados, sem erros e poucos avisos.
-- MEDIA: aprovado com campos ausentes, inferidos ou input parcialmente incompleto.
-- BAIXA: reprovado, input muito insuficiente ou muitos avisos.
-
-Preencha os arrays vazios quando não houver itens. Use aspas duplas em todas as chaves e strings.`,
+P2: A2_PROMPT_COMPACT,
 
 P3: `Com base na ficha técnica formatada acima, crie conteúdo comercial para e-commerce.
 Cada seção deve ser diferente das outras — varie o ângulo e os benefícios destacados.
@@ -151,75 +170,9 @@ DESCRIÇÃO ABREVIADA: (máximo 600 caracteres)
 SUBTÍTULO DO PRODUTO: (máximo 240 caracteres)
 META DESCRIPTION: (máximo 140 caracteres) — termine com "Confira agora!"`,
 
-P1B: `Formate ficha técnica bivolt (110V e 220V) em blocos temáticos com tópicos. Use só o que foi fornecido.
+P1B: `${A1_PROMPT_COMPACT}\n\n${A1_BIVOLT_EXTRA}`,
 
-REGRA SOBRE CAMPOS AUSENTES:
-- Para campos gerais da ficha: omita o campo completamente se não houver dado.
-- EXCEÇÃO — campos prioritários da categoria: se o exemplo de referência listar campos prioritários e algum não estiver nos dados brutos, inclua o campo com o valor "Não informado".
-
-REGRA PRINCIPAL — compare os dois modelos atributo por atributo:
-- Se o material bruto NÃO especificar diferença entre 110V e 220V para um atributo → liste uma única vez, SEM mencionar voltagem.
-- Se o material bruto especificar valores DIFERENTES por voltagem → liste separando assim:
-  110V: [valor]
-  220V: [valor]
-
-Estrutura obrigatória:
-[CÓDIGO(S)]
-[DESCRIÇÃO DO PRODUTO — sem voltagem no título]
-[EAN(s) — um por linha, identificando a voltagem se houver EANs distintos]
-Marca: [valor] | Modelo: [valor] | Cor: [valor]
-
-TÍTULO SEO:
-Gere um título otimizado para SEO. Não mencione voltagem no título SEO pois este é o produto pai.
-
-CARACTERÍSTICAS PRINCIPAIS:
-— Liste cada atributo técnico em linha própria, agrupando em blocos temáticos.
-— Atributos que diferem por voltagem ficam com 110V: / 220V: dentro do bloco correspondente.
-
-BENEFÍCIOS:
-— Lista de vantagens comuns aos dois modelos, uma por linha, sem símbolo no início.
-
-Fornecedor: [copie o nome EXATAMENTE como está nos dados brutos]`,
-
-P2B: `QA de ficha técnica bivolt (110V e 220V). Compare a FICHA GERADA com os DADOS BRUTOS fornecidos.
-
-Responda SOMENTE JSON válido. Não use Markdown. Não escreva comentários fora do JSON.
-
-CONTRATO DE RESPOSTA:
-{
-  "status": "APROVADO ou REPROVADO",
-  "confianca": "ALTA, MEDIA ou BAIXA",
-  "resumo": "frase curta explicando a decisão",
-  "erros": [],
-  "avisos": [],
-  "campos_confirmados": [],
-  "campos_ausentes": [],
-  "campos_inferidos": [],
-  "seo": {
-    "status": "APROVADO, REPROVADO ou INDEFINIDO",
-    "avisos": [],
-    "termos_validos": [],
-    "termos_suspeitos": []
-  }
-}
-
-REGRA CRÍTICA SOBRE VOLTAGEM:
-- Se os dados brutos NÃO especificam diferença entre 110V e 220V para um atributo, aprove mesmo que a ficha liste o atributo de forma comum.
-- Se os dados brutos mostram valores claramente distintos por voltagem, reprove se a ficha misturar ou omitir essa diferença.
-- Reprove se EANs por voltagem forem trocados, omitidos ou associados à voltagem errada.
-
-REGRAS GERAIS:
-- Reprove apenas erro real: dado alterado, omitido, inventado ou contraditório.
-- Aprove com aviso quando houver campo prioritário sem dado e marcado como "Não informado".
-- Valide também SEO e benefícios: eles podem usar termos naturais, mas não podem inventar especificações.
-- Fornecedor deve ser preservado exatamente como nos dados brutos.
-
-CRITÉRIO DE CONFIANÇA:
-- ALTA: dados das duas voltagens bem preservados.
-- MEDIA: aprovado com campos ausentes, inferidos ou input parcialmente incompleto.
-- BAIXA: reprovado, voltagens confusas ou muitos avisos.
-
-Preencha os arrays vazios quando não houver itens. Use aspas duplas em todas as chaves e strings.`,
+P2B: `${A2_PROMPT_COMPACT}\n\n${A2_BIVOLT_EXTRA}`,
 
 P3B: `Crie conteúdo comercial para e-commerce de produto com versões 110V e 220V. Use apenas informações comuns aos dois modelos.
 

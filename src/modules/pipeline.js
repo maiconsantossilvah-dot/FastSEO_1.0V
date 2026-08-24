@@ -28,11 +28,12 @@ import { Logs } from './quota.js';
 import { Utils } from '../utils/index.js';
 import { PipelineUI } from '../components/PipelineUI.js';
 import { AppState } from './state.js';
-import { parseQAJson, formatQAReport } from './qa.js';
+import { parseQAJson, formatQAReport, mergeQAFindings } from './qa.js?v=20260824-compact';
 import { getCategoryNotice } from './categoryNotices.js';
 import { buildCategoryQaSchemaPrompt, hasCategoryDefinition, textToFieldList } from './categoryQaSchema.js';
 import { isValidGeminiKey } from '../utils/apiKeys.js';
 import { addTokenCall, createTokenUsage } from './tokenUsage.js';
+import { compactProductInput, stabilizeFichaOutput, validateFichaOutput } from './outputGuards.js';
 
 // Integrações opcionais: SEO enriquece prompts; Analytics registra uso e erros.
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -253,7 +254,7 @@ export const Pipeline = {
     };
 
     try {
-      const input = Utils.sanitize(inputRaw);
+      const input = compactProductInput(Utils.sanitize(inputRaw));
       if (!input) throw new Error('Input vazio após sanitização.');
 
       const bivolt = Utils.detectBivolt(input);
@@ -263,7 +264,8 @@ export const Pipeline = {
 
       // Escolhe as categorias que servem como referência para este produto.
       const allCats = Categories.getAll().filter(hasCategoryDefinition);
-      const matched = Utils.matchCategories(input, Categories.getAll());
+      const matchedCandidates = Utils.matchCategories(input, Categories.getAll());
+      const matched = matchedCandidates.slice(0, 1);
       const categoriaComAviso = matched.find(cat => getCategoryNotice(cat.avisoFichaTipo).text);
       const aviso = categoriaComAviso ? getCategoryNotice(categoriaComAviso.avisoFichaTipo).text : '';
       const avisoValidacao = aviso
@@ -287,8 +289,9 @@ export const Pipeline = {
       }
 
       const fewShot = Utils.buildFewShot(bivolt, matched);
-      const hasFewShot = fewShot.length > 0;
-      const tok1 = (bivolt ? 1500 : 1200) + (hasFewShot ? 300 : 0);
+      // Limite alto evita truncar fichas técnicas extensas; cobrança ocorre pelos tokens gerados,
+      // não pelo teto. O prompt compacto controla a verbosidade sem perder especificações.
+      const tok1 = 7000;
       const qaSchemaPrompt = buildCategoryQaSchemaPrompt(matched);
 
       const subcatRule = AppState.subcatRules.match(input);
@@ -305,22 +308,27 @@ export const Pipeline = {
       const sys3Base = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
 
       const sys1 = contextoSEO ? `${sys1Base}\n\n${contextoSEO}` : sys1Base;
-      const sys2 = contextoSEO ? `${sys2Base}\n\n${contextoSEO}` : sys2Base;
+      // O A2 é auditor factual: contexto SEO não comprova dados e só aumentava o prompt.
+      const sys2 = sys2Base;
       const sys3 = contextoSEO ? `${sys3Base}\n\n${contextoSEO}` : sys3Base;
 
       // AGENTE 1 - Formatador
       PipelineUI.setStep(1, 'active');
       PipelineUI.log(`[A1] Formatando ficha${bivolt ? ' bivolt' : ''}...`, 'i');
-      let ficha = await callAgent(sys1, `Dados do produto:\n${input}`, tok1, signal, 1, {
+      let ficha = await callAgent(sys1, `DADOS DO PRODUTO:\n${input}`, tok1, signal, 1, {
         onUsage: trackStageUsage(1),
       });
       Quota.add(1);
       PipelineUI.setStep(1, 'done');
       PipelineUI.log('[A1] Ficha formatada.', 'o');
 
+      ficha = stabilizeFichaOutput(input, ficha);
+
       if (aviso) {
         ficha = inserirAvisoAntesDoFornecedor(ficha, aviso);
       }
+
+      const localFindings = validateFichaOutput(input, ficha);
 
       // AGENTE 2 - Conferente/QA
       PipelineUI.setStep(2, 'active');
@@ -328,10 +336,10 @@ export const Pipeline = {
       const validacao = await callAgent(
         sys2,
         `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}${avisoValidacao}${qaSchemaPrompt ? `\n\n---\nJSON DE VALIDAÇÃO DA CATEGORIA:\n${qaSchemaPrompt}` : ''}`,
-        2000, signal, 2, { onUsage: trackStageUsage(2) }
+        1500, signal, 2, { onUsage: trackStageUsage(2) }
       );
       Quota.add(1);
-      const qa = parseQAJson(validacao);
+      const qa = mergeQAFindings(parseQAJson(validacao), localFindings);
       const validacaoFormatada = formatQAReport(qa);
       const reprovado = qa.status === 'REPROVADO';
       PipelineUI.setStep(2, reprovado ? 'error' : 'done');

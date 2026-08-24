@@ -162,11 +162,15 @@ export function buildCategoryQaSchemaPrompt(categories = []) {
   const schemas = categories
     .filter(Boolean)
     .map(normalizeCategory)
-    .map(category => category.qaSchema || createQaSchemaFromCategory(category));
+    .slice(0, 1)
+    .map(category => ({
+      v: Number(category.schemaVersion) || 2,
+      categoria: category.nome,
+      obrigatorios: category.camposObrigatorios,
+      opcionais: category.camposOpcionais,
+    }));
 
   if (!schemas.length) return '';
 
-  return JSON.stringify({
-    category_validation_schemas: schemas,
-  }, null, 2);
+  return JSON.stringify(schemas[0]);
 }

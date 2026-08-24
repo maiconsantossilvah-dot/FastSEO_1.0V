@@ -6,7 +6,6 @@
 
 import { APP_CONFIG } from '../config.js';
 import {
-  fieldListToText,
   hasCategoryDefinition,
   normalizeCategory,
 } from '../modules/categoryQaSchema.js';
@@ -57,24 +56,37 @@ export const Utils = {
 
   // Few-shot builder
   buildFewShot(bivolt, cats) {
-    const MAX_CHARS   = 6000;
-    const validCats   = (cats || []).filter(hasCategoryDefinition).map(normalizeCategory);
+    const MAX_CHARS   = 2200;
+    const validCats   = (cats || []).filter(hasCategoryDefinition).map(normalizeCategory).slice(0, 1);
     if (!validCats.length) return '';
 
-    const header = '\n\n-- EXEMPLOS E PADRÕES DA EMPRESA --\nUse os exemplos abaixo como referência de formato e campos da categoria. Adapte ao produto atual.\n\n';
+    const header = '\n\n-- CATEGORIA SELECIONADA (estrutura, nunca fonte factual) --\n';
     let bloco = header, len = 0;
     const limit = MAX_CHARS - header.length;
 
     for (const cat of validCats) {
-      let parte = `=== CATEGORIA: ${cat.nome} ===\n`;
-      const obrigatorios = fieldListToText(cat.camposObrigatorios);
-      const opcionais = fieldListToText(cat.camposOpcionais);
-      if (obrigatorios) parte += `Campos obrigatórios/prioritários:\n${obrigatorios}\n\n`;
-      if (opcionais) parte += `Campos opcionais:\n${opcionais}\n\n`;
-      if (cat.fichaIdeal) parte += `Ficha ideal:\n${cat.fichaIdeal}\n\n`;
-      parte += '---\n';
+      let parte = `Categoria: ${cat.nome}\n`;
+      const obrigatorios = cat.camposObrigatorios.join('; ');
+      const opcionais = cat.camposOpcionais.join('; ');
+      if (obrigatorios) parte += `Obrigatórios: ${obrigatorios}\n`;
+      if (opcionais) parte += `Opcionais: ${opcionais}\n`;
+
+      const skeleton = String(cat.fichaIdeal || '')
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map(line => {
+          const index = line.indexOf(':');
+          if (index < 0) return '';
+          const field = line.slice(0, index + 1).trim();
+          return line.slice(index + 1).trim() ? `${field} <valor>` : field;
+        })
+        .filter((line, index, all) => line && all.indexOf(line) === index)
+        .join('\n');
+
+      if (skeleton) parte += `Esqueleto visual:\n${skeleton}\n`;
       if (len + parte.length > limit) {
-        bloco += '(demais categorias omitidas por limite de tamanho)\n';
+        bloco += parte.slice(0, Math.max(0, limit - len)).trimEnd();
         break;
       }
       bloco += parte;
