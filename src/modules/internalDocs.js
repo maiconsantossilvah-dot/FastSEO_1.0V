@@ -288,6 +288,24 @@ const docs = [
     ],
   },
   {
+    category: 'Testes',
+    tag: 'vitest',
+    title: 'Testes automatizados',
+    body: [
+      'Execute os comandos a partir da raiz do FastSEO. Os testes do frontend e do backend são independentes.',
+      'Nenhum teste deve usar chaves reais nem fazer chamadas pagas para Gemini ou Mistral.',
+    ],
+    bullets: [
+      'pnpm install — instala as dependências do frontend.',
+      'pnpm test — executa uma vez os testes do frontend.',
+      'pnpm test:watch — acompanha alterações durante o desenvolvimento.',
+      'pnpm test:coverage — gera o relatório em coverage/frontend/.',
+      'pnpm --dir backend test — executa os testes do backend.',
+      'pnpm --dir backend typecheck — verifica os tipos do backend.',
+      'Chamadas de IA devem ser simuladas com mocks ou fixtures locais.',
+    ],
+  },
+  {
     category: 'Publicação',
     tag: 'deploy',
     title: 'Backend e regras do Firestore',
@@ -346,11 +364,12 @@ const docs = [
     tag: 'final',
     title: 'Antes de finalizar',
     bullets: [
+      'Executar pnpm test quando alterar o frontend.',
       'Testar se o app carrega.',
       'Testar a aba alterada.',
       'Verificar se não apareceu erro no console.',
       'Conferir se os formatos de saída continuam iguais.',
-      'Se alterou o backend, rodar os testes e confirmar /health após o deploy.',
+      'Se alterou o backend, executar testes, typecheck e confirmar /health após o deploy.',
       'Se alterou permissões, revisar e publicar firestore.rules separadamente.',
       'Testar owner, admin, collaborator e viewer em mudanças de acesso.',
     ],

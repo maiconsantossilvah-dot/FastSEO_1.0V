@@ -277,6 +277,29 @@ Alterar estas áreas com cuidado:
 
 Esses arquivos podem afetar autenticação, chamadas de IA, histórico, prompts, leitura de arquivos e geração das fichas.
 
+## Testes Automatizados
+
+Os testes do frontend ficam em `tests/frontend/` e usam Vitest. Execute os comandos a partir da raiz do FastSEO:
+
+```powershell
+pnpm install
+pnpm test
+pnpm test:coverage
+```
+
+- `pnpm test`: executa uma vez toda a bateria do frontend.
+- `pnpm test:watch`: acompanha alterações durante o desenvolvimento.
+- `pnpm test:coverage`: executa os testes e gera o relatório em `coverage/frontend/`.
+
+Os testes e a verificação de tipos do backend continuam independentes:
+
+```powershell
+pnpm --dir backend test
+pnpm --dir backend typecheck
+```
+
+Nenhum teste automatizado deve usar chaves reais ou fazer chamadas pagas para Gemini ou Mistral. Integrações de IA devem ser simuladas com mocks ou fixtures locais.
+
 ## Backend e Publicação
 
 O GitHub Pages publica somente o frontend. Mudanças em `backend/` exigem um novo deploy do serviço no Render. Mudanças em `firestore.rules` exigem uma publicação separada pelo Firebase CLI.
@@ -333,10 +356,11 @@ Exemplos:
 
 ## Antes de Finalizar
 
+- Executar `pnpm test` quando alterar o frontend.
 - Testar se o app carrega.
 - Testar a aba alterada.
 - Verificar se não apareceu erro no console.
 - Conferir se os formatos de saída continuam iguais.
-- Se alterou o backend, executar testes e confirmar `/health` após o deploy.
+- Se alterou o backend, executar `pnpm --dir backend test`, `pnpm --dir backend typecheck` e confirmar `/health` após o deploy.
 - Se alterou permissões ou coleções, revisar e publicar `firestore.rules` separadamente.
 - Testar as permissões de `owner`, `admin`, `collaborator` e `viewer` quando a mudança envolver acesso.
