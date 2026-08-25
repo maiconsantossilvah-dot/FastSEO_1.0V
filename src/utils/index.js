@@ -10,30 +10,22 @@ import {
   normalizeCategory,
 } from '../modules/categoryQaSchema.js';
 import { rankMatches } from './matching.js';
+import { escapeHtml } from './html.js';
+import { sanitizeInput } from './sanitizeInput.js';
 
 export const Utils = {
   // Segurança / sanitização
   escHtml(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    return escapeHtml(s);
   },
 
   sanitize(t) {
-    t = t
-      .replace(/<[^>]+>/g, '')
-      .replace(/[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]/g, '')
-      .replace(/(javascript:|data:|vbscript:)/gi, '')
-      .replace(/ {3,}/g, '  ')
-      .trim();
-    if (t.length > APP_CONFIG.inputMaxChars) {
+    const result = sanitizeInput(t, { maxChars: APP_CONFIG.inputMaxChars });
+    if (result.truncated) {
       // PipelineUI.log é importado circularmente; usa console para evitar ciclo.
       console.warn(`Input truncado para ${APP_CONFIG.inputMaxChars} caracteres.`);
-      t = t.slice(0, APP_CONFIG.inputMaxChars);
     }
-    return t;
+    return result.text;
   },
 
   // Detecção de bivolt

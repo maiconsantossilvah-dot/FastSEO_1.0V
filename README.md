@@ -58,8 +58,13 @@ src/
     main.css
     redesign.css
   utils/
+    html.js
     index.js
     matching.js
+    prepareProductInput.js
+    sanitizeInput.js
+tests/
+  frontend/
 ```
 
 ## Responsabilidades
@@ -91,6 +96,28 @@ Depois acesse:
 
 ```text
 http://localhost:5500
+```
+
+## Testes do frontend
+
+Instale as dependências na raiz e execute a bateria do frontend:
+
+```powershell
+pnpm install
+pnpm test
+```
+
+Durante o desenvolvimento, `pnpm test:watch` acompanha alterações. Para gerar o relatório HTML em `coverage/frontend`, use:
+
+```powershell
+pnpm test:coverage
+```
+
+Os testes do backend continuam independentes:
+
+```powershell
+pnpm --dir backend test
+pnpm --dir backend typecheck
 ```
 
 ## Firebase
