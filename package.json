@@ -5,13 +5,26 @@
   "type": "module",
   "packageManager": "pnpm@11.22.0",
   "scripts": {
-    "dev": "pnpm dlx serve . --listen 5500",
+    "dev": "serve . --listen 5500",
+    "lint": "eslint src tests/frontend tests/rules vitest.config.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:rules": "firebase emulators:exec --config firebase.json --project demo-fastseo --only firestore \"vitest run tests/rules\"",
+    "test:all": "pnpm test && pnpm test:rules && pnpm --dir backend test",
+    "typecheck": "pnpm --dir backend typecheck",
+    "build": "pnpm --dir backend build",
+    "check": "pnpm lint && pnpm test:all && pnpm typecheck && pnpm build"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@vitest/coverage-v8": "4.1.11",
+    "eslint": "^10.9.1",
+    "firebase-tools": "^15.28.1",
+    "globals": "^17.11.0",
+    "happy-dom": "^20.11.6",
+    "serve": "^14.2.6",
     "vitest": "4.1.11"
   }
 }

@@ -20,10 +20,6 @@ service cloud.firestore {
       return isActive() && currentUser().role in roles;
     }
 
-    function canEditOperationalData() {
-      return hasRole(['owner', 'admin', 'collaborator']);
-    }
-
     function canManagePrompts() {
       return hasRole(['owner', 'admin']);
     }
@@ -33,6 +29,15 @@ service cloud.firestore {
       allow get: if signedIn() && (request.auth.uid == uid || hasRole(['owner', 'admin']));
       allow list: if hasRole(['owner', 'admin']);
       allow create, update, delete: if false;
+
+      // O histórico pertence ao usuário que o gerou. Mantê-lo como subcoleção
+      // evita consultas globais e impede que um colaborador leia ou apague as
+      // fichas de outro membro da equipe.
+      match /history/{historyId} {
+        allow read: if isActive() && request.auth.uid == uid;
+        allow create, update, delete: if request.auth.uid == uid
+          && hasRole(['owner', 'admin', 'collaborator']);
+      }
     }
 
     match /auditLogs/{logId} {
@@ -40,8 +45,9 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
-    // Telemetria é escrita e consultada somente pelo backend. Isso impede que
-    // clientes forjem métricas ou leiam o consumo de outros usuários.
+    // Telemetria é escrita e consultada somente pelo backend. Isso bloqueia
+    // escrita direta e leitura cruzada; no modelo BYOK os números continuam
+    // informativos, pois a chamada original ao provedor ocorre no navegador.
     match /usageEvents/{eventId} {
       allow read, create, update, delete: if false;
     }
@@ -50,20 +56,24 @@ service cloud.firestore {
       allow read, create, update, delete: if false;
     }
 
-    // Coleções operacionais atuais: o backend não interfere no fluxo existente.
+    // Coleções legadas permanecem somente para leitura durante a migração.
+    // Toda alteração de categorias novas deve passar pelo backend, que aplica
+    // a permissão manageCategoryCatalog (owner/admin) e registra auditoria.
     match /categories/{document=**} {
       allow read: if isActive();
-      allow write: if canEditOperationalData();
+      allow write: if false;
     }
 
     match /subcategories/{document=**} {
       allow read: if isActive();
-      allow write: if canEditOperationalData();
+      allow write: if false;
     }
 
+    // Histórico global legado: preservado para eventual migração administrativa,
+    // mas nenhum cliente pode continuar gravando ou apagando documentos aqui.
     match /history/{document=**} {
-      allow read: if isActive();
-      allow write: if canEditOperationalData();
+      allow read: if hasRole(['owner', 'admin']);
+      allow write: if false;
     }
 
     // Colaboradores precisam ler os prompts para executar o pipeline, mas só

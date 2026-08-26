@@ -3,6 +3,7 @@ import { adminDb } from '../firebaseAdmin.js';
 import type { UserDocument } from '../users/types.js';
 import { aggregateUsageEvents, type StoredUsageEvent } from './usage.analytics.js';
 import type { UsageAnalyticsQuery, UsageEventInput } from './usage.schema.js';
+import { AppError } from '../errors.js';
 
 const eventsRef = () => adminDb.collection('usageEvents');
 const dailyRef = () => adminDb.collection('usageDaily');
@@ -75,15 +76,29 @@ export async function getUsageAnalytics(range: UsageAnalyticsQuery) {
   const exclusiveToDate = new Date(`${range.to}T00:00:00${SAO_PAULO_OFFSET}`);
   exclusiveToDate.setUTCDate(exclusiveToDate.getUTCDate() + 1);
   const to = Timestamp.fromDate(exclusiveToDate);
-  const limit = 10_000;
-  const snapshot = await eventsRef()
+  const pageSize = 1000;
+  const maximumEvents = 100_000;
+  const baseQuery = eventsRef()
     .where('createdAt', '>=', from)
     .where('createdAt', '<', to)
-    .orderBy('createdAt', 'asc')
-    .limit(limit)
-    .get();
+    .orderBy('createdAt', 'asc');
+  const documents: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+  let cursor: FirebaseFirestore.QueryDocumentSnapshot | null = null;
 
-  const events = snapshot.docs.map(doc => {
+  while (true) {
+    const pageQuery: FirebaseFirestore.Query = cursor
+      ? baseQuery.startAfter(cursor).limit(pageSize)
+      : baseQuery.limit(pageSize);
+    const page: FirebaseFirestore.QuerySnapshot = await pageQuery.get();
+    documents.push(...page.docs);
+    if (documents.length > maximumEvents) {
+      throw new AppError(413, 'ANALYTICS_RANGE_TOO_LARGE', 'O período possui eventos demais. Consulte um intervalo menor.');
+    }
+    if (page.size < pageSize) break;
+    cursor = page.docs.at(-1) || null;
+  }
+
+  const events = documents.map(doc => {
     const data = doc.data();
     return {
       uid: String(data.uid || ''),
@@ -100,7 +115,7 @@ export async function getUsageAnalytics(range: UsageAnalyticsQuery) {
 
   return {
     range,
-    truncated: snapshot.size === limit,
+    truncated: false,
     ...aggregateUsageEvents(events),
   };
 }

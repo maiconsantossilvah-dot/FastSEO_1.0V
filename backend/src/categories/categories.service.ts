@@ -2,9 +2,10 @@ import { FieldValue } from 'firebase-admin/firestore';
 import type { UserDocument } from '../users/types.js';
 import { AppError } from '../errors.js';
 import { adminDb } from '../firebaseAdmin.js';
-import { resolveCategory } from './categoryResolver.js';
+import { normalizeMatchText, resolveCategory } from './categoryResolver.js';
 import { convertLegacyCatalog, slugifyCategory } from './legacyMigration.js';
 import type { CategoryProfile } from './types.js';
+import type { CategoryProfileInput, CategoryProfilePatch } from './categories.schema.js';
 
 const profilesRef = () => adminDb.collection('categoryProfiles');
 const publishedRef = () => adminDb.collection('categoryCatalogPublished');
@@ -36,29 +37,42 @@ async function catalogVersion(): Promise<number> {
   return Number(meta.data()?.version || 0);
 }
 
-function audit(action: string, actor: UserDocument, targetId: string, details: Record<string, unknown> = {}) {
-  return adminDb.collection('auditLogs').add({
+function auditRecord(action: string, actor: UserDocument, targetId: string, details: Record<string, unknown> = {}) {
+  return {
     action,
     actorUid: actor.uid,
     targetId,
     details,
     createdAt: FieldValue.serverTimestamp(),
-  });
+  };
 }
 
-async function uniqueId(name: string): Promise<string> {
-  const base = slugifyCategory(name);
-  let id = base;
-  let suffix = 2;
-  while ((await profilesRef().doc(id).get()).exists) id = `${base}-${suffix++}`;
-  return id;
-}
-
-async function assertParent(parentId: string | null | undefined, ownId?: string): Promise<void> {
+async function assertParentGraph(
+  transaction: FirebaseFirestore.Transaction,
+  parentId: string | null | undefined,
+  ownId?: string,
+): Promise<void> {
   if (!parentId) return;
-  if (parentId === ownId) throw new AppError(400, 'INVALID_PARENT', 'Uma categoria não pode herdar dela mesma.');
-  const parent = await profilesRef().doc(parentId).get();
-  if (!parent.exists) throw new AppError(400, 'PARENT_NOT_FOUND', 'A categoria pai informada não existe.');
+  const visited = new Set(ownId ? [ownId] : []);
+  let currentId: string | null = parentId;
+  let depth = 0;
+
+  while (currentId) {
+    if (visited.has(currentId)) {
+      throw new AppError(409, 'CATEGORY_PARENT_CYCLE', 'A herança informada criaria um ciclo entre categorias.');
+    }
+    if (++depth > 50) {
+      throw new AppError(409, 'CATEGORY_PARENT_DEPTH', 'A hierarquia de categorias excedeu o limite seguro.');
+    }
+    visited.add(currentId);
+    const parent = await transaction.get(profilesRef().doc(currentId));
+    if (!parent.exists) throw new AppError(400, 'PARENT_NOT_FOUND', 'A categoria pai informada não existe.');
+    const data = fromDoc(parent);
+    if (data.status === 'archived') {
+      throw new AppError(409, 'PARENT_ARCHIVED', 'Uma categoria arquivada não pode ser usada como herança.');
+    }
+    currentId = data.parentId || null;
+  }
 }
 
 export async function listWorkingProfiles() {
@@ -67,11 +81,18 @@ export async function listWorkingProfiles() {
 }
 
 export async function getPublishedCatalog() {
-  const snap = await publishedRef().get();
-  return {
-    version: await catalogVersion(),
-    profiles: sortProfiles(snap.docs.map(fromDoc)).map(publicProfile),
-  };
+  // Perfil e versão são lidos na mesma transação para que o cache nunca associe
+  // uma versão nova a um conjunto antigo de documentos.
+  return adminDb.runTransaction(async transaction => {
+    const [snap, meta] = await Promise.all([
+      transaction.get(publishedRef()),
+      transaction.get(catalogMetaRef()),
+    ]);
+    return {
+      version: Number(meta.data()?.version || 0),
+      profiles: sortProfiles(snap.docs.map(fromDoc)).map(publicProfile),
+    };
+  });
 }
 
 export async function exportCategoryBackup() {
@@ -93,31 +114,51 @@ export async function exportCategoryBackup() {
   };
 }
 
-export async function createProfile(actor: UserDocument, input: Omit<CategoryProfile, 'id' | 'revision'>) {
-  await assertParent(input.parentId);
-  const id = await uniqueId(input.name);
-  const profile: CategoryProfile = {
-    ...input,
-    id,
-    status: 'draft',
-    revision: 1,
-    createdAt: FieldValue.serverTimestamp(),
-    createdBy: actor.uid,
-    updatedAt: FieldValue.serverTimestamp(),
-    updatedBy: actor.uid,
-  };
-  await profilesRef().doc(id).create(profile);
-  await audit('CATEGORY_CREATED', actor, id, { name: profile.name });
-  return publicProfile(profile);
+export async function createProfile(actor: UserDocument, input: CategoryProfileInput) {
+  const base = slugifyCategory(input.name);
+  for (let suffix = 1; suffix <= 100; suffix += 1) {
+    const id = suffix === 1 ? base : `${base}-${suffix}`;
+    const created = await adminDb.runTransaction(async transaction => {
+      await assertParentGraph(transaction, input.parentId);
+      const ref = profilesRef().doc(id);
+      if ((await transaction.get(ref)).exists) return null;
+      const profile: CategoryProfile = {
+        ...input,
+        id,
+        status: 'draft',
+        revision: 1,
+        createdAt: FieldValue.serverTimestamp(),
+        createdBy: actor.uid,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: actor.uid,
+      };
+      transaction.create(ref, profile);
+      transaction.create(
+        adminDb.collection('auditLogs').doc(),
+        auditRecord('CATEGORY_CREATED', actor, id, { name: profile.name }),
+      );
+      return profile;
+    });
+    if (created) return publicProfile(created);
+  }
+  throw new AppError(409, 'CATEGORY_ID_CONFLICT', 'Não foi possível gerar um identificador único para a categoria.');
 }
 
-export async function updateProfile(actor: UserDocument, id: string, changes: Partial<CategoryProfile>) {
-  await assertParent(changes.parentId, id);
+export async function updateProfile(
+  actor: UserDocument,
+  id: string,
+  changes: Omit<CategoryProfilePatch, 'expectedRevision'>,
+  expectedRevision: number,
+) {
   const ref = profilesRef().doc(id);
   const updated = await adminDb.runTransaction(async transaction => {
     const snap = await transaction.get(ref);
     if (!snap.exists) throw new AppError(404, 'CATEGORY_NOT_FOUND', 'Categoria não encontrada.');
     const previous = fromDoc(snap);
+    if (Number(previous.revision || 0) !== expectedRevision) {
+      throw new AppError(409, 'CATEGORY_REVISION_CONFLICT', 'A categoria foi alterada por outra pessoa. Atualize os dados antes de salvar novamente.');
+    }
+    await assertParentGraph(transaction, changes.parentId ?? previous.parentId, id);
     const next = {
       ...previous,
       ...changes,
@@ -128,9 +169,12 @@ export async function updateProfile(actor: UserDocument, id: string, changes: Pa
       updatedBy: actor.uid,
     } as CategoryProfile;
     transaction.set(ref, next);
+    transaction.create(
+      adminDb.collection('auditLogs').doc(),
+      auditRecord('CATEGORY_UPDATED', actor, id, { fromRevision: previous.revision, revision: next.revision }),
+    );
     return next;
   });
-  await audit('CATEGORY_UPDATED', actor, id, { revision: updated.revision });
   return publicProfile(updated);
 }
 
@@ -154,9 +198,12 @@ export async function publishProfile(actor: UserDocument, id: string) {
     transaction.set(published, publication);
     transaction.set(working, publication);
     transaction.set(meta, { version, updatedAt: FieldValue.serverTimestamp(), updatedBy: actor.uid }, { merge: true });
+    transaction.create(
+      adminDb.collection('auditLogs').doc(),
+      auditRecord('CATEGORY_PUBLISHED', actor, id, { catalogVersion: version }),
+    );
     return { profile: publication, version };
   });
-  await audit('CATEGORY_PUBLISHED', actor, id, { catalogVersion: result.version });
   return { profile: publicProfile(result.profile), catalogVersion: result.version };
 }
 
@@ -176,6 +223,10 @@ export async function deleteProfile(actor: UserDocument, id: string) {
     if (!workingSnap.exists && !publishedSnap.exists && !legacySnap.exists) {
       throw new AppError(404, 'CATEGORY_NOT_FOUND', 'Categoria não encontrada.');
     }
+    const children = await transaction.get(profilesRef().where('parentId', '==', id).limit(1));
+    if (!children.empty) {
+      throw new AppError(409, 'CATEGORY_HAS_CHILDREN', 'Remova ou altere a herança das categorias filhas antes de excluir esta categoria.');
+    }
     const name = String(workingSnap.data()?.name || publishedSnap.data()?.name || legacySnap.data()?.nome || '');
     const legacyByNameSnap = name
       ? await transaction.get(adminDb.collection('categories').where('nome', '==', name))
@@ -193,6 +244,10 @@ export async function deleteProfile(actor: UserDocument, id: string) {
     if (publishedSnap.exists) transaction.set(meta, {
       version: nextVersion, updatedAt: FieldValue.serverTimestamp(), updatedBy: actor.uid,
     }, { merge: true });
+    transaction.create(
+      adminDb.collection('auditLogs').doc(),
+      auditRecord('CATEGORY_DELETED', actor, id, { catalogVersion: nextVersion }),
+    );
     return {
       version: nextVersion,
       removed: {
@@ -203,23 +258,67 @@ export async function deleteProfile(actor: UserDocument, id: string) {
       },
     };
   });
-  await audit('CATEGORY_DELETED', actor, id, { catalogVersion: result.version, ...result.removed });
   return { id, deleted: true, catalogVersion: result.version, removed: result.removed };
 }
 
 export async function resolvePublishedCategory(input: string) {
-  const catalog = await getPublishedCatalog();
-  const resolution = resolveCategory(input, catalog.profiles as CategoryProfile[], catalog.version);
+  const [catalog, legacyCategories, legacySubcategories] = await Promise.all([
+    getPublishedCatalog(),
+    adminDb.collection('categories').get(),
+    adminDb.collection('subcategories').get(),
+  ]);
+  const published = catalog.profiles as CategoryProfile[];
+  const publishedIds = new Set(published.map(profile => profile.id));
+  const publishedNames = new Set(published.map(profile => normalizeMatchText(profile.name)));
+  const legacyCategoryData = legacyCategories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as
+    Parameters<typeof convertLegacyCatalog>[0];
+  const legacySubcategoryData = legacySubcategories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as
+    Parameters<typeof convertLegacyCatalog>[1];
+  const legacy = convertLegacyCatalog(
+    legacyCategoryData,
+    legacySubcategoryData,
+  ).filter(profile => !publishedIds.has(profile.id) && !publishedNames.has(normalizeMatchText(profile.name)));
+
+  // Durante a migração o legado continua disponível, mas a decisão acontece
+  // exclusivamente aqui. O navegador não mantém mais um segundo algoritmo.
+  const resolution = resolveCategory(input, [...published, ...legacy], catalog.version);
   return { resolution, catalogVersion: catalog.version };
 }
 
-function previewProfiles(profiles: CategoryProfile[], existingIds: Set<string>) {
+export function previewProfiles(profiles: CategoryProfile[], existingProfiles: CategoryProfile[]) {
+  const existingIds = new Set(existingProfiles.map(profile => profile.id));
   const seen = new Set<string>();
   const conflicts: Array<{ id: string; reason: string }> = [];
   const items = profiles.map(profile => {
     if (seen.has(profile.id)) conflicts.push({ id: profile.id, reason: 'ID duplicado no arquivo.' });
     seen.add(profile.id);
     return { id: profile.id, name: profile.name, action: existingIds.has(profile.id) ? 'update' : 'create', parentId: profile.parentId };
+  });
+
+  // Valida a árvore resultante, e não somente o arquivo. Assim uma importação
+  // não consegue deixar pai ausente, ciclo ou uma cadeia excessivamente funda.
+  const parentById = new Map(existingProfiles.map(profile => [profile.id, profile.parentId || null]));
+  profiles.forEach(profile => parentById.set(profile.id, profile.parentId || null));
+  profiles.forEach(profile => {
+    const visited = new Set([profile.id]);
+    let parentId = profile.parentId || null;
+    let depth = 0;
+    while (parentId) {
+      if (!parentById.has(parentId)) {
+        conflicts.push({ id: profile.id, reason: `Categoria pai "${parentId}" não encontrada.` });
+        break;
+      }
+      if (visited.has(parentId)) {
+        conflicts.push({ id: profile.id, reason: 'A herança criaria um ciclo entre categorias.' });
+        break;
+      }
+      if (++depth > 50) {
+        conflicts.push({ id: profile.id, reason: 'A hierarquia excede o limite de 50 níveis.' });
+        break;
+      }
+      visited.add(parentId);
+      parentId = parentById.get(parentId) || null;
+    }
   });
   return {
     total: profiles.length,
@@ -233,11 +332,14 @@ function previewProfiles(profiles: CategoryProfile[], existingIds: Set<string>) 
 
 export async function previewImport(profiles: CategoryProfile[]) {
   const existing = await profilesRef().get();
-  return previewProfiles(profiles, new Set(existing.docs.map(doc => doc.id)));
+  return previewProfiles(profiles, existing.docs.map(fromDoc));
 }
 
 export async function commitImport(actor: UserDocument, profiles: CategoryProfile[], source = 'import') {
-  const preview = await previewImport(profiles);
+  const existing = await profilesRef().get();
+  const existingProfiles = existing.docs.map(fromDoc);
+  const existingById = new Map(existingProfiles.map(profile => [profile.id, profile]));
+  const preview = previewProfiles(profiles, existingProfiles);
   if (preview.conflicts.length) throw new AppError(409, 'IMPORT_CONFLICT', 'A importação possui conflitos que precisam ser corrigidos.');
   const job = adminDb.collection('categoryMigrationJobs').doc();
   const batch = adminDb.batch();
@@ -246,18 +348,23 @@ export async function commitImport(actor: UserDocument, profiles: CategoryProfil
   });
   for (const profile of profiles) {
     const ref = profilesRef().doc(profile.id);
+    const previous = existingById.get(profile.id);
     batch.set(ref, {
       ...profile,
       status: 'draft',
       source,
+      revision: Number(previous?.revision || 0) + 1,
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: actor.uid,
-      createdAt: profile.createdAt || FieldValue.serverTimestamp(),
-      createdBy: profile.createdBy || actor.uid,
-    }, { merge: true });
+      createdAt: previous?.createdAt || FieldValue.serverTimestamp(),
+      createdBy: previous?.createdBy || actor.uid,
+    });
   }
+  batch.create(
+    adminDb.collection('auditLogs').doc(),
+    auditRecord('CATEGORY_IMPORT_COMMITTED', actor, job.id, { source, total: profiles.length }),
+  );
   await batch.commit();
-  await audit('CATEGORY_IMPORT_COMMITTED', actor, job.id, { source, total: profiles.length });
   return { jobId: job.id, imported: profiles.length, status: 'completed' };
 }
 
@@ -271,7 +378,7 @@ export async function previewLegacyMigration() {
     categories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[],
     subcategories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[],
   );
-  return previewProfiles(converted, new Set(existing.docs.map(doc => doc.id)));
+  return previewProfiles(converted, existing.docs.map(fromDoc));
 }
 
 export async function commitLegacyMigration(actor: UserDocument) {

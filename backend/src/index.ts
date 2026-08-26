@@ -1,17 +1,38 @@
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
+import { randomUUID } from 'node:crypto';
 import { config } from './config.js';
 import { AppError, errorHandler, notFoundHandler } from './errors.js';
 import { apiRateLimiter } from './rateLimit.js';
 import { usersRouter } from './users/users.routes.js';
 import { categoriesRouter } from './categories/categories.routes.js';
 import { usageRouter } from './usage/usage.routes.js';
+import { titleRulesRouter } from './titleRules/titleRules.routes.js';
+import { adminDb } from './firebaseAdmin.js';
+import { asyncRoute } from './http/asyncRoute.js';
 
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
+  app.use((req, res, next) => {
+    const requestId = req.get('x-request-id')?.slice(0, 100) || randomUUID();
+    const startedAt = performance.now();
+    res.setHeader('x-request-id', requestId);
+    res.once('finish', () => {
+      console.log(JSON.stringify({
+        level: 'info',
+        event: 'http_request',
+        requestId,
+        method: req.method,
+        path: req.path,
+        status: res.statusCode,
+        durationMs: Math.round(performance.now() - startedAt),
+      }));
+    });
+    next();
+  });
   app.use(helmet());
   app.use(cors({
     origin(origin, callback) {
@@ -21,10 +42,18 @@ export function createApp() {
       }
       callback(new AppError(403, 'ORIGIN_NOT_ALLOWED', 'Origem não autorizada.'));
     },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'X-Request-ID'],
+    exposedHeaders: ['X-Request-ID', 'RateLimit', 'RateLimit-Policy'],
+    maxAge: 3600,
   }));
   app.use(express.json({ limit: '512kb' }));
   app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'fastseo-users' }));
-  app.use('/api', apiRateLimiter, usersRouter, categoriesRouter, usageRouter);
+  app.get('/ready', asyncRoute(async (_req, res) => {
+    await adminDb.collection('users').limit(1).get();
+    res.json({ status: 'ready', service: 'fastseo-users', firestore: 'ok' });
+  }));
+  app.use('/api', apiRateLimiter, usersRouter, categoriesRouter, titleRulesRouter, usageRouter);
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;

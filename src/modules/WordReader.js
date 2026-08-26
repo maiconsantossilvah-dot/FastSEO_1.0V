@@ -7,9 +7,11 @@
 import { PipelineUI } from '../components/PipelineUI.js';
 import { Utils }      from '../utils/index.js';
 import { APP_CONFIG } from '../config.js';
+import { loadExternalScript } from '../utils/loadExternalScript.js';
 import { AppState }   from './state.js';
 
 const MAMMOTH_CDN = 'https://unpkg.com/mammoth@1.12.1/mammoth.browser.min.js';
+const MAMMOTH_INTEGRITY = 'sha384-HDD+X9TzmVU2HzA3VYqphTtip2QgcmmSAuKTMkFv709AUMZ6LPn0ysDRZeQIL31w';
 
 let loaded = false;
 
@@ -19,21 +21,13 @@ async function loadMammoth() {
     return;
   }
 
-  await new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = MAMMOTH_CDN;
-    script.onload = () => {
-      if (!window.mammoth) {
-        reject(new Error('Biblioteca de leitura do Word indisponivel'));
-        return;
-      }
-
-      loaded = true;
-      resolve();
-    };
-    script.onerror = () => reject(new Error('Falha ao carregar leitor do Word'));
-    document.head.appendChild(script);
+  await loadExternalScript({
+    src: MAMMOTH_CDN,
+    integrity: MAMMOTH_INTEGRITY,
+    globalName: 'mammoth',
+    errorMessage: 'Falha ao carregar leitor do Word',
   });
+  loaded = true;
 }
 
 function cleanText(value) {

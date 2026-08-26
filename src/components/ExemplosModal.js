@@ -9,6 +9,7 @@ import {
   hasCategoryDefinition,
   normalizeCategory,
 } from '../modules/categoryQaSchema.js';
+import { escapeHtml } from '../utils/html.js';
 
 export const ExemplosModal = {
   _activeCat: null,
@@ -80,7 +81,7 @@ export const ExemplosModal = {
       const first = cats.find(hasCategoryDefinition) || cats[0];
       if (first) {
         this._activeCat = first.id;
-        const btn = sidebar.querySelector(`[data-id="${first.id}"]`);
+        const btn = sidebar.querySelector(`[data-id="${CSS.escape(first.id)}"]`);
         if (btn) btn.classList.add('active');
         this._renderContent(first.id);
       }
@@ -116,7 +117,7 @@ export const ExemplosModal = {
   },
 
   _esc_html(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return escapeHtml(s);
   },
 
   close() {

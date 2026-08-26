@@ -1,3 +1,5 @@
+import { escapeHtml } from '../utils/html.js';
+
 const $ = id => document.getElementById(id);
 
 const docs = [
@@ -27,10 +29,10 @@ const docs = [
     ],
     bullets: [
       'API: https://fastseo-users-backend-maicons.onrender.com/api.',
-      'Saúde: https://fastseo-users-backend-maicons.onrender.com/health.',
+      'Processo: /health. Firestore pronto: /ready.',
       'Firebase Authentication identifica o usuário.',
       'Firestore guarda usuários, categorias, auditoria e telemetria.',
-      'A chave da IA nunca deve ser enviada ao backend de analytics.',
+      'Cada chave de IA fica isolada pelo UID no navegador e nunca é enviada ao backend.',
     ],
   },
   {
@@ -111,6 +113,7 @@ const docs = [
       'Não registra a chave da API nem o conteúdo completo da ficha.',
       'O custo monetário estimado não faz parte da versão atual.',
       'usageEvents e usageDaily só podem ser acessadas pelo backend.',
+      'Como a chamada BYOK ocorre no navegador, os números são indicadores operacionais, não base financeira auditável.',
     ],
   },
   {
@@ -118,7 +121,7 @@ const docs = [
     tag: 'histórico',
     title: 'Como usar Histórico',
     body: [
-      'O Histórico guarda fichas já geradas para consulta e reaproveitamento.',
+      'O Histórico guarda fichas já geradas para consulta e reaproveitamento. Cada usuário acessa somente o próprio histórico novo.',
     ],
     bullets: [
       'Clique em Histórico.',
@@ -379,15 +382,6 @@ const docs = [
 let initialized = false;
 let activeCategory = 'Todos';
 let searchQuery = '';
-
-function escapeHtml(value = '') {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
 
 function getCategories() {
   const names = ['Todos', ...new Set(docs.map(item => item.category))];

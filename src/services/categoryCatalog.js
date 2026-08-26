@@ -81,7 +81,8 @@ export function categoryToBackend(category = {}) {
 }
 
 function saveCache(payload) {
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify(payload)); } catch {}
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(payload)); }
+  catch { /* O catálogo ainda será lido diretamente do backend. */ }
 }
 
 function readCache() {
@@ -120,15 +121,18 @@ export const CategoryCatalogApi = {
     return categoryFromBackend(payload.profile);
   },
 
-  async update(id, category) {
+  async update(id, category, expectedRevision) {
     const payload = await UserAccess.request(`/category-profiles/${encodeURIComponent(id)}`, {
-      method: 'PATCH', body: JSON.stringify(categoryToBackend(category)),
+      method: 'PATCH', body: JSON.stringify({
+        ...categoryToBackend(category),
+        expectedRevision,
+      }),
     });
     return categoryFromBackend(payload.profile);
   },
 
   async delete(id) {
-    return UserAccess.request(`/category-profiles/${encodeURIComponent(id)}/permanent`, { method: 'DELETE' });
+    return UserAccess.request(`/category-profiles/${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
 
   async publish(id) {
@@ -143,6 +147,47 @@ export const CategoryCatalogApi = {
       payload.resolution.compiledProfile = categoryFromBackend(payload.resolution.compiledProfile);
     }
     return payload;
+  },
+
+  async getTitleRules() {
+    const payload = await UserAccess.request('/title-rules');
+    return (payload.rules || []).map(rule => ({
+      id: rule.id,
+      nome: rule.name,
+      formula: rule.formula,
+      ex: rule.example || '',
+      source: rule.source || 'manual',
+      revision: Number(rule.revision || 1),
+    }));
+  },
+
+  async upsertTitleRule(previousId, rule) {
+    const payload = await UserAccess.request(`/title-rules/${encodeURIComponent(previousId)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ name: rule.nome, formula: rule.formula, example: rule.ex || '' }),
+    });
+    return {
+      id: payload.rule.id,
+      nome: payload.rule.name,
+      formula: payload.rule.formula,
+      ex: payload.rule.example || '',
+      source: payload.rule.source || 'manual',
+      revision: Number(payload.rule.revision || 1),
+    };
+  },
+
+  deleteTitleRule(id) {
+    return UserAccess.request(`/title-rules/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  },
+
+  importTitleRules(rules, { replace = false } = {}) {
+    return UserAccess.request('/title-rules/import', {
+      method: 'POST',
+      body: JSON.stringify({
+        replace,
+        rules: rules.map(rule => ({ name: rule.nome, formula: rule.formula, example: rule.ex || '' })),
+      }),
+    });
   },
 
   previewLegacyMigration() {

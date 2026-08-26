@@ -33,8 +33,10 @@ import { getCategoryNotice } from './categoryNotices.js';
 import { buildCategoryQaSchemaPrompt, hasCategoryDefinition, textToFieldList } from './categoryQaSchema.js';
 import { isValidGeminiKey } from '../utils/apiKeys.js';
 import { addTokenCall, createTokenUsage } from './tokenUsage.js';
-import { compactProductInput, stabilizeFichaOutput, validateFichaOutput } from './outputGuards.js';
+import { stabilizeFichaOutput, validateFichaOutput } from './outputGuards.js';
 import { UsageAnalytics } from '../services/usageAnalytics.js';
+import { prepareProductInput } from '../utils/prepareProductInput.js';
+import { ApiSettings } from '../services/apiSettings.js';
 
 // Integrações opcionais: SEO enriquece prompts; Analytics registra uso e erros.
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -65,14 +67,16 @@ async function obterContextoSEO(inputUsuario, categoriaAtual) {
   }
 }
 
-function getPipelineMode() {
-  try { return localStorage.getItem('fastseo_pipeline_mode') || 'quality'; }
-  catch { return 'quality'; }
-}
-
 function shouldAutoRunCopywriter() {
   try { return localStorage.getItem('fastseo_auto_a3') !== '0'; }
   catch { return true; }
+}
+
+function buildTitleRuleSnippet(rule) {
+  if (!rule?.formula) return '';
+  return `\n\n-- PADRÃO DE TÍTULO PARA "${rule.nome}" --\n`
+    + `Estrutura do título: ${rule.formula}\n`
+    + 'Siga exatamente essa estrutura ao gerar o TÍTULO SEO desta ficha.';
 }
 
 function inserirAvisoAntesDoFornecedor(ficha, aviso) {
@@ -122,8 +126,8 @@ export const Pipeline = {
       return;
     }
 
-    const geminiKey = document.getElementById('apiKey')?.value.trim() || '';
-    const mistralKey = document.getElementById('mistralKey')?.value.trim() || '';
+    const geminiKey = ApiSettings.getGeminiPrimary();
+    const mistralKey = ApiSettings.getMistralPrimary();
     if (!isValidGeminiKey(geminiKey) && mistralKey.length <= 20) {
       PipelineUI.log('Configure Gemini ou Mistral para gerar o Conteúdo Comercial.', 'w');
       return;
@@ -149,16 +153,15 @@ export const Pipeline = {
 
     try {
       const input = document.getElementById('inputText')?.value || fichaText;
-      const allCats = Categories.getAll().filter(hasCategoryDefinition);
-      const backendMatched = await Categories.resolve(input);
-      const matched = backendMatched ?? Utils.matchCategories(input, Categories.getAll());
+      const resolution = await Categories.resolveDetailed(input);
+      const matched = resolution.categories;
       const fewShot = Utils.buildFewShot(bivolt, matched);
 
       const compiledTitleRule = matched[0]?.titleRule;
       const subcatRule = compiledTitleRule?.formula
         ? { nome: matched[0].nome, formula: compiledTitleRule.formula, ex: compiledTitleRule.example || '' }
-        : AppState.subcatRules.match(input);
-      const subcatSnippet = AppState.subcatRules.buildSnippet(subcatRule);
+        : resolution.titleRule;
+      const subcatSnippet = buildTitleRuleSnippet(subcatRule);
 
       const sys3 = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
 
@@ -215,8 +218,8 @@ export const Pipeline = {
   async _execute(inputRaw) {
     const t0 = Date.now();
 
-    const geminiKey = document.getElementById('apiKey')?.value.trim() || '';
-    const mistralKey = document.getElementById('mistralKey')?.value.trim() || '';
+    const geminiKey = ApiSettings.getGeminiPrimary();
+    const mistralKey = ApiSettings.getMistralPrimary();
     const anyKeyOk = isValidGeminiKey(geminiKey)
       || mistralKey.length > 20;
 
@@ -242,10 +245,9 @@ export const Pipeline = {
     }
 
     // Metadados para Analytics.
-    const modeloAtual = document.getElementById('modelSel')?.value || 'gemini-3.5-flash-lite';
+    const modeloAtual = ApiSettings.getModel();
     const mistralOk = mistralKey.length > 20;
-    const categoriaAtual = AppState.categoriaAtiva?.nome || '';
-    const pipelineMode = getPipelineMode();
+    const categoriaAtual = Categories.find(AppState.categories.active)?.nome || '';
     const telemetryContext = { category: categoriaAtual, bivolt: false };
     let telemetryRecorded = false;
 
@@ -268,8 +270,13 @@ export const Pipeline = {
     };
 
     try {
-      const input = compactProductInput(Utils.sanitize(inputRaw));
+      const prepared = prepareProductInput(inputRaw, { maxChars: 20000 });
+      const input = prepared.text;
       if (!input) throw new Error('Input vazio após sanitização.');
+      prepared.warnings.forEach(warning => {
+        PipelineUI.log(warning.message, 'w');
+        PipelineUI.toast(warning.message, 'warn');
+      });
 
       const bivolt = Utils.detectBivolt(input);
       telemetryContext.bivolt = bivolt;
@@ -279,8 +286,10 @@ export const Pipeline = {
 
       // Escolhe as categorias que servem como referência para este produto.
       const allCats = Categories.getAll().filter(hasCategoryDefinition);
-      const matchedCandidates = Utils.matchCategories(input, Categories.getAll());
-      const matched = matchedCandidates.slice(0, 1);
+      // O backend é a única fonte de decisão para matching. Ele resolve tanto o
+      // catálogo publicado quanto o legado ainda não migrado com o mesmo algoritmo.
+      const resolution = await Categories.resolveDetailed(input);
+      const matched = resolution.categories.slice(0, 1);
       telemetryContext.category = matched[0]?.nome || categoriaAtual || '';
       const categoriaComAviso = matched.find(cat => getCategoryNotice(cat.avisoFichaTipo).text);
       const aviso = categoriaComAviso ? getCategoryNotice(categoriaComAviso.avisoFichaTipo).text : '';
@@ -289,7 +298,7 @@ export const Pipeline = {
         : '';
       const unmatched = allCats.filter(c => !matched.includes(c));
 
-      PipelineUI.log(`Modo: ${pipelineMode === 'quality' ? 'Qualidade' : pipelineMode} - Modelo Gemini: ${modeloAtual}${mistralOk ? ' - Mistral (A1)' : ''}`, 'i');
+      PipelineUI.log(`Pipeline A1 + A2${autoA3 ? ' + A3' : ''} - Modelo Gemini: ${modeloAtual}${mistralOk ? ' - Mistral (A1)' : ''}`, 'i');
       if (mistralOk) PipelineUI.log('Modo mesclado: A1=Mistral - A2=Gemini - A3=Gemini', 'o');
       if (!autoA3) PipelineUI.log('A3 opcional: conteúdo comercial ficará disponível no botão Gerar.', 'i');
       if (bivolt) PipelineUI.log('Modo bivolt detectado (110V + 220V)', 'o');
@@ -310,8 +319,11 @@ export const Pipeline = {
       const tok1 = 7000;
       const qaSchemaPrompt = buildCategoryQaSchemaPrompt(matched);
 
-      const subcatRule = AppState.subcatRules.match(input);
-      const subcatSnippet = AppState.subcatRules.buildSnippet(subcatRule);
+      const compiledTitleRule = matched[0]?.titleRule;
+      const subcatRule = compiledTitleRule?.formula
+        ? { nome: matched[0].nome, formula: compiledTitleRule.formula, ex: compiledTitleRule.example || '' }
+        : resolution.titleRule;
+      const subcatSnippet = buildTitleRuleSnippet(subcatRule);
       if (subcatRule) PipelineUI.log(`Padrão de título aplicado: ${subcatRule.nome}`, 'o');
 
       // Busca keywords SEO sem bloquear o fluxo quando a integração não estiver disponível.
@@ -363,11 +375,9 @@ export const Pipeline = {
 
       // AGENTE 3 - Copywriter
       let conteudo = '';
-      let etapaErro = '';
       if (!reprovado && autoA3) {
         PipelineUI.setStep(3, 'active');
         PipelineUI.log('[A3] Gerando conteúdo comercial...', 'i');
-        etapaErro = 'A3-copywriter';
         conteudo = await callAgent(sys3, ficha, 800, signal, 3, {
           onUsage: trackStageUsage(3),
         });
@@ -450,7 +460,7 @@ export const Pipeline = {
       trackPipelineErro({
         etapa: 'pipeline',
         erro: err.message,
-        modelo: document.getElementById('modelSel')?.value || '',
+        modelo: ApiSettings.getModel(),
       });
 
       PipelineUI.log(`ERRO: ${err.message}`, 'e');
@@ -510,7 +520,7 @@ export const Pipeline = {
     const box = document.createElement('div');
     box.id = 'inputAlertBox';
     box.style.cssText = 'background:var(--color-bg-subtle);border:1px solid var(--color-warn);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--color-text-secondary);line-height:1.8;display:flex;flex-direction:column;gap:4px;';
-    box.innerHTML = alerts.map(a => `<span>${a}</span>`).join('') +
+    box.innerHTML = alerts.map(a => `<span>${Utils.escHtml(a)}</span>`).join('') +
       `<div style="margin-top:6px;display:flex;gap:10px">
          <button id="forceRunBtn" style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid var(--color-warn);background:none;color:var(--color-warn);cursor:pointer;font-weight:600">Processar mesmo assim</button>
          <button id="cancelAlertBtn" style="font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid var(--color-border);background:none;color:var(--color-text-muted);cursor:pointer">Corrigir input</button>

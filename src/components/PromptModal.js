@@ -3,6 +3,7 @@
  */
 import { AppState }          from '../modules/state.js';
 import { Prompts, PROMPTS_DEFAULT, PROMPT_LABELS } from '../modules/prompts.js';
+import { PipelineUI } from './PipelineUI.js';
 
 const $ = id => document.getElementById(id);
 
@@ -41,7 +42,9 @@ export const PromptModal = {
   },
 
   close() {
-    clearTimeout(AppState.prompts.saveTimer);
+    // Captura e persiste a última digitação antes de remover o textarea.
+    // A gravação continua em background para o botão fechar responder na hora.
+    void this._saveNow({ showFeedback: false });
     $('promptModalOverlay')?.remove();
     document.removeEventListener('keydown', this._escHandler);
   },
@@ -55,10 +58,11 @@ export const PromptModal = {
       const dot = Prompts.isCustom(k) ? ' ●' : '';
       return `<button class="prompt-tab${k === AppState.prompts.activeTab ? ' active' : ''}" data-key="${k}">${lbl}${dot}</button>`;
     }).join('');
-    row.querySelectorAll('.prompt-tab').forEach(btn => btn.addEventListener('click', () => this._selectTab(btn.dataset.key)));
+    row.querySelectorAll('.prompt-tab').forEach(btn => btn.addEventListener('click', () => { void this._selectTab(btn.dataset.key); }));
   },
 
-  _selectTab(key) {
+  async _selectTab(key) {
+    if (key !== AppState.prompts.activeTab) await this._saveNow({ showFeedback: false });
     AppState.prompts.activeTab = key;
     const ta = $('promptTextarea');
     if (ta) ta.value = Prompts.get(key);
@@ -67,22 +71,37 @@ export const PromptModal = {
 
   _onInput() {
     clearTimeout(AppState.prompts.saveTimer);
-    AppState.prompts.saveTimer = setTimeout(async () => {
-      const ta = $('promptTextarea');
-      if (!ta) return;
-      await Prompts.save(AppState.prompts.activeTab, ta.value.trim());
+    AppState.prompts.saveTimer = setTimeout(() => { void this._saveNow(); }, 700);
+  },
+
+  async _saveNow({ showFeedback = true } = {}) {
+    clearTimeout(AppState.prompts.saveTimer);
+    AppState.prompts.saveTimer = null;
+    const ta = $('promptTextarea');
+    if (!ta) return;
+    const key = AppState.prompts.activeTab;
+    const value = ta.value.trim();
+    if (value === Prompts.get(key)) return;
+    try {
+      await Prompts.save(key, value);
       this._renderTabs();
       const msg = $('promptSavedMsg');
-      if (msg) { msg.classList.add('show'); setTimeout(() => msg.classList.remove('show'), 1800); }
-    }, 700);
+      if (showFeedback && msg) { msg.classList.add('show'); setTimeout(() => msg.classList.remove('show'), 1800); }
+    } catch (error) {
+      PipelineUI.toast(`Não foi possível salvar o prompt: ${error.message}`, 'error');
+    }
   },
 
   async _restore() {
     if (!confirm('Restaurar o prompt padrão para este agente? Sua edição será perdida.')) return;
     const key = AppState.prompts.activeTab;
-    await Prompts.save(key, PROMPTS_DEFAULT[key]);
-    const ta = $('promptTextarea');
-    if (ta) ta.value = PROMPTS_DEFAULT[key];
-    this._renderTabs();
+    try {
+      await Prompts.save(key, PROMPTS_DEFAULT[key]);
+      const ta = $('promptTextarea');
+      if (ta) ta.value = PROMPTS_DEFAULT[key];
+      this._renderTabs();
+    } catch (error) {
+      PipelineUI.toast(`Não foi possível restaurar o prompt: ${error.message}`, 'error');
+    }
   },
 };

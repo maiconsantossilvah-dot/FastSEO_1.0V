@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CATEGORY_PROFILE_TYPES, CATEGORY_STATUSES } from './types.js';
+import { CATEGORY_PROFILE_TYPES } from './types.js';
 
 const text = (max = 160) => z.string().trim().min(1).max(max);
 const optionalText = (max = 5000) => z.string().trim().max(max).default('');
@@ -17,7 +17,6 @@ export const categoryModifierSchema = z.object({
 
 export const categoryProfileInputSchema = z.object({
   name: text(120),
-  status: z.enum(CATEGORY_STATUSES).default('draft'),
   profileType: z.enum(CATEGORY_PROFILE_TYPES).default('compact'),
   parentId: z.string().trim().max(100).regex(/^[a-zA-Z0-9_-]+$/).nullable().default(null),
   aliases: stringList(50),
@@ -36,8 +35,11 @@ export const categoryProfileInputSchema = z.object({
   source: z.enum(['manual', 'legacy-migration', 'import']).default('manual'),
 });
 
-export const categoryProfilePatchSchema = categoryProfileInputSchema.partial().refine(
-  value => Object.keys(value).length > 0,
+export const categoryProfilePatchSchema = categoryProfileInputSchema.partial().extend({
+  // Controle de concorrência otimista: o cliente deve editar a revisão que leu.
+  expectedRevision: z.number().int().min(1).max(1_000_000),
+}).refine(
+  value => Object.keys(value).some(key => key !== 'expectedRevision'),
   'Informe ao menos um campo para atualizar.',
 );
 
@@ -46,7 +48,7 @@ export const categoryIdSchema = z.object({
 });
 
 export const categoryResolveSchema = z.object({
-  input: z.string().trim().min(2).max(12000),
+  input: z.string().trim().min(2).max(20000),
 });
 
 export const categoryImportSchema = z.object({
@@ -54,3 +56,6 @@ export const categoryImportSchema = z.object({
     id: z.string().trim().max(100).regex(/^[a-zA-Z0-9_-]+$/).optional(),
   })).min(1).max(200),
 });
+
+export type CategoryProfileInput = z.infer<typeof categoryProfileInputSchema>;
+export type CategoryProfilePatch = z.infer<typeof categoryProfilePatchSchema>;

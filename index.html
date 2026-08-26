@@ -712,7 +712,7 @@
 
   </div>
 
-  <!-- Inputs ocultos: api.js lê daqui; ConfigModal sincroniza ao abrir/fechar -->
+  <!-- Controles do modal BYOK. As integrações leem o serviço ApiSettings, não o DOM. -->
   <div id="hiddenApiInputs" style="display:none;position:absolute;left:-9999px;top:-9999px;pointer-events:none">
     <input type="password" id="apiKey" autocomplete="off" />
     <input type="password" id="mistralKey" autocomplete="off" />
@@ -723,14 +723,6 @@
     </select>
   </div>
 
-
-  <!-- Elementos ocultos mantidos para compatibilidade com SidebarUI.js e CategoryModal.js -->
-  <div style="display:none;position:absolute;left:-9999px">
-    <div id="sbContent"></div>
-    <div id="sbFooter"></div>
-    <button id="addCatBtn"></button>
-    <div id="logBox"></div>
-  </div>
 
   <div class="command-palette" id="commandPalette" hidden>
     <div class="command-palette__backdrop" data-command-close></div>
@@ -745,7 +737,9 @@
     </section>
   </div>
 
-  <script src="https://unpkg.com/lucide@1.31.0/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.31.0/dist/umd/lucide.min.js"
+    integrity="sha384-/ApD3KXMqTmTxEJjuldaZDgdJj7/Hox2LRuKqV3rC7Bu/wE4obLaJRjF1rLHNP57"
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script type="module" src="src/main.js?v=20260824-usage-analytics"></script>
 
 </body>

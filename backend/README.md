@@ -1,6 +1,6 @@
-# Backend de usuários do FastSEO
+# Backend operacional do FastSEO
 
-Backend incremental responsável somente por autenticação de requisições, solicitação/aprovação de acesso, cargos, suspensão/reativação e auditoria. As ferramentas operacionais e as integrações de IA continuam no frontend.
+Backend responsável por autenticação, hierarquia, catálogo de categorias, regras de título, telemetria e auditoria. As chamadas de IA continuam no frontend no modelo BYOK: cada colaborador usa sua própria chave e ela não passa por este serviço.
 
 ## Configuração local
 
@@ -10,7 +10,9 @@ Backend incremental responsável somente por autenticação de requisições, so
 4. Defina temporariamente `BOOTSTRAP_OWNER_EMAILS` com o e-mail do primeiro proprietário.
 5. Inicie com `pnpm dev`. A porta padrão é `8787`.
 
-O `.env` local desta máquina já foi configurado. Ele fica ignorado pelo Git e referencia a credencial fora do repositório.
+O `.env` local fica ignorado pelo Git e deve referenciar uma credencial mantida fora do repositório.
+
+Se a credencial for movida ou excluída, o backend encerra ao iniciar com uma mensagem sobre `GOOGLE_APPLICATION_CREDENTIALS`. Baixe ou gere uma credencial válida, mantenha o JSON fora do repositório e atualize somente o caminho em `backend/.env`.
 
 ## Como iniciar no dia a dia
 
@@ -23,10 +25,11 @@ cd C:\Users\maicons\Documents\GitHub\FastSEO_1.0V\backend
 pnpm dev
 ```
 
-O terminal deve informar que o serviço está ouvindo na porta `8787`. Para conferir:
+O terminal deve informar que o serviço está ouvindo na porta `8787`. Verifique processo e dependências separadamente:
 
 ```text
 http://localhost:8787/health
+http://localhost:8787/ready
 ```
 
 No segundo terminal, inicie o frontend:
@@ -62,9 +65,9 @@ O arquivo `render.yaml`, na raiz do repositório, descreve um Web Service gratui
 
 - `Dockerfile` multi-stage, Node 24 e usuário não privilegiado;
 - leitura automática da porta definida pelo Render e escuta em `0.0.0.0`;
-- verificação de saúde em `/health` e encerramento gracioso em `SIGTERM`;
+- liveness em `/health`, readiness do Firestore em `/ready` e encerramento gracioso em `SIGTERM`;
 - CORS restrito a `https://maiconsantossilvah-dot.github.io`;
-- limite de 120 requisições por IP a cada 15 minutos nas rotas `/api`, com resposta `429` e cabeçalhos `RateLimit`;
+- limite geral por IP e limite separado por UID autenticado nas rotas de mutação, com resposta `429` e cabeçalhos `RateLimit`;
 - `BOOTSTRAP_OWNER_EMAILS` vazio em produção;
 - credenciais do Firebase em variáveis secretas, nunca dentro da imagem ou do Git.
 
@@ -78,7 +81,7 @@ O arquivo `render.yaml`, na raiz do repositório, descreve um Web Service gratui
    - `FIREBASE_CLIENT_EMAIL`: copie somente o valor `client_email` do JSON local da conta de serviço;
    - `FIREBASE_PRIVATE_KEY`: copie somente o valor `private_key`. O backend aceita várias linhas, `\\n` ou o valor completo entre aspas do JSON; não copie o nome do campo nem a vírgula final.
 6. Crie o Blueprint e aguarde o primeiro deploy terminar.
-7. Abra `https://fastseo-users-backend-maicons.onrender.com/health` e confirme a resposta `{"status":"ok"}`.
+7. Abra `/health` e `/ready`; o segundo deve confirmar `{"status":"ready"}` antes de liberar o frontend.
 
 Não envie o JSON inteiro ao Render, não use a opção de adicioná-lo ao repositório e nunca cole seus valores em commit, issue ou chat. As variáveis `sync: false` fazem o painel pedir os segredos sem gravá-los no `render.yaml`.
 
@@ -88,7 +91,7 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 
 1. Faça commit destas mudanças na branch de preparação e envie-a ao GitHub.
 2. Crie o Blueprint usando essa branch.
-3. Confirme `/health` e verifique que uma requisição sem token para `/api/me` recebe `401`.
+3. Confirme `/ready` e verifique que uma requisição sem token para `/api/me` recebe `401`.
 4. Entre pela URL de teste e confirme o acesso do owner.
 5. Só então integre a branch ao `main`, permitindo que o GitHub Pages use a nova API.
 6. Teste login, owner, viewer e uma operação administrativa na URL publicada.
@@ -104,17 +107,23 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 - `POST /api/users/:uid/suspend`
 - `POST /api/users/:uid/reactivate`
 - `GET /api/category-catalog`: catálogo publicado usado pelo pipeline.
-- `POST /api/category-resolve`: classifica um produto e compila herança/modificadores.
+- `POST /api/category-resolve`: classifica o produto, compila herança/modificadores e retorna a regra de título correspondente.
 - `GET /api/category-profiles`: lista rascunhos para admin/owner.
 - `GET /api/category-profiles/export`: exporta catálogo novo e coleções legadas em JSON.
 - `POST /api/category-profiles`: cria um perfil em rascunho.
-- `PATCH /api/category-profiles/:id`: atualiza o rascunho sem afetar a versão publicada.
+- `PATCH /api/category-profiles/:id`: atualiza com `expectedRevision`, sem sobrescrever edição concorrente.
 - `POST /api/category-profiles/:id/publish`: publica uma nova versão do perfil.
-- `DELETE /api/category-profiles/:id/permanent`: apaga permanentemente perfil, publicação e registros legados correspondentes.
+- `DELETE /api/category-profiles/:id`: apaga perfil e publicação quando não existem categorias filhas.
 - `POST /api/category-profiles/import/preview`: valida uma importação sem gravar.
 - `POST /api/category-profiles/import/commit`: importa perfis como rascunho.
 - `POST /api/category-profiles/migrate-legacy/preview`: converte `categories` e `subcategories` sem gravar.
 - `POST /api/category-profiles/migrate-legacy/commit`: grava a conversão como rascunho.
+- `GET /api/title-rules`: lista regras de título ativas, incluindo o legado durante a migração.
+- `PUT /api/title-rules/:id`: cria ou substitui uma regra de título (owner/admin).
+- `DELETE /api/title-rules/:id`: remove a regra e cria tombstone quando houver correspondente legado.
+- `POST /api/title-rules/import`: importa ou restaura o conjunto de regras.
+- `POST /api/usage-events`: recebe telemetria autenticada e validada por schema estrito.
+- `GET /api/usage-analytics`: analytics paginado para owner/admin.
 
 Todas as rotas recebem `Authorization: Bearer <Firebase ID Token>`. Cargo, status e UID do ator são sempre lidos do token validado e de `users/{uid}`; valores administrativos enviados pelo frontend não são usados como prova de autorização.
 
@@ -128,12 +137,12 @@ Somente `admin` e `owner` possuem `manageCategoryCatalog`. Colaboradores e espec
 4. Use **Migrar legado** para revisar a quantidade de criações, atualizações e conflitos.
 5. Confirme a migração; todos os registros novos permanecem como rascunho.
 6. Revise aliases, herança, termos negativos, campos, título e modificadores.
-7. Publique família por família. O pipeline mantém como fallback as categorias legadas ainda não publicadas.
+7. Publique família por família. O resolvedor do backend combina publicadas e legadas ainda não migradas com o mesmo algoritmo.
 8. Somente após concluir a validação, remova o matcher e as coleções legadas em uma atualização futura.
 
 ## Primeiro owner
 
-`BOOTSTRAP_OWNER_EMAILS` é uma exceção controlada apenas para inicializar a hierarquia. Um e-mail listado que ainda não possua documento será criado como owner ativo. Remova a variável depois que o primeiro owner entrar e confirme o documento no Firestore.
+`BOOTSTRAP_OWNER_EMAILS` é uma exceção controlada apenas para inicializar a hierarquia. Em produção ela só funciona junto de `ALLOW_PRODUCTION_BOOTSTRAP=true`, evitando ativação acidental. Remova os e-mails e volte o flag para `false` depois que o primeiro owner entrar.
 
 As regras devem ser publicadas somente depois dessa confirmação. Assim, a transição não bloqueia as coleções operacionais antes de a nova hierarquia possuir um owner ativo.
 

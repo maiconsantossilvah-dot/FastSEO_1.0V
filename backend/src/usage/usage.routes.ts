@@ -3,11 +3,10 @@ import { requireActiveUser, requireAuth } from '../auth/requireAuth.js';
 import { requireRole } from '../auth/requireRole.js';
 import type { AuthenticatedRequest } from '../auth/types.js';
 import { AppError } from '../errors.js';
+import { asyncRoute } from '../http/asyncRoute.js';
 import { usageAnalyticsQuerySchema, usageEventSchema } from './usage.schema.js';
 import { getUsageAnalytics, recordUsageEvent } from './usage.service.js';
-
-const asyncRoute = (handler: (req: AuthenticatedRequest, res: any) => Promise<unknown>) =>
-  (req: AuthenticatedRequest, res: any, next: any) => Promise.resolve(handler(req, res)).catch(next);
+import { userMutationRateLimiter } from '../rateLimit.js';
 
 function actor(req: AuthenticatedRequest) {
   if (!req.currentUser) throw new AppError(401, 'AUTH_REQUIRED', 'Usuário não autenticado.');
@@ -24,7 +23,7 @@ function defaultRange() {
 export const usageRouter = Router();
 usageRouter.use(requireAuth, requireActiveUser);
 
-usageRouter.post('/usage-events', requireRole('useFastSeo'), asyncRoute(async (req, res) => {
+usageRouter.post('/usage-events', requireRole('useFastSeo'), userMutationRateLimiter, asyncRoute(async (req, res) => {
   const event = usageEventSchema.parse(req.body);
   res.status(202).json(await recordUsageEvent(actor(req), event));
 }));

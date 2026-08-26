@@ -4,6 +4,8 @@
  */
 import { SubcatModule, SUBCAT_RULES_DEFAULT } from '../modules/subcategories.js';
 import { Utils } from '../utils/index.js';
+import { loadExternalScript } from '../utils/loadExternalScript.js';
+import { UserAccess } from '../services/userAccess.js';
 
 const $ = id => document.getElementById(id);
 let _search = '';
@@ -57,6 +59,12 @@ export const SubcatModal = {
         </div>
       </div>`;
     document.body.appendChild(overlay);
+    if (!UserAccess.can('manageCategoryCatalog')) {
+      ['subcatResetBtn', 'subcatAddToggleBtn', 'subcatAddPanel'].forEach(id => {
+        const element = $(id);
+        if (element) element.hidden = true;
+      });
+    }
     overlay.addEventListener('click', e => { if (e.target === overlay) this.close(); });
     $('subcatCloseBtn')?.addEventListener('click', () => this.close());
     $('subcatCloseBtnFtr')?.addEventListener('click', () => this.close());
@@ -87,6 +95,7 @@ export const SubcatModal = {
     if (count) count.textContent = `${filtered.length} de ${all.length} regras`;
 
     list.innerHTML = filtered.map(rule => {
+      const canManage = UserAccess.can('manageCategoryCatalog');
       const isEditing = _editingNome === rule.nome;
       const isCustom = SubcatModule.getAll().find(r => r.nome === rule.nome) && !SUBCAT_RULES_DEFAULT.some(d => d.nome === rule.nome && d.formula === rule.formula);
       const customTag = isCustom ? '<span class="subcat-custom-tag">custom</span>' : '';
@@ -103,7 +112,7 @@ export const SubcatModal = {
               </div>
             </div>
           </div>
-          <div class="subcat-actions">
+          <div class="subcat-actions"${canManage ? '' : ' hidden'}>
             <button class="btn btn-icon sc-del-btn" title="Excluir" aria-label="Excluir"><i data-lucide="trash-2" aria-hidden="true"></i></button>
           </div>
         </div>`;
@@ -114,7 +123,7 @@ export const SubcatModal = {
           <div class="subcat-formula">${Utils.escHtml(rule.formula)}</div>
           ${rule.ex ? `<div class="subcat-ex">Ex: ${Utils.escHtml(rule.ex)}</div>` : ''}
         </div>
-        <div class="subcat-actions">
+        <div class="subcat-actions"${canManage ? '' : ' hidden'}>
           <button class="btn btn-icon sc-edit-btn" title="Editar" aria-label="Editar"><i data-lucide="pencil" aria-hidden="true"></i></button>
           <button class="btn btn-icon sc-del-btn" title="Excluir" aria-label="Excluir"><i data-lucide="trash-2" aria-hidden="true"></i></button>
         </div>
@@ -200,12 +209,11 @@ export const SubcatModal = {
   },
   async _exportXlsx() {
     if (!window.XLSX) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-        script.onload = resolve;
-        script.onerror = () => reject(new Error('Falha ao carregar biblioteca de planilha.'));
-        document.head.appendChild(script);
+      await loadExternalScript({
+        src: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+        integrity: 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw',
+        globalName: 'XLSX',
+        errorMessage: 'Falha ao carregar biblioteca de planilha.',
       });
     }
 

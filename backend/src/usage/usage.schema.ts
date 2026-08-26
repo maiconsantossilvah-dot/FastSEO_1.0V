@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const tokenCount = z.number().int().min(0).max(100_000_000);
+const tokenCount = z.number().int().min(0).max(2_000_000);
 
 export const usageCallSchema = z.object({
   stage: z.number().int().min(1).max(3),
@@ -12,7 +12,15 @@ export const usageCallSchema = z.object({
   thinkingTokens: tokenCount.default(0),
   cachedTokens: tokenCount.default(0),
   totalTokens: tokenCount,
-}).strict();
+}).strict().superRefine((call, context) => {
+  if (call.totalTokens < call.inputTokens || call.totalTokens < call.outputTokens) {
+    context.addIssue({
+      code: 'custom',
+      path: ['totalTokens'],
+      message: 'totalTokens não pode ser menor que os totais de entrada ou saída.',
+    });
+  }
+});
 
 export const usageEventSchema = z.object({
   eventId: z.string().trim().min(16).max(80).regex(/^[a-zA-Z0-9_-]+$/),

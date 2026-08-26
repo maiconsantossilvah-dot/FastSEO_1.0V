@@ -7,6 +7,8 @@ export function sanitizeInput(value, { maxChars = Number.POSITIVE_INFINITY } = {
   const original = String(value ?? '');
   let text = original
     .replace(/<[^>]+>/g, '')
+    // Estes controles não imprimíveis aparecem com frequência em PDFs extraídos.
+    // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]/g, '')
     .replace(/(javascript:|data:|vbscript:)/gi, '')
     .replace(/ {3,}/g, '  ')

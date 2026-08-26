@@ -7,7 +7,7 @@ services:
     rootDir: backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /health
+    healthCheckPath: /ready
     autoDeployTrigger: commit
     envVars:
       - key: NODE_ENV
@@ -19,7 +19,11 @@ services:
       - key: RATE_LIMIT_WINDOW_MS
         value: "900000"
       - key: RATE_LIMIT_MAX
+        value: "600"
+      - key: USER_RATE_LIMIT_MAX
         value: "120"
+      - key: ALLOW_PRODUCTION_BOOTSTRAP
+        value: "false"
       - key: FIREBASE_CLIENT_EMAIL
         sync: false
       - key: FIREBASE_PRIVATE_KEY

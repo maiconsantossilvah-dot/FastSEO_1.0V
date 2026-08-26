@@ -1,8 +1,8 @@
 /**
  * firebase/firestore.js
  * ─────────────────────
- * Expõe CRUD + listeners em tempo real para as coleções:
- * categories, subcategories, prompts, history
+ * Expõe leitura do legado e persistência das coleções ainda mantidas no cliente.
+ * Categorias e regras de título são alteradas exclusivamente pelo backend.
  *
  * Importa db do firebase.js central — não inicializa de novo.
  *
@@ -10,7 +10,7 @@
  *   /categories/{docId}       → { id, nome, campos, ficha, copy, updatedAt }
  *   /subcategories/{docId}    → { nome, formula, ex }
  *   /prompts/{docId}          → { key, value, updatedAt }
- *   /history/{docId}          → { preview, ficha, conteudo, bivolt, tokenUsage, data, ts }
+ *   /users/{uid}/history/{docId} → histórico privado do usuário autenticado
  */
 
 import { db } from './firebase.js';
@@ -35,15 +35,14 @@ import {
 // ── Referências de coleções ──────────────────────────────────
 const Refs = {
   categories:    () => collection(db, 'categories'),
-  subcategories: () => collection(db, 'subcategories'),
   prompts:       () => collection(db, 'prompts'),
-  history:       () => collection(db, 'history'),
+  history:       uid => collection(db, 'users', uid, 'history'),
 };
 
-function cleanUndefined(data) {
-  return Object.fromEntries(
-    Object.entries(data || {}).filter(([, value]) => value !== undefined)
-  );
+function currentUid() {
+  const uid = UserAccess.current().user?.uid;
+  if (!uid) throw new Error('Usuário autenticado não encontrado para acessar o histórico.');
+  return uid;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -55,80 +54,12 @@ export const CategoriesDB = {
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   },
 
-  async create(data) {
-    UserAccess.assert('editContent');
-    const payload = cleanUndefined({
-      ...data,
-      nome: data.nome || 'Nova Categoria',
-      updatedAt: serverTimestamp(),
-    });
-    const ref = await addDoc(Refs.categories(), payload);
-    return { id: ref.id, ...payload };
-  },
-
-  async update(id, data) {
-    UserAccess.assert('editContent');
-    await updateDoc(doc(db, 'categories', id), {
-      ...cleanUndefined(data),
-      updatedAt: serverTimestamp(),
-    });
-  },
-
-  async delete(id) {
-    UserAccess.assert('editContent');
-    await deleteDoc(doc(db, 'categories', id));
-  },
-
   listen(callback) {
     return onSnapshot(
       query(Refs.categories(), orderBy('nome')),
       snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
       err => console.error('[CategoriesDB] Listener error:', err)
     );
-  },
-};
-
-// ─────────────────────────────────────────────────────────────
-// SUBCATEGORIES
-// ─────────────────────────────────────────────────────────────
-export const SubcategoriesDB = {
-  async getAll() {
-    const snap = await getDocs(query(Refs.subcategories(), orderBy('nome')));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  },
-
-  async upsert(nome, data) {
-    UserAccess.assert('editContent');
-    const id = nome.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    await setDoc(doc(db, 'subcategories', id), {
-      nome:    data.nome    || nome,
-      formula: data.formula || '',
-      ex:      data.ex      || '',
-    });
-  },
-
-  async delete(nome) {
-    UserAccess.assert('editContent');
-    const id = nome.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-    await deleteDoc(doc(db, 'subcategories', id));
-  },
-
-  listen(callback) {
-    return onSnapshot(
-      query(Refs.subcategories(), orderBy('nome')),
-      snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-      err => console.error('[SubcategoriesDB] Listener error:', err)
-    );
-  },
-
-  async importBatch(rules) {
-    UserAccess.assert('editContent');
-    const batch = writeBatch(db);
-    for (const rule of rules) {
-      const id = rule.nome.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-      batch.set(doc(db, 'subcategories', id), rule);
-    }
-    await batch.commit();
   },
 };
 
@@ -175,15 +106,16 @@ export const PromptsDB = {
 // ─────────────────────────────────────────────────────────────
 export const HistoryDB = {
   async getRecent(n = 50) {
+    const history = Refs.history(currentUid());
     const snap = await getDocs(
-      query(Refs.history(), orderBy('ts', 'desc'), limit(n))
+      query(history, orderBy('ts', 'desc'), limit(n))
     );
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   },
 
   async save(data) {
     UserAccess.assert('editContent');
-    const ref = await addDoc(Refs.history(), {
+    const ref = await addDoc(Refs.history(currentUid()), {
       preview:  data.preview  || '',
       ficha:    data.ficha    || '',
       conteudo: data.conteudo || '',
@@ -198,7 +130,7 @@ export const HistoryDB = {
   async updateResult(id, data) {
     UserAccess.assert('editContent');
     if (!id) return;
-    await updateDoc(doc(db, 'history', id), {
+    await updateDoc(doc(db, 'users', currentUid(), 'history', id), {
       conteudo: data.conteudo || '',
       tokenUsage: data.tokenUsage || null,
       updatedAt: serverTimestamp(),
@@ -207,15 +139,22 @@ export const HistoryDB = {
 
   async clearAll() {
     UserAccess.assert('editContent');
-    const snap  = await getDocs(Refs.history());
-    const batch = writeBatch(db);
-    snap.docs.forEach(d => batch.delete(d.ref));
-    await batch.commit();
+    const history = Refs.history(currentUid());
+    // Firestore limita batches a 500 operações. O laço mantém a exclusão segura
+    // mesmo quando um usuário acumular um histórico maior no futuro.
+    while (true) {
+      const snap = await getDocs(query(history, limit(400)));
+      if (snap.empty) break;
+      const batch = writeBatch(db);
+      snap.docs.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
   },
 
   listen(callback) {
+    const history = Refs.history(currentUid());
     return onSnapshot(
-      query(Refs.history(), orderBy('ts', 'desc'), limit(50)),
+      query(history, orderBy('ts', 'desc'), limit(50)),
       snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
       err => console.error('[HistoryDB] Listener error:', err)
     );

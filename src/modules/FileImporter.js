@@ -45,6 +45,15 @@ const FILE_HANDLERS = {
   },
 };
 
+const MAX_FILE_BYTES = Object.freeze({
+  pdf: 25 * 1024 * 1024,
+  docx: 20 * 1024 * 1024,
+  xlsx: 15 * 1024 * 1024,
+  xls: 15 * 1024 * 1024,
+  csv: 10 * 1024 * 1024,
+  txt: 5 * 1024 * 1024,
+});
+
 const getImportButton = () =>
   document.getElementById('importFileBtn') || document.getElementById('pdfBtn');
 
@@ -99,7 +108,14 @@ export const FileImporter = {
   async importFile(file) {
     if (!file) return false;
 
-    const handler = FILE_HANDLERS[getExtension(file)] || unsupportedFile;
+    const extension = getExtension(file);
+    const handler = FILE_HANDLERS[extension] || unsupportedFile;
+    const maximum = MAX_FILE_BYTES[extension];
+    if (maximum && file.size > maximum) {
+      const limitMb = Math.round(maximum / 1024 / 1024);
+      Utils.showToast(`Arquivo muito grande. Limite para ${extension}: ${limitMb} MB`, '#DC2626');
+      return false;
+    }
     setButtonBusy(true);
 
     try {

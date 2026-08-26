@@ -7,9 +7,11 @@
 import { PipelineUI } from '../components/PipelineUI.js';
 import { Utils }      from '../utils/index.js';
 import { APP_CONFIG } from '../config.js';
+import { loadExternalScript } from '../utils/loadExternalScript.js';
 import { AppState }   from './state.js';
 
 const XLSX_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+const XLSX_INTEGRITY = 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw';
 const MAX_PREVIEW_ROWS = 80;
 
 let _loaded = false;
@@ -33,16 +35,13 @@ async function loadXlsx() {
     return;
   }
 
-  await new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = XLSX_CDN;
-    script.onload = () => {
-      _loaded = true;
-      resolve();
-    };
-    script.onerror = () => reject(new Error('Falha ao carregar leitor de planilhas'));
-    document.head.appendChild(script);
+  await loadExternalScript({
+    src: XLSX_CDN,
+    integrity: XLSX_INTEGRITY,
+    globalName: 'XLSX',
+    errorMessage: 'Falha ao carregar leitor de planilhas',
   });
+  _loaded = true;
 }
 
 function cleanCell(value) {

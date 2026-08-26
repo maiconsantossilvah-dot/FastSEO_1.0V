@@ -12,14 +12,9 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html'],
       reportsDirectory: 'coverage/frontend',
-      include: [
-        'src/utils/html.js',
-        'src/utils/sanitizeInput.js',
-        'src/utils/prepareProductInput.js',
-        'src/utils/matching.js',
-        'src/modules/outputGuards.js',
-        'src/modules/tokenUsage.js',
-      ],
+      // A cobertura representa todo o frontend. Arquivos ainda não testados
+      // aparecem como 0%, evitando uma porcentagem artificialmente alta.
+      include: ['src/**/*.js'],
     },
   },
 });

@@ -100,14 +100,14 @@ export function parseQAJson(raw) {
 
   try {
     return normalizeQa(JSON.parse(cleaned));
-  } catch {}
+  } catch { /* Tenta abaixo extrair somente o objeto JSON da resposta. */ }
 
   const first = cleaned.indexOf('{');
   const last = cleaned.lastIndexOf('}');
   if (first >= 0 && last > first) {
     try {
       return normalizeQa(JSON.parse(cleaned.slice(first, last + 1)));
-    } catch {}
+    } catch { /* A validação local emitirá um relatório seguro de falha. */ }
   }
 
   return normalizeQa({

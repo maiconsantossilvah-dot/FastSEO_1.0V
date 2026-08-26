@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireActiveUser, requireAuth } from '../auth/requireAuth.js';
 import { requireRole } from '../auth/requireRole.js';
 import type { AuthenticatedRequest } from '../auth/types.js';
+import { asyncRoute } from '../http/asyncRoute.js';
 import { AppError } from '../errors.js';
 import {
   categoryIdSchema,
@@ -26,9 +27,8 @@ import {
 } from './categories.service.js';
 import { slugifyCategory } from './legacyMigration.js';
 import type { CategoryProfile } from './types.js';
-
-const asyncRoute = (handler: (req: AuthenticatedRequest, res: any) => Promise<unknown>) =>
-  (req: AuthenticatedRequest, res: any, next: any) => Promise.resolve(handler(req, res)).catch(next);
+import { userMutationRateLimiter } from '../rateLimit.js';
+import { resolveTitleRule } from '../titleRules/titleRules.service.js';
 
 function actor(req: AuthenticatedRequest) {
   if (!req.currentUser) throw new AppError(401, 'AUTH_REQUIRED', 'Usuário não autenticado.');
@@ -54,7 +54,11 @@ categoriesRouter.get('/category-catalog', requireRole('useFastSeo'), asyncRoute(
 
 categoriesRouter.post('/category-resolve', requireRole('useFastSeo'), asyncRoute(async (req, res) => {
   const { input } = categoryResolveSchema.parse(req.body);
-  res.json(await resolvePublishedCategory(input));
+  const [category, titleRule] = await Promise.all([
+    resolvePublishedCategory(input),
+    resolveTitleRule(input),
+  ]);
+  res.json({ ...category, titleRule });
 }));
 
 categoriesRouter.get('/category-profiles', requireRole('manageCategoryCatalog'), asyncRoute(async (_req, res) => {
@@ -70,7 +74,7 @@ categoriesRouter.post('/category-profiles/import/preview', requireRole('manageCa
   res.json(await previewImport(importProfiles(req.body)));
 }));
 
-categoriesRouter.post('/category-profiles/import/commit', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
+categoriesRouter.post('/category-profiles/import/commit', requireRole('manageCategoryCatalog'), userMutationRateLimiter, asyncRoute(async (req, res) => {
   res.status(201).json(await commitImport(actor(req), importProfiles(req.body)));
 }));
 
@@ -78,32 +82,27 @@ categoriesRouter.post('/category-profiles/migrate-legacy/preview', requireRole('
   res.json(await previewLegacyMigration());
 }));
 
-categoriesRouter.post('/category-profiles/migrate-legacy/commit', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
+categoriesRouter.post('/category-profiles/migrate-legacy/commit', requireRole('manageCategoryCatalog'), userMutationRateLimiter, asyncRoute(async (req, res) => {
   res.status(201).json(await commitLegacyMigration(actor(req)));
 }));
 
-categoriesRouter.post('/category-profiles', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
+categoriesRouter.post('/category-profiles', requireRole('manageCategoryCatalog'), userMutationRateLimiter, asyncRoute(async (req, res) => {
   const input = categoryProfileInputSchema.parse(req.body);
-  res.status(201).json({ profile: await createProfile(actor(req), input as any) });
+  res.status(201).json({ profile: await createProfile(actor(req), input) });
 }));
 
-categoriesRouter.patch('/category-profiles/:id', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
+categoriesRouter.patch('/category-profiles/:id', requireRole('manageCategoryCatalog'), userMutationRateLimiter, asyncRoute(async (req, res) => {
   const { id } = categoryIdSchema.parse(req.params);
-  const changes = categoryProfilePatchSchema.parse(req.body);
-  res.json({ profile: await updateProfile(actor(req), id, changes as any) });
+  const { expectedRevision, ...changes } = categoryProfilePatchSchema.parse(req.body);
+  res.json({ profile: await updateProfile(actor(req), id, changes, expectedRevision) });
 }));
 
-categoriesRouter.post('/category-profiles/:id/publish', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
+categoriesRouter.post('/category-profiles/:id/publish', requireRole('manageCategoryCatalog'), userMutationRateLimiter, asyncRoute(async (req, res) => {
   const { id } = categoryIdSchema.parse(req.params);
   res.json(await publishProfile(actor(req), id));
 }));
 
-categoriesRouter.delete('/category-profiles/:id/permanent', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
-  const { id } = categoryIdSchema.parse(req.params);
-  res.json(await deleteProfile(actor(req), id));
-}));
-
-categoriesRouter.delete('/category-profiles/:id', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
+categoriesRouter.delete('/category-profiles/:id', requireRole('manageCategoryCatalog'), userMutationRateLimiter, asyncRoute(async (req, res) => {
   const { id } = categoryIdSchema.parse(req.params);
   res.json(await deleteProfile(actor(req), id));
 }));

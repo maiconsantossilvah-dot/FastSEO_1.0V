@@ -33,8 +33,13 @@ async function request(path, options = {}) {
 
     let response;
     try {
+      const timeout = AbortSignal.timeout(30000);
+      const requestSignal = fetchOptions.signal
+        ? AbortSignal.any([fetchOptions.signal, timeout])
+        : timeout;
       response = await fetch(`${APP_CONFIG.usersApiBaseUrl}${path}`, {
         ...fetchOptions,
+        signal: requestSignal,
         headers: {
           Authorization: `Bearer ${token}`,
           ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),

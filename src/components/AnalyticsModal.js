@@ -1,16 +1,11 @@
 import { UsageAnalytics } from '../services/usageAnalytics.js';
 import { UserAccess } from '../services/userAccess.js';
+import { escapeHtml } from '../utils/html.js';
 
 const $ = id => document.getElementById(id);
 const number = value => Number(value || 0).toLocaleString('pt-BR');
 const percent = value => `${Number(value || 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
 const duration = value => value ? `${(Number(value) / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}s` : '—';
-
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>'"]/g, character => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
-  })[character]);
-}
 
 function isoDate(date) {
   const year = date.getFullYear();

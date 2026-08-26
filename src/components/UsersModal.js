@@ -1,5 +1,6 @@
 import { UserAccess } from '../services/userAccess.js';
 import { AppShell } from './AppShell.js';
+import { escapeHtml } from '../utils/html.js';
 
 const $ = id => document.getElementById(id);
 const ROLE_LABELS = {
@@ -18,12 +19,6 @@ const STATUS_LABELS = {
 let users = [];
 let filter = 'all';
 let busyUid = null;
-
-function escapeHtml(value) {
-  const el = document.createElement('div');
-  el.textContent = String(value ?? '');
-  return el.innerHTML;
-}
 
 function canManageTarget(target) {
   const actor = UserAccess.current().user;

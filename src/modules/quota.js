@@ -5,6 +5,8 @@
  * Persiste no localStorage (por usuário, por dispositivo).
  */
 
+import { ApiSettings } from '../services/apiSettings.js';
+
 const LS_USO = 'gemini_uso';
 
 export const Quota = {
@@ -33,7 +35,7 @@ export const Quota = {
   },
 
   getLimit() {
-    const m = document.getElementById('modelSel')?.value || '';
+    const m = ApiSettings.getModel();
     if (m.includes('3.1-pro'))    return 100;
     if (m.includes('flash-lite')) return 1000;
     return 250;

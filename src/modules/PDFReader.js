@@ -9,10 +9,12 @@
 
 import { PipelineUI } from '../components/PipelineUI.js';
 import { Utils }      from '../utils/index.js';
+import { loadExternalScript } from '../utils/loadExternalScript.js';
 import { AppState }   from './state.js';
 
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
 const WORKER    = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const PDFJS_INTEGRITY = 'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e';
 
 let _loaded = false;
 
@@ -20,17 +22,14 @@ const _button = () => document.getElementById('importFileBtn') || document.getEl
 
 async function _loadPdfJs() {
   if (_loaded || window.pdfjsLib) { _loaded = true; return; }
-  await new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = PDFJS_CDN;
-    s.onload = () => {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER;
-      _loaded = true;
-      res();
-    };
-    s.onerror = () => rej(new Error('Falha ao carregar PDF.js'));
-    document.head.appendChild(s);
+  await loadExternalScript({
+    src: PDFJS_CDN,
+    integrity: PDFJS_INTEGRITY,
+    globalName: 'pdfjsLib',
+    errorMessage: 'Falha ao carregar PDF.js',
   });
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = WORKER;
+  _loaded = true;
 }
 
 async function _extractText(file) {

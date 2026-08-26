@@ -7,21 +7,28 @@
 import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from '../config.js';
 import { PipelineUI } from '../components/PipelineUI.js';
 import { isValidGeminiKey } from '../utils/apiKeys.js';
+import { ApiSettings } from './apiSettings.js';
 
 function _sleep(ms, signal) {
   return new Promise((resolve, reject) => {
-    const t = setTimeout(resolve, ms);
-    signal?.addEventListener('abort', () => {
+    const onAbort = () => {
       clearTimeout(t);
       reject(new DOMException('Aborted', 'AbortError'));
-    }, { once: true });
+    };
+    const t = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
   });
 }
 
-function _ls(k) { try { return localStorage.getItem(k) || ''; } catch { return ''; } }
-function _getGeminiKey()  { return document.getElementById('apiKey')?.value.trim()    || ''; }
-function _getMistralKey() { return document.getElementById('mistralKey')?.value.trim() || ''; }
-function _getModel()      { return document.getElementById('modelSel')?.value || GEMINI_DEFAULT_MODEL; }
+function _requestSignal(signal, timeoutMs = 120000) {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, timeout]) : timeout;
+}
+
+function _getModel() { return ApiSettings.getModel() || GEMINI_DEFAULT_MODEL; }
 
 function _tokenCount(value) {
   const parsed = Number(value);
@@ -36,13 +43,13 @@ function _reportUsage(options, usage) {
 
 // Reúne a chave principal e as chaves de fallback, removendo duplicadas.
 function _getGeminiKeys() {
-  return [_getGeminiKey(), _ls('fastseo_apiKey2'), _ls('fastseo_apiKey3')]
+  return ApiSettings.getGeminiKeys()
     .map(k => k.trim())
     .filter((k, i, arr) => isValidGeminiKey(k) && arr.indexOf(k) === i);
 }
 
 function _getMistralKeys() {
-  return [_getMistralKey(), _ls('fastseo_mistralKey2')]
+  return ApiSettings.getMistralKeys()
     .map(k => k.trim())
     .filter((k, i, arr) => k.length > 20 && arr.indexOf(k) === i);
 }
@@ -120,7 +127,7 @@ async function _requestWithAutoWait(provider, fetcher, signal, attempt = 1) {
   return res;
 }
 
-export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal = null, options = {}) {
+export async function callGemini(system, userMsg, maxTokens, _attempt = 1, signal = null, options = {}) {
   const model = _getModel();
   const keys = _getGeminiKeys();
   if (!keys.length) throw new Error('API Key do Gemini não configurada.');
@@ -141,7 +148,7 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
           'Content-Type': 'application/json',
           'x-goog-api-key': key,
         },
-        signal,
+        signal: _requestSignal(signal),
         body: JSON.stringify({
           system_instruction: { parts: [{ text: system }] },
           contents: [{ role: 'user', parts: [{ text: userMsg }] }],
@@ -192,7 +199,7 @@ export async function callGemini(system, userMsg, maxTokens, attempt = 1, signal
   throw lastErr || new Error('Gemini indisponível.');
 }
 
-export async function callMistral(system, userMsg, maxTokens, signal = null, attempt = 0, options = {}) {
+export async function callMistral(system, userMsg, maxTokens, signal = null, _attempt = 0, options = {}) {
   const keys = _getMistralKeys();
   if (!keys.length) throw new Error('API Key da Mistral não configurada.');
 
@@ -207,7 +214,7 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, att
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${key}`,
         },
-        signal,
+        signal: _requestSignal(signal),
         body: JSON.stringify({
           model:       MISTRAL_MODEL,
           max_tokens:  maxTokens,

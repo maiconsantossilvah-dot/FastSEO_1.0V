@@ -1,21 +1,21 @@
 /**
  * modules/categories.js
  * ──────────────────────
- * CRUD de categorias com Firestore como fonte primária
- * e localStorage como cache offline/fallback.
+ * Fachada do catálogo: o backend é a autoridade de leitura operacional,
+ * resolução e mutações. Firestore direto existe somente para ler o legado
+ * durante a migração; localStorage acelera a primeira pintura da interface.
  */
 
 import { CategoriesDB } from '../firebase/firestore.js';
 import {
   buildCategoryPayload,
-  needsCategoryMigration,
   normalizeCategory,
 } from './categoryQaSchema.js';
 import { UserAccess } from '../services/userAccess.js';
 import { CategoryCatalogApi } from '../services/categoryCatalog.js';
 const LS_CATS = 'ficha_categorias'; // chave de cache local
 
-// Cache em memória (atualizado pelo listener em tempo real)
+// Caches em memória separados evitam misturar rascunhos com o catálogo publicado.
 let _cache = [];
 let _editableCache = [];
 let _legacyCache = [];
@@ -25,7 +25,6 @@ let _catalogVersion = 0;
 let _backendProfileIds = new Set();
 const _promotionQueue = new Map();
 let _changeTimer = null; // throttle do evento catsChanged
-const _migrationQueue = new Set();
 
 function emitChanged() {
   document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
@@ -56,7 +55,8 @@ export const Categories = {
 
   _writeCache(cats) {
     _cache = (cats || []).map(normalizeCategory);
-    try { localStorage.setItem(LS_CATS, JSON.stringify(_cache)); } catch (_) { }
+    try { localStorage.setItem(LS_CATS, JSON.stringify(_cache)); }
+    catch { /* Cache é apenas uma otimização de leitura. */ }
   },
 
   _readLocalFallback() {
@@ -67,7 +67,7 @@ export const Categories = {
   find(id) { return this.getEditable().find(c => c.id === id) || _cache.find(c => c.id === id) || null; },
   isBackendProfile(id) { return _backendProfileIds.has(id); },
 
-  // ─── CRUD assíncrono (Firestore) ─────────────────────────
+  // ─── CRUD assíncrono (backend autenticado) ───────────────
   async create() {
     const data = buildCategoryPayload({
       nome: 'Nova Categoria',
@@ -76,100 +76,71 @@ export const Categories = {
       camposOpcionais: [],
       fichaIdeal: '',
     });
-    if (_backendAvailable) {
-      UserAccess.assert('manageCategoryCatalog');
-      const created = normalizeCategory(await CategoryCatalogApi.create(data));
-      _editableCache = [..._editableCache, created];
-      _backendProfileIds.add(created.id);
-      emitChanged();
-      return created;
-    }
-    const created = await CategoriesDB.create(data);
-    const normalized = normalizeCategory(created);
-    if (!this.find(normalized.id)) {
-      this._writeCache([..._cache, normalized]);
-      emitChanged();
-    }
-    return normalized;
+    UserAccess.assert('manageCategoryCatalog');
+    if (!_backendAvailable) throw new Error('O backend de categorias está indisponível. Tente novamente após atualizar o catálogo.');
+    const created = normalizeCategory(await CategoryCatalogApi.create(data));
+    _editableCache = [..._editableCache, created];
+    _backendProfileIds.add(created.id);
+    emitChanged();
+    return created;
   },
 
   async update(id, data) {
     const previous = this.find(id) || {};
     const payload = buildCategoryPayload(data, previous);
     const next = normalizeCategory({ ...previous, ...payload, id });
-    if (_backendAvailable) {
-      UserAccess.assert('manageCategoryCatalog');
-      await this._ensureBackendProfile(id);
-      const beforeEditable = _editableCache;
-      _editableCache = _editableCache.map(cat => cat.id === id ? next : cat);
-      emitChanged();
-      try {
-        const saved = normalizeCategory(await CategoryCatalogApi.update(id, { ...payload, status: 'draft' }));
-        _editableCache = _editableCache.map(cat => cat.id === id ? saved : cat);
-        emitChanged();
-        return saved;
-      } catch (err) {
-        _editableCache = beforeEditable;
-        emitChanged();
-        throw err;
-      }
-    }
-    const before = _cache;
-    const exists = _cache.some(cat => cat.id === id);
-    this._writeCache(exists ? _cache.map(cat => cat.id === id ? next : cat) : [..._cache, next]);
+    UserAccess.assert('manageCategoryCatalog');
+    if (!_backendAvailable) throw new Error('O backend de categorias está indisponível. Nenhuma alteração foi salva.');
+    await this._ensureBackendProfile(id);
+    const beforeEditable = _editableCache;
+    _editableCache = _editableCache.map(cat => cat.id === id ? next : cat);
     emitChanged();
     try {
-      await CategoriesDB.update(id, payload);
+      const saved = normalizeCategory(await CategoryCatalogApi.update(
+        id,
+        { ...payload, status: 'draft' },
+        Number(previous.revision || 1),
+      ));
+      _editableCache = _editableCache.map(cat => cat.id === id ? saved : cat);
+      emitChanged();
+      return saved;
     } catch (err) {
-      this._writeCache(before);
+      _editableCache = beforeEditable;
       emitChanged();
       throw err;
     }
   },
 
   async delete(id) {
-    if (_backendAvailable) {
-      UserAccess.assert('manageCategoryCatalog');
-      const beforeEditable = _editableCache;
-      const beforeLegacy = _legacyCache;
-      const beforePublished = _publishedBackendCache;
-      _editableCache = _editableCache.filter(cat => cat.id !== id);
-      _legacyCache = _legacyCache.filter(cat => cat.id !== id);
-      _publishedBackendCache = _publishedBackendCache.filter(cat => cat.id !== id);
-      _backendProfileIds.delete(id);
-      this._writeCache(mergePublishedWithLegacy());
-      emitChanged();
-      try {
-        await CategoryCatalogApi.delete(id);
-        await this.refresh();
-      } catch (err) {
-        _editableCache = beforeEditable;
-        _legacyCache = beforeLegacy;
-        _publishedBackendCache = beforePublished;
-        _backendProfileIds = new Set(beforeEditable.map(cat => cat.id));
-        this._writeCache(mergePublishedWithLegacy());
-        emitChanged();
-        throw err;
-      }
-      return;
-    }
-    const before = _cache;
-    this._writeCache(_cache.filter(cat => cat.id !== id));
+    UserAccess.assert('manageCategoryCatalog');
+    if (!_backendAvailable) throw new Error('O backend de categorias está indisponível. Nenhuma categoria foi excluída.');
+    const beforeEditable = _editableCache;
+    const beforeLegacy = _legacyCache;
+    const beforePublished = _publishedBackendCache;
+    _editableCache = _editableCache.filter(cat => cat.id !== id);
+    _legacyCache = _legacyCache.filter(cat => cat.id !== id);
+    _publishedBackendCache = _publishedBackendCache.filter(cat => cat.id !== id);
+    _backendProfileIds.delete(id);
+    this._writeCache(mergePublishedWithLegacy());
     emitChanged();
     try {
-      await CategoriesDB.delete(id);
+      await CategoryCatalogApi.delete(id);
+      await this.refresh();
     } catch (err) {
-      this._writeCache(before);
+      _editableCache = beforeEditable;
+      _legacyCache = beforeLegacy;
+      _publishedBackendCache = beforePublished;
+      _backendProfileIds = new Set(beforeEditable.map(cat => cat.id));
+      this._writeCache(mergePublishedWithLegacy());
       emitChanged();
       throw err;
     }
   },
 
-  // ─── Listener em tempo real ───────────────────────────────
+  // ─── Sincronização de leitura durante a migração ──────────
   /**
-   * Inicia a sincronização em tempo real com o Firestore.
-   * Toda mudança (local ou de outro usuário) atualiza o cache
-   * e dispara o re-render da Sidebar automaticamente.
+   * Observa somente a coleção legada e busca o catálogo atual no backend.
+   * Alterações novas chamam refresh explicitamente após a resposta da API.
    *
    * @returns {Function} unsubscribe — chame para parar o listener
    */
@@ -184,7 +155,6 @@ export const Categories = {
       _legacyCache = (cats || []).map(normalizeCategory);
       this._writeCache(mergePublishedWithLegacy());
       if (!_backendAvailable || !_editableCache.length) _editableCache = (cats || []).map(normalizeCategory);
-      if (!_backendAvailable) this._migrateLegacyCategories(cats);
       // Throttle: dispara o evento no máximo 1x a cada 200ms para evitar
       // múltiplos re-renders em cascata durante sincronizações do Firestore
       clearTimeout(_changeTimer);
@@ -248,16 +218,23 @@ export const Categories = {
   },
 
   async resolve(input) {
-    if (!_backendAvailable || !_catalogVersion) return null;
-    try {
-      const payload = await CategoryCatalogApi.resolve(input);
-      return payload.resolution?.compiledProfile
-        ? [normalizeCategory(payload.resolution.compiledProfile)]
-        : null;
-    } catch (error) {
-      console.warn('[Categories] Falha no resolvedor do backend; usando matcher local.', error);
-      return null;
-    }
+    return (await this.resolveDetailed(input)).categories;
+  },
+
+  async resolveDetailed(input) {
+    if (!_backendAvailable) await this.refresh();
+    const payload = await CategoryCatalogApi.resolve(input);
+    const categories = payload.resolution?.compiledProfile
+      ? [normalizeCategory(payload.resolution.compiledProfile)]
+      : [];
+    const titleRule = payload.titleRule ? {
+      id: payload.titleRule.id,
+      nome: payload.titleRule.name,
+      formula: payload.titleRule.formula,
+      ex: payload.titleRule.example || '',
+      confidence: Number(payload.titleRule.confidence || 0),
+    } : null;
+    return { categories, titleRule, catalogVersion: Number(payload.catalogVersion || 0) };
   },
 
   async previewLegacyMigration() {
@@ -289,14 +266,4 @@ export const Categories = {
     return result;
   },
 
-  _migrateLegacyCategories(cats) {
-    if (!UserAccess.can('editContent')) return;
-    (cats || []).forEach(cat => {
-      if (!cat?.id || !needsCategoryMigration(cat) || _migrationQueue.has(cat.id)) return;
-      _migrationQueue.add(cat.id);
-      CategoriesDB.update(cat.id, buildCategoryPayload({}, cat))
-        .catch(err => console.warn('[Categories] Erro ao migrar categoria:', err))
-        .finally(() => _migrationQueue.delete(cat.id));
-    });
-  },
 };

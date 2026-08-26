@@ -202,15 +202,15 @@ function parseBulkFaq(value = '') {
 
   // Também aceita blocos numerados com rótulos Pergunta/Resposta.
   const blocks = normalized
-    .split(/(?=^\s*\d+[.)-]?\s*(?:pergunta\s*[:\-]|[^\n]+\?))/gim)
+    .split(/(?=^\s*\d+[.)-]?\s*(?:pergunta\s*[:-]|[^\n]+\?))/gim)
     .map(block => block.trim())
     .filter(Boolean);
 
   blocks.forEach(block => {
-    const labelled = block.match(/^\s*\d+[.)-]?\s*(?:pergunta\s*[:\-]\s*)?(.+?\?)\s*(?:\n|\r)+\s*(?:resposta\s*[:\-]\s*)?([\s\S]+)$/i);
+    const labelled = block.match(/^\s*\d+[.)-]?\s*(?:pergunta\s*[:-]\s*)?(.+?\?)\s*(?:\n|\r)+\s*(?:resposta\s*[:-]\s*)?([\s\S]+)$/i);
     if (!labelled) return;
     const question = labelled[1].replace(/\s+/g, ' ').trim();
-    const answer = labelled[2].replace(/^\s*(?:resposta\s*[:\-]\s*)/i, '').trim();
+    const answer = labelled[2].replace(/^\s*(?:resposta\s*[:-]\s*)/i, '').trim();
     if (question && answer) items.push({ question, answer });
   });
 

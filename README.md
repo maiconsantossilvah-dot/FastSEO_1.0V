@@ -1,160 +1,96 @@
-# FastSEO - Arquitetura do projeto
+# FastSEO — arquitetura e desenvolvimento
 
-Aplicação frontend modular em JavaScript puro, com ES Modules carregados direto pelo navegador, e um backend incremental em TypeScript dedicado ao gerenciamento de usuários.
+O FastSEO é uma ferramenta interna para transformar dados brutos de produtos em fichas técnicas, validar fidelidade factual e, opcionalmente, gerar texto comercial. O frontend usa JavaScript com ES Modules; o backend usa TypeScript, Express, Firebase Admin e Firestore.
 
-## Estrutura de pastas
+## Arquitetura atual
 
 ```text
-index.html
-README.md
-firebase.json
-firestore.rules
-render.yaml
-backend/
-  Dockerfile
-  src/
-    auth/
-    audit/
-    users/
-  tests/
+index.html                    shell estático publicado no GitHub Pages
 src/
-  config.js
-  main.js
-  assets/
-    img/
-  components/
-    AppShell.js
-    AnalyticsModal.js
-    CategoriasModal.js
-    CategoryModal.js
-    ConfigUI.js
-    ExemplosModal.js
-    HistoryModal.js
-    HistoryUI.js
-    PipelineUI.js
-    PromptModal.js
-    SidebarUI.js
-    SubcatModal.js
-  firebase/
-    firebase.js
-    firestore.js
-  modules/
-    PDFReader.js
-    TextReader.js
-    WordReader.js
-    categories.js
-    history.js
-    pipeline.js
-    prompts.js
-    quota.js
-    state.js
-    subcategories.js
-  services/
-    analytics.js
-    api.js
-    auth.js
-    serp.js
-  styles/
-    main.css
-    redesign.css
-  utils/
-    html.js
-    index.js
-    matching.js
-    prepareProductInput.js
-    sanitizeInput.js
-tests/
-  frontend/
+  main.js                     composição e inicialização da aplicação
+  components/                 componentes e modais de interface
+  modules/                    pipeline e regras de negócio do frontend
+  services/                   APIs, acesso, catálogo e BYOK
+  firebase/                   Firebase Auth e acesso permitido ao Firestore
+  utils/                      funções reutilizáveis e sem estado
+backend/src/
+  auth/                       validação do token e autorização por cargo
+  users/                      acesso e hierarquia da equipe
+  categories/                 catálogo, publicação, herança e resolução
+  titleRules/                 regras de título anteriormente chamadas subcategorias
+  usage/                      telemetria e agregação administrativa
+  audit/                      trilha de alterações administrativas
+tests/frontend/               testes unitários do frontend
+tests/rules/                  testes das regras do Firestore
+backend/tests/                testes unitários do backend
 ```
 
-## Responsabilidades
+O backend é a autoridade para usuários, categorias, regras de título, telemetria e auditoria. O frontend não possui fallback de escrita direta nessas coleções. O histórico novo pertence ao usuário e fica em `users/{uid}/history`; a coleção global antiga é somente leitura administrativa durante a transição.
 
-- `src/main.js`: inicialização do app, login, listeners globais e integração entre módulos.
-- `src/config.js`: configurações Firebase, modelos e limites do app.
-- `src/firebase/`: inicialização Firebase e CRUD/listeners do Firestore.
-- `src/services/`: chamadas externas e serviços de infraestrutura, como IA, auth, analytics e Google Custom Search.
-- `src/services/userAccess.js`: cliente autenticado do backend e estado central de permissões no frontend.
-- `backend/`: valida Firebase ID Tokens e concentra aprovação, cargos, status e auditoria de usuários.
-- `firestore.rules`: aplica a leitura/escrita por cargo também fora da interface.
-- `src/modules/`: regras de negócio, estado, pipeline, histórico, cotas, prompts, categorias e leitura de arquivos.
-- `src/components/`: modais e elementos de interface.
-- `src/utils/`: helpers puros de sanitização, matching e clipboard.
-- `src/styles/`: CSS principal.
-- `src/components/AppShell.js`: shell responsivo, Lucide, central de comandos, atalhos e rascunhos locais.
-- `src/styles/redesign.css`: tokens azul/branco, componentes reutilizáveis, responsividade e motion da interface atual.
-- `src/assets/img/`: imagens usadas por temas e placeholders.
+## BYOK: uma chave por colaborador
 
-## Como rodar
+As chamadas ao Gemini e à Mistral continuam no navegador por decisão de produto: cada membro da equipe utiliza a própria chave. `src/services/apiSettings.js` centraliza esse comportamento e isola os valores pelo Firebase UID no `localStorage`. As chaves são enviadas somente ao provedor selecionado, nunca ao backend do FastSEO nem ao Firestore.
 
-ES Modules precisam de servidor HTTP; abrir o HTML via `file://` pode falhar.
+Consequências conscientes desse modelo:
+
+- quem controla o perfil do navegador consegue inspecionar a própria chave;
+- a métrica de tokens é operacional, não uma fonte financeira incontestável, pois o backend não presencia a chamada original;
+- computadores compartilhados devem usar perfis de navegador separados e sessão do sistema bloqueada;
+- scripts externos fixos usam Subresource Integrity para reduzir risco de alteração no CDN.
+
+## Executar localmente
+
+Requisitos: Node.js 22 ou superior e pnpm 11. O backend também precisa das credenciais Firebase descritas em `backend/README.md`.
 
 ```powershell
-pnpm dlx serve . --listen 5500
-```
-
-Depois acesse:
-
-```text
-http://localhost:5500
-```
-
-## Testes do frontend
-
-Instale as dependências na raiz e execute a bateria do frontend:
-
-```powershell
+cd C:\Users\maicons\Documents\GitHub\FastSEO_1.0V
 pnpm install
-pnpm test
+pnpm dev
 ```
 
-Durante o desenvolvimento, `pnpm test:watch` acompanha alterações. Para gerar o relatório HTML em `coverage/frontend`, use:
+O frontend abre em `http://localhost:5500`. Em outro terminal:
 
 ```powershell
-pnpm test:coverage
+pnpm --dir backend install
+pnpm --dir backend dev
 ```
 
-Os testes do backend continuam independentes:
+Use `http://localhost:8787/health` para liveness e `http://localhost:8787/ready` para confirmar que o Firestore também está acessível.
+
+## Qualidade e testes
+
+Os comandos ficam no `package.json` da raiz e podem ser executados de qualquer terminal aberto na raiz:
 
 ```powershell
-pnpm --dir backend test
-pnpm --dir backend typecheck
+pnpm lint                  # ESLint no frontend e nos testes
+pnpm test                  # testes unitários do frontend
+pnpm test:watch            # frontend em modo watch
+pnpm test:coverage         # relatório em coverage/frontend
+pnpm test:rules            # regras Firestore no emulador (requer Java 21 no PATH)
+pnpm --dir backend test    # testes do backend
+pnpm typecheck             # TypeScript sem gerar arquivos
+pnpm build                 # compila o backend
+pnpm check                 # bateria completa usada pelo CI
 ```
 
-## Firebase
+O GitHub Actions executa `pnpm check` com Node 24 e Java 21 em cada pull request e push na `main`. Não reduza a cobertura excluindo arquivos sem teste: o relatório inclui todo `src/` para mostrar os pontos ainda descobertos.
 
-A aplicação usa:
+## Permissões
 
-- Firebase Auth com Google.
-- Firestore para `categories`, `subcategories`, `prompts`, `history`, `users` e `auditLogs`.
-- `categories` usa `nome`, `camposObrigatorios`, `camposOpcionais`, `fichaIdeal` e `qaSchema`.
-- Categorias antigas com `campos` e `ficha` são migradas automaticamente para o novo formato.
+- `owner`: maior nível administrativo e proteção contra remoção do último proprietário; históricos pessoais continuam privados.
+- `admin`: usuários, catálogo, regras de título, prompts e analytics.
+- `collaborator`: pipeline, histórico próprio e operações de conteúdo autorizadas.
+- `viewer`: consulta sem mutação.
 
-## Interface
+As restrições de interface são conveniência de UX. A autorização real é repetida no backend e nas regras do Firestore. Categorias e regras de título só podem ser modificadas por `owner` e `admin`; cada mutação relevante gera auditoria.
 
-- A iconografia usa Lucide 1.31.0 carregado por CDN com versão fixa.
-- Animações e transições reutilizáveis ficam em CSS; JavaScript apenas coordena classes e estados.
-- `prefers-reduced-motion` desativa movimento não essencial.
-- A identidade visual usa o azul e o branco do favicon nos temas claro e escuro.
+## Segurança operacional
 
-## Backend de usuários
+- Nunca versionar `.env`, JSON de conta de serviço, chaves de IA ou tokens.
+- Manter `FRONTEND_ORIGINS` limitado às URLs reais do FastSEO.
+- Ativar `ALLOW_PRODUCTION_BOOTSTRAP=true` somente para criar o primeiro owner e removê-lo logo depois.
+- Publicar regras com `pnpm --dir backend deploy:rules` somente após revisar o diff e confirmar um owner ativo.
+- Fazer backup antes de importações em massa e resolver conflitos de revisão em vez de sobrescrever edições concorrentes.
+- O rate limit em memória atende ao serviço gratuito com uma instância; antes de escalar horizontalmente, migrá-lo para um armazenamento compartilhado.
 
-O login Google permanece no Firebase Authentication. Depois do login, o frontend envia o Firebase ID Token ao backend, que cria uma solicitação `pending` ou valida um perfil já ativo. Aprovação, rejeição, mudança de cargo, suspensão e reativação passam exclusivamente pelo backend.
-
-Para desenvolvimento, configure e inicie o serviço seguindo [backend/README.md](backend/README.md). O primeiro owner é criado por meio da variável temporária `BOOTSTRAP_OWNER_EMAILS`; usuários seguintes entram como pendentes e, quando aprovados, sempre começam como viewer.
-
-Em produção, o frontend permanece no GitHub Pages e o backend é executado em um Web Service Docker no Render Free. O Blueprint, as variáveis secretas, o CORS e a ordem segura de ativação estão documentados em [backend/README.md](backend/README.md). O arquivo JSON usado localmente nunca deve ser incluído no contêiner ou enviado ao repositório.
-
-### Ordem segura de ativação
-
-1. Configure e inicie o backend com `BOOTSTRAP_OWNER_EMAILS` contendo o primeiro proprietário.
-2. Publique o frontend e entre com essa conta para criar `users/{uid}` como owner ativo.
-3. Confirme o documento no Firestore e remova a variável temporária de bootstrap.
-4. Somente então publique as regras versionadas:
-
-```bash
-firebase deploy --only firestore:rules
-```
-
-Não publique as regras antes de existir ao menos um owner ativo: sem um perfil ativo, as coleções operacionais serão bloqueadas como parte da proteção esperada.
-
-As integrações de IA, chaves, pipeline, FAQ, Compilador e demais módulos operacionais não foram migrados para o backend nesta etapa.
+Detalhes de ambiente, deploy, variáveis e endpoints estão em [backend/README.md](backend/README.md).
