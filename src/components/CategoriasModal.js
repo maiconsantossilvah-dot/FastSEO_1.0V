@@ -17,6 +17,7 @@ import { CATEGORY_NOTICE_OPTIONS } from '../modules/categoryNotices.js';
 import { UserAccess } from '../services/userAccess.js';
 import { callGemini } from '../services/api.js';
 import { Quota } from '../modules/quota.js';
+import { createProviderEventHandler } from '../modules/aiRuntimeEvents.js';
 
 const $ = id => document.getElementById(id);
 
@@ -413,7 +414,10 @@ Formato obrigatório:
       button.innerHTML = '<span class="loading-spinner" aria-hidden="true"></span> Analisando';
     }
     try {
-      const response = await callGemini(system, JSON.stringify(payload), 1400, 1, null, { jsonMode: true });
+      const response = await callGemini(system, JSON.stringify(payload), 1400, 1, null, {
+        jsonMode: true,
+        onEvent: createProviderEventHandler(0),
+      });
       const clean = response.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
       const raw = JSON.parse(clean);
       if (!['compact', 'technical', 'generic'].includes(raw.profileType)) {

@@ -37,6 +37,7 @@ import { stabilizeFichaOutput, validateFichaOutput } from './outputGuards.js';
 import { UsageAnalytics } from '../services/usageAnalytics.js';
 import { prepareProductInput } from '../utils/prepareProductInput.js';
 import { ApiSettings } from '../services/apiSettings.js';
+import { createProviderEventHandler } from './aiRuntimeEvents.js';
 
 // Integrações opcionais: SEO enriquece prompts; Analytics registra uso e erros.
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -91,6 +92,13 @@ function inserirAvisoAntesDoFornecedor(ficha, aviso) {
   const depois = texto.slice(match.index).trimStart();
 
   return `${antes}\n\n${textoAviso}\n\n${depois}`;
+}
+
+function aiTracking(agentNum, onUsage) {
+  return {
+    onUsage,
+    onEvent: createProviderEventHandler(agentNum),
+  };
 }
 
 export const Pipeline = {
@@ -165,13 +173,13 @@ export const Pipeline = {
 
       const sys3 = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
 
-      const conteudo = await callAgent(sys3, fichaText, 800, signal, 3, {
-        onUsage(usage) {
+      const conteudo = await callAgent(sys3, fichaText, 800, signal, 3, aiTracking(3,
+        usage => {
           addTokenCall(tokenUsage, 3, usage, 'regeneration');
           addTokenCall(regenerationUsage, 3, usage, 'regeneration');
           PipelineUI.updateTokenUsage(tokenUsage);
         },
-      });
+      ));
 
       Quota.add(1);
       PipelineUI.setStep(3, 'done');
@@ -343,9 +351,10 @@ export const Pipeline = {
       // AGENTE 1 - Formatador
       PipelineUI.setStep(1, 'active');
       PipelineUI.log(`[A1] Formatando ficha${bivolt ? ' bivolt' : ''}...`, 'i');
-      let ficha = await callAgent(sys1, `DADOS DO PRODUTO:\n${input}`, tok1, signal, 1, {
-        onUsage: trackStageUsage(1),
-      });
+      let ficha = await callAgent(
+        sys1, `DADOS DO PRODUTO:\n${input}`, tok1, signal, 1,
+        aiTracking(1, trackStageUsage(1)),
+      );
       Quota.add(1);
       PipelineUI.setStep(1, 'done');
       PipelineUI.log('[A1] Ficha formatada.', 'o');
@@ -364,7 +373,7 @@ export const Pipeline = {
       const validacao = await callAgent(
         sys2,
         `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}${avisoValidacao}${qaSchemaPrompt ? `\n\n---\nJSON DE VALIDAÇÃO DA CATEGORIA:\n${qaSchemaPrompt}` : ''}`,
-        1500, signal, 2, { onUsage: trackStageUsage(2) }
+        1500, signal, 2, aiTracking(2, trackStageUsage(2))
       );
       Quota.add(1);
       const qa = mergeQAFindings(parseQAJson(validacao), localFindings);
@@ -378,9 +387,10 @@ export const Pipeline = {
       if (!reprovado && autoA3) {
         PipelineUI.setStep(3, 'active');
         PipelineUI.log('[A3] Gerando conteúdo comercial...', 'i');
-        conteudo = await callAgent(sys3, ficha, 800, signal, 3, {
-          onUsage: trackStageUsage(3),
-        });
+        conteudo = await callAgent(
+          sys3, ficha, 800, signal, 3,
+          aiTracking(3, trackStageUsage(3)),
+        );
         Quota.add(1);
         PipelineUI.setStep(3, 'done');
         PipelineUI.log('[A3] Conteúdo gerado.', 'o');

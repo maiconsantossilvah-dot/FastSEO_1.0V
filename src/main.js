@@ -20,6 +20,23 @@ import { PromptModal } from './components/PromptModal.js';
 import { SubcatModal } from './components/SubcatModal.js';
 import { UsersModal } from './components/UsersModal.js';
 import { EXPORT_WITH_FAQ_PROMPT } from './modules/exportPrompt.js';
+import { createAiRuntime } from './ai/createAiRuntime.js';
+import { systemClock } from './ai/clock.js';
+import { configureAiRuntime } from './services/api.js';
+import { ApiSettings } from './services/apiSettings.js';
+import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from './config.js';
+import { isValidGeminiKey } from './utils/apiKeys.js';
+
+// Composition root do runtime: estado de fila pertence a esta instância da aba.
+configureAiRuntime(createAiRuntime({
+  fetch: (...args) => globalThis.fetch(...args),
+  clock: systemClock,
+  getGeminiKeys: () => ApiSettings.getGeminiKeys(),
+  getMistralKeys: () => ApiSettings.getMistralKeys(),
+  getGeminiModel: () => ApiSettings.getModel() || GEMINI_DEFAULT_MODEL,
+  mistralModel: MISTRAL_MODEL,
+  validateGeminiKey: isValidGeminiKey,
+}));
 
 // ── Export — ações de clipboard e download dos resultados ────
 const Export = {

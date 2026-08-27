@@ -7,6 +7,7 @@ O FastSEO é uma ferramenta interna para transformar dados brutos de produtos em
 ```text
 index.html                    shell estático publicado no GitHub Pages
 src/
+  ai/                         gateway, providers, scheduler e contratos do runtime de IA
   main.js                     composição e inicialização da aplicação
   components/                 componentes e modais de interface
   modules/                    pipeline e regras de negócio do frontend
@@ -26,6 +27,11 @@ backend/tests/                testes unitários do backend
 ```
 
 O backend é a autoridade para usuários, categorias, regras de título, telemetria e auditoria. O frontend não possui fallback de escrita direta nessas coleções. O histórico novo pertence ao usuário e fica em `users/{uid}/history`; a coleção global antiga é somente leitura administrativa durante a transição.
+
+O runtime de IA separa roteamento, integração HTTP e rate limit. Providers não
+dependem da interface; o pipeline traduz eventos neutros em feedback visual. A
+decisão e seus limites estão registrados na
+[ADR 0001](docs/adr/0001-ai-runtime-boundaries.md).
 
 ## BYOK: uma chave por colaborador
 

@@ -12,7 +12,9 @@
     "test:coverage": "vitest run --coverage",
     "test:rules": "firebase emulators:exec --config firebase.json --project demo-fastseo --only firestore \"vitest run --config vitest.rules.config.js\"",
     "test:all": "pnpm test && pnpm test:rules && pnpm --dir backend test",
-    "typecheck": "pnpm --dir backend typecheck",
+    "typecheck:frontend": "tsc -p tsconfig.strict.json",
+    "typecheck:backend": "pnpm --dir backend typecheck",
+    "typecheck": "pnpm typecheck:frontend && pnpm typecheck:backend",
     "build": "pnpm --dir backend build",
     "check": "pnpm lint && pnpm test:all && pnpm typecheck && pnpm build"
   },
@@ -26,6 +28,7 @@
     "globals": "^17.11.0",
     "happy-dom": "^20.11.6",
     "serve": "^14.2.6",
+    "typescript": "^7.0.2",
     "vitest": "4.1.11"
   }
 }
