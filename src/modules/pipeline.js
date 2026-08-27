@@ -1,22 +1,14 @@
 /**
  * modules/pipeline.js
  * -----------------------------------------------------------------------------
- * Orquestra o fluxo de 3 agentes:
+ * Controla o fluxo de 3 agentes:
  *   1. Formatador (A1 -> Mistral)
  *   2. Conferente/QA (A2 -> Gemini)
  *   3. Copywriter (A3 -> Gemini)
  *
- * Depende de:
- *   services/api.js         -> callAgent()
- *   module./prompts.js      -> Prompts.get()
- *   module./categories.js   -> Categories.getAll()
- *   module./quota.js        -> Quota
- *   module./history.js      -> History.save()
- *   module./quota.js        -> Logs.save()
- *   utils/index.js          -> sanitize, detectBivolt, ...
- *   components/PipelineUI.js
- *   services/serp.js        -> buscarKeywords, montarContextoSEO, hasSerpApiKey
- *   services/analytics.js   -> track*
+ * Este arquivo é o adaptador da aplicação: valida entrada, resolve categoria,
+ * projeta eventos na UI e persiste o resultado. A sequência A1/A2/A3 e as regras
+ * puras ficam em pipelineOrchestrator.js e pipelineDomain.js.
  */
 
 import { callAgent } from '../services/api.js';
@@ -32,12 +24,14 @@ import { parseQAJson, formatQAReport, mergeQAFindings } from './qa.js?v=20260824
 import { getCategoryNotice } from './categoryNotices.js';
 import { buildCategoryQaSchemaPrompt, hasCategoryDefinition, textToFieldList } from './categoryQaSchema.js';
 import { isValidGeminiKey } from '../utils/apiKeys.js';
-import { addTokenCall, createTokenUsage } from './tokenUsage.js';
+import { createTokenUsage } from './tokenUsage.js';
 import { stabilizeFichaOutput, validateFichaOutput } from './outputGuards.js';
 import { UsageAnalytics } from '../services/usageAnalytics.js';
 import { prepareProductInput } from '../utils/prepareProductInput.js';
 import { ApiSettings } from '../services/apiSettings.js';
-import { createProviderEventHandler } from './aiRuntimeEvents.js';
+import { buildPipelinePrompts, resolveTitleRule } from './pipelineDomain.js';
+import { runCopywriterAgent, runPipelineAgents } from './pipelineOrchestrator.js';
+import { createPipelineEventHandler } from './pipelineUiAdapter.js';
 
 // Integrações opcionais: SEO enriquece prompts; Analytics registra uso e erros.
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -73,31 +67,15 @@ function shouldAutoRunCopywriter() {
   catch { return true; }
 }
 
-function buildTitleRuleSnippet(rule) {
-  if (!rule?.formula) return '';
-  return `\n\n-- PADRÃO DE TÍTULO PARA "${rule.nome}" --\n`
-    + `Estrutura do título: ${rule.formula}\n`
-    + 'Siga exatamente essa estrutura ao gerar o TÍTULO SEO desta ficha.';
-}
-
-function inserirAvisoAntesDoFornecedor(ficha, aviso) {
-  const texto = String(ficha || '').trim();
-  const textoAviso = String(aviso || '').trim();
-  if (!textoAviso || texto.includes(textoAviso)) return texto;
-
-  const match = texto.match(/^Fornecedor\s*:/im);
-  if (!match) return `${texto}\n\n${textoAviso}`;
-
-  const antes = texto.slice(0, match.index).trimEnd();
-  const depois = texto.slice(match.index).trimStart();
-
-  return `${antes}\n\n${textoAviso}\n\n${depois}`;
-}
-
-function aiTracking(agentNum, onUsage) {
+function orchestratorDependencies(emit) {
   return {
-    onUsage,
-    onEvent: createProviderEventHandler(agentNum),
+    callAgent,
+    stabilizeFichaOutput,
+    validateFichaOutput,
+    parseQAJson,
+    mergeQAFindings,
+    formatQAReport,
+    emit,
   };
 }
 
@@ -156,34 +134,24 @@ export const Pipeline = {
     const abort = new AbortController();
     const signal = abort.signal;
 
-    PipelineUI.setStep(3, 'active');
-    PipelineUI.log('[A3] Regenerando conteúdo comercial...', 'i');
-
     try {
       const input = document.getElementById('inputText')?.value || fichaText;
       const resolution = await Categories.resolveDetailed(input);
       const matched = resolution.categories;
       const fewShot = Utils.buildFewShot(bivolt, matched);
-
-      const compiledTitleRule = matched[0]?.titleRule;
-      const subcatRule = compiledTitleRule?.formula
-        ? { nome: matched[0].nome, formula: compiledTitleRule.formula, ex: compiledTitleRule.example || '' }
-        : resolution.titleRule;
-      const subcatSnippet = buildTitleRuleSnippet(subcatRule);
-
-      const sys3 = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
-
-      const conteudo = await callAgent(sys3, fichaText, 800, signal, 3, aiTracking(3,
-        usage => {
-          addTokenCall(tokenUsage, 3, usage, 'regeneration');
-          addTokenCall(regenerationUsage, 3, usage, 'regeneration');
-          PipelineUI.updateTokenUsage(tokenUsage);
-        },
-      ));
-
-      Quota.add(1);
-      PipelineUI.setStep(3, 'done');
-      PipelineUI.log('[A3] Conteúdo regenerado.', 'o');
+      const prompts = buildPipelinePrompts({
+        getPrompt: key => Prompts.get(key),
+        bivolt,
+        fewShot,
+        titleRule: resolveTitleRule(matched, resolution),
+      });
+      const emit = createPipelineEventHandler({ tokenUsage, regenerationUsage });
+      const conteudo = await runCopywriterAgent({
+        systemPrompt: prompts.agent3,
+        ficha: fichaText,
+        signal,
+        mode: 'regeneration',
+      }, { callAgent, emit });
 
       // Mantém o estado interno e a tela sincronizados após regenerar o conteúdo.
       AppState.pipeline.result.conteudo = conteudo;
@@ -272,10 +240,6 @@ export const Pipeline = {
     PipelineUI.resetSteps();
     PipelineUI.setRunning(true);
     const tokenUsage = createTokenUsage();
-    const trackStageUsage = stage => usage => {
-      addTokenCall(tokenUsage, stage, usage);
-      PipelineUI.updateTokenUsage(tokenUsage);
-    };
 
     try {
       const prepared = prepareProductInput(inputRaw, { maxChars: 20000 });
@@ -322,88 +286,45 @@ export const Pipeline = {
       }
 
       const fewShot = Utils.buildFewShot(bivolt, matched);
-      // Limite alto evita truncar fichas técnicas extensas; cobrança ocorre pelos tokens gerados,
-      // não pelo teto. O prompt compacto controla a verbosidade sem perder especificações.
-      const tok1 = 7000;
       const qaSchemaPrompt = buildCategoryQaSchemaPrompt(matched);
-
-      const compiledTitleRule = matched[0]?.titleRule;
-      const subcatRule = compiledTitleRule?.formula
-        ? { nome: matched[0].nome, formula: compiledTitleRule.formula, ex: compiledTitleRule.example || '' }
-        : resolution.titleRule;
-      const subcatSnippet = buildTitleRuleSnippet(subcatRule);
+      const subcatRule = resolveTitleRule(matched, resolution);
       if (subcatRule) PipelineUI.log(`Padrão de título aplicado: ${subcatRule.nome}`, 'o');
 
       // Busca keywords SEO sem bloquear o fluxo quando a integração não estiver disponível.
       const contextoSEO = await obterContextoSEO(input, categoriaAtual);
       if (contextoSEO) PipelineUI.log('Contexto SEO carregado.', 'o');
 
-      // Monta prompts base e adiciona contexto SEO somente quando ele existir.
-      const sys1Base = Prompts.get(bivolt ? 'P1B' : 'P1') + fewShot + subcatSnippet;
-      const sys2Base = Prompts.get(bivolt ? 'P2B' : 'P2');
-      const sys3Base = Prompts.get(bivolt ? 'P3B' : 'P3') + fewShot + subcatSnippet;
-
-      const sys1 = contextoSEO ? `${sys1Base}\n\n${contextoSEO}` : sys1Base;
-      // O A2 é auditor factual: contexto SEO não comprova dados e só aumentava o prompt.
-      const sys2 = sys2Base;
-      const sys3 = contextoSEO ? `${sys3Base}\n\n${contextoSEO}` : sys3Base;
-
-      // AGENTE 1 - Formatador
-      PipelineUI.setStep(1, 'active');
-      PipelineUI.log(`[A1] Formatando ficha${bivolt ? ' bivolt' : ''}...`, 'i');
-      let ficha = await callAgent(
-        sys1, `DADOS DO PRODUTO:\n${input}`, tok1, signal, 1,
-        aiTracking(1, trackStageUsage(1)),
-      );
-      Quota.add(1);
-      PipelineUI.setStep(1, 'done');
-      PipelineUI.log('[A1] Ficha formatada.', 'o');
-
-      ficha = stabilizeFichaOutput(input, ficha);
-
-      if (aviso) {
-        ficha = inserirAvisoAntesDoFornecedor(ficha, aviso);
-      }
-
-      const localFindings = validateFichaOutput(input, ficha);
-
-      // AGENTE 2 - Conferente/QA
-      PipelineUI.setStep(2, 'active');
-      PipelineUI.log('[A2] Conferindo dados...', 'i');
-      const validacao = await callAgent(
-        sys2,
-        `DADOS BRUTOS ORIGINAIS:\n${input}\n\n---\nFICHA GERADA:\n${ficha}${avisoValidacao}${qaSchemaPrompt ? `\n\n---\nJSON DE VALIDAÇÃO DA CATEGORIA:\n${qaSchemaPrompt}` : ''}`,
-        1500, signal, 2, aiTracking(2, trackStageUsage(2))
-      );
-      Quota.add(1);
-      const qa = mergeQAFindings(parseQAJson(validacao), localFindings);
-      const validacaoFormatada = formatQAReport(qa);
-      const reprovado = qa.status === 'REPROVADO';
-      PipelineUI.setStep(2, reprovado ? 'error' : 'done');
-      PipelineUI.log(`[A2] ${qa.status} - confiança ${qa.confianca}`, reprovado ? 'w' : 'o');
-
-      // AGENTE 3 - Copywriter
-      let conteudo = '';
-      if (!reprovado && autoA3) {
-        PipelineUI.setStep(3, 'active');
-        PipelineUI.log('[A3] Gerando conteúdo comercial...', 'i');
-        conteudo = await callAgent(
-          sys3, ficha, 800, signal, 3,
-          aiTracking(3, trackStageUsage(3)),
-        );
-        Quota.add(1);
-        PipelineUI.setStep(3, 'done');
-        PipelineUI.log('[A3] Conteúdo gerado.', 'o');
-      } else {
-        PipelineUI.setStep(3, 'skip');
-        PipelineUI.log(reprovado ? '[A3] Pulado.' : '[A3] Opcional - use Gerar conteúdo comercial quando precisar.', 'w');
-      }
+      const prompts = buildPipelinePrompts({
+        getPrompt: key => Prompts.get(key),
+        bivolt,
+        fewShot,
+        titleRule: subcatRule,
+        seoContext: contextoSEO,
+      });
+      const emit = createPipelineEventHandler({ tokenUsage });
+      const {
+        ficha,
+        validacao,
+        validacaoRaw,
+        qa,
+        conteudo,
+        reprovado,
+      } = await runPipelineAgents({
+        input,
+        bivolt,
+        prompts,
+        notice: aviso,
+        noticeValidation: avisoValidacao,
+        qaSchemaPrompt,
+        autoRunCopywriter: autoA3,
+        signal,
+      }, orchestratorDependencies(emit));
 
       // Salva o resultado em memória antes de atualizar a interface.
       AppState.pipeline.result = {
         ficha,
-        validacao: validacaoFormatada,
-        validacaoRaw: validacao,
+        validacao,
+        validacaoRaw,
         qa,
         conteudo,
         bivolt,
@@ -411,7 +332,7 @@ export const Pipeline = {
         category: telemetryContext.category,
         tokenUsage,
       };
-      PipelineUI.showResults(ficha, validacaoFormatada, conteudo, bivolt, reprovado, tokenUsage);
+      PipelineUI.showResults(ficha, validacao, conteudo, bivolt, reprovado, tokenUsage);
       PipelineUI.log('Pipeline concluído.', 'o');
 
       // Analytics: pipeline concluído com sucesso.
