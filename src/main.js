@@ -19,7 +19,7 @@ import { HistoryModal } from './components/HistoryModal.js';
 import { PromptModal } from './components/PromptModal.js';
 import { SubcatModal } from './components/SubcatModal.js';
 import { UsersModal } from './components/UsersModal.js';
-import { EXPORT_WITH_FAQ_PROMPT } from './modules/exportPrompt.js';
+import { buildExportWithFaqPrompt } from './modules/exportPrompt.js';
 import { createAiRuntime } from './ai/createAiRuntime.js';
 import { systemClock } from './ai/clock.js';
 import { configureAiRuntime } from './services/api.js';
@@ -70,7 +70,6 @@ const Export = {
   },
 
   async copyFichaComTexto() {
-    const textoPredefinido = EXPORT_WITH_FAQ_PROMPT;
     const ficha = document.getElementById('fichaOut')?.innerText?.trim() || '';
 
     if (!ficha) {
@@ -79,7 +78,7 @@ const Export = {
       return;
     }
 
-    const textoFinal = `${textoPredefinido}${ficha}`;
+    const textoFinal = buildExportWithFaqPrompt(ficha);
 
     navigator.clipboard.writeText(textoFinal).then(() => {
       const btn = document.getElementById('copyFichaComTextoBtn');
