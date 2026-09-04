@@ -26,6 +26,7 @@ import { configureAiRuntime } from './services/api.js';
 import { ApiSettings } from './services/apiSettings.js';
 import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from './config.js';
 import { isValidGeminiKey } from './utils/apiKeys.js';
+import { runViewTransition } from './utils/viewTransitions.js';
 
 // Composition root do runtime: estado de fila pertence a esta instância da aba.
 configureAiRuntime(createAiRuntime({
@@ -320,7 +321,7 @@ themeBtn?.addEventListener('click', () => {
 });
 
 // ── Eventos do app ────────────────────────────────────────────
-function showMainView(view) {
+function showMainView(view, options = {}) {
   const ficha = document.getElementById('fastseoWorkspace');
   const faq = document.getElementById('faqWorkspace');
   const compiler = document.getElementById('compilerWorkspace');
@@ -353,11 +354,7 @@ function showMainView(view) {
     docsBtn?.toggleAttribute('aria-current', isDocs);
   };
 
-  if (document.startViewTransition) {
-    document.startViewTransition(swapView);
-  } else {
-    swapView();
-  }
+  runViewTransition(swapView, { animate: options.animate !== false });
   try {
     history.replaceState(null, '', `#${view}`);
     localStorage.setItem('fastseo_current_view', view);
@@ -546,5 +543,12 @@ const initialViewButton = {
   compiler: 'showCompilerViewBtn',
   docs: 'showDocsViewBtn',
 }[initialView];
-if (initialViewButton && initialView !== 'ficha') document.getElementById(initialViewButton)?.click();
+if (initialViewButton && initialView !== 'ficha') {
+  // A restauração acontece enquanto o documento ainda está estabilizando.
+  // Inicializa a ferramenta selecionada, mas não tenta capturar uma transição.
+  if (initialView === 'faq') FAQCreator.init();
+  if (initialView === 'compiler') DataCompiler.init();
+  if (initialView === 'docs') InternalDocs.init();
+  showMainView(initialView, { animate: false });
+}
 
