@@ -5,7 +5,7 @@
 export class ProviderRuntimeError extends Error {
   /**
    * @param {string} message
-   * @param {{code: import('./contracts.js').ProviderErrorCode, provider: import('./contracts.js').ProviderName, retryable?: boolean, fallbackEligible?: boolean, cause?: unknown}} options
+   * @param {{code: import('./contracts.js').ProviderErrorCode, provider: import('./contracts.js').ProviderName, retryable?: boolean, fallbackEligible?: boolean, providerWide?: boolean, cause?: unknown}} options
    */
   constructor(message, options) {
     super(message, options.cause === undefined ? undefined : { cause: options.cause });
@@ -14,6 +14,7 @@ export class ProviderRuntimeError extends Error {
     this.provider = options.provider;
     this.retryable = Boolean(options.retryable);
     this.fallbackEligible = Boolean(options.fallbackEligible);
+    this.providerWide = Boolean(options.providerWide);
 
     // Compatibilidade temporária com consumidores anteriores à extração do runtime.
     this.cotaEsgotada = ['rate-limit', 'daily-quota', 'overloaded'].includes(options.code);

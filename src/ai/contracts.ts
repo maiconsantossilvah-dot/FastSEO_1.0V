@@ -14,6 +14,8 @@ export interface ProviderError extends Error {
   provider: ProviderName;
   retryable: boolean;
   fallbackEligible: boolean;
+  /** Indica indisponibilidade que não pode ser contornada rotacionando chaves. */
+  providerWide?: boolean;
 }
 
 export interface ProviderRequest {

@@ -118,6 +118,41 @@ describe('providers de IA', () => {
     expect(clock.sleeps).toEqual([30000]);
   });
 
+  it('faz fallback imediato quando o Free Tier da Mistral está desativado', async () => {
+    const clock = new FakeClock();
+    const scheduler = new RateLimitScheduler({ minDelayMs: 0, clock });
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      message: 'The Free Tier is temporarily disabled due to high load.',
+    }), { status: 429 }));
+    const provider = new MistralProvider({
+      scheduler, clock, fetch, getKeys: () => [
+        'mistral-key-with-enough-length',
+        'second-mistral-key-with-enough-length',
+      ],
+      model: 'mistral-test',
+    });
+
+    await expect(provider.generate(request, { ...context([]), provider: 'mistral' }))
+      .rejects.toMatchObject({ code: 'overloaded', fallbackEligible: true, providerWide: true });
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(clock.sleeps).toEqual([]);
+  });
+
+  it('limita um 429 genérico da Mistral a somente um retry por padrão', async () => {
+    const clock = new FakeClock();
+    const scheduler = new RateLimitScheduler({ minDelayMs: 0, clock });
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ message: 'rate limit' }), { status: 429 }));
+    const provider = new MistralProvider({
+      scheduler, clock, fetch, getKeys: () => ['mistral-key-with-enough-length'],
+      model: 'mistral-test',
+    });
+
+    await expect(provider.generate(request, { ...context([]), provider: 'mistral' }))
+      .rejects.toMatchObject({ code: 'rate-limit', fallbackEligible: true });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(clock.sleeps).toEqual([15000]);
+  });
+
   it('cancela durante backoff sem enviar outra requisição', async () => {
     const controller = new AbortController();
     const clock = {

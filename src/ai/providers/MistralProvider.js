@@ -32,7 +32,9 @@ export class MistralProvider {
     this.fetch = dependencies.fetch;
     this.getKeys = dependencies.getKeys;
     this.model = dependencies.model;
-    this.maxRetries = dependencies.maxRetries ?? 5;
+    // Um retry cobre picos curtos sem prender o pipeline por vários minutos.
+    // Persistindo o 429, o gateway segue imediatamente para o Gemini.
+    this.maxRetries = dependencies.maxRetries ?? 1;
   }
 
   keys() {
@@ -63,7 +65,7 @@ export class MistralProvider {
       } catch (error) {
         const normalized = normalizeProviderError(error, 'mistral');
         if (normalized.code === 'aborted') throw normalized;
-        if (shouldRotateKey(normalized.code) && index < keys.length - 1) {
+        if (!normalized.providerWide && shouldRotateKey(normalized.code) && index < keys.length - 1) {
           safeEmit(context, {
             type: 'key-rotation', provider: 'mistral',
             fromKeyIndex: index + 1, toKeyIndex: index + 2, reason: normalized.code,

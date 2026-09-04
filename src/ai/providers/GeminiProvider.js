@@ -65,7 +65,7 @@ export class GeminiProvider {
       } catch (error) {
         const normalized = normalizeProviderError(error, 'gemini');
         if (normalized.code === 'aborted') throw normalized;
-        if (shouldRotateKey(normalized.code) && index < keys.length - 1) {
+        if (!normalized.providerWide && shouldRotateKey(normalized.code) && index < keys.length - 1) {
           safeEmit(context, {
             type: 'key-rotation', provider: 'gemini',
             fromKeyIndex: index + 1, toKeyIndex: index + 2, reason: normalized.code,

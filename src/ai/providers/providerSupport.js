@@ -23,6 +23,18 @@ export function isOverloaded(message) {
 }
 
 /**
+ * Identifica bloqueios globais de plano/tier. Diferente de um pico normal de
+ * rate limit, repetir a mesma chamada não ajuda; o gateway deve trocar de
+ * provedor imediatamente.
+ */
+export function isTierTemporarilyUnavailable(message) {
+  const value = String(message || '');
+  return /\bfree[\s_-]*tier\b.*\b(disabled|unavailable|suspended)\b/i.test(value)
+    || /\b(disabled|unavailable|suspended)\b.*\bfree[\s_-]*tier\b/i.test(value)
+    || /\b(plan|tier)\b.*\btemporarily\b.*\b(disabled|unavailable|suspended)\b/i.test(value);
+}
+
+/**
  * @param {Response} response
  * @param {import('../contracts.js').RuntimeClock} clock
  */
@@ -67,6 +79,11 @@ export async function requestWithRetry(options) {
 
     const raw = await safeJson(response);
     const message = errorMessage(raw) || `HTTP ${response.status}`;
+    if (isTierTemporarilyUnavailable(message)) {
+      throw new ProviderRuntimeError(`${provider} temporariamente indisponível para o plano atual.`, {
+        code: 'overloaded', provider, retryable: false, fallbackEligible: true, providerWide: true,
+      });
+    }
     if (rateLimited && isDailyQuota(message)) {
       throw new ProviderRuntimeError('Cota diária esgotada.', {
         code: 'daily-quota', provider, retryable: false, fallbackEligible: true,
