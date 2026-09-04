@@ -6,8 +6,9 @@
 import { Quota } from '../modules/quota.js';
 import { getGoogleApiKey, setGoogleApiKey, getGoogleCx, setGoogleCx } from '../services/serp.js';
 import { trackSerpApiConfigurada } from '../services/analytics.js';
-import { isValidGeminiKey } from '../utils/apiKeys.js';
+import { isValidGeminiKey, isValidGroqKey, isValidMistralKey, isValidProviderKey } from '../utils/apiKeys.js';
 import { ApiSettings } from '../services/apiSettings.js';
+import { AI_PROVIDER_NAMES, getModelDefinition, getProviderModels, providerLabel } from '../ai/modelCatalog.js';
 const $ = id => document.getElementById(id);
 
 export const ConfigUI = {
@@ -34,10 +35,25 @@ export const ConfigUI = {
     const el = $('mistralKey');
     const st = $('mistralKeyStatus');
     if (!v) { if (el) el.className = ''; if (st) st.textContent = ''; ApiSettings.setMistralPrimary(''); return; }
-    if (v.length > 20) {
+    if (isValidMistralKey(v)) {
       if (el) el.className = 'valid';
       if (st) st.textContent = 'OK';
       ApiSettings.setMistralPrimary(v);
+    } else {
+      if (el) el.className = 'invalid';
+      if (st) st.textContent = 'X';
+    }
+  },
+
+  validateGroqKey() {
+    const v = $('groqKey')?.value.trim() || '';
+    const el = $('groqKey');
+    const st = $('groqKeyStatus');
+    if (!v) { if (el) el.className = ''; if (st) st.textContent = ''; ApiSettings.setGroqPrimary(''); return; }
+    if (isValidGroqKey(v)) {
+      if (el) el.className = 'valid';
+      if (st) st.textContent = 'OK';
+      ApiSettings.setGroqPrimary(v);
     } else {
       if (el) el.className = 'invalid';
       if (st) st.textContent = 'X';
@@ -69,15 +85,44 @@ export const ConfigUI = {
   restoreSavedKeys() {
     const geminiKey  = ApiSettings.getGeminiPrimary();
     const mistralKey = ApiSettings.getMistralPrimary();
+    const groqKey = ApiSettings.getGroqPrimary();
     const apiKeyEl   = $('apiKey');
     const mistralEl  = $('mistralKey');
+    const groqEl = $('groqKey');
     if (geminiKey  && apiKeyEl)  { apiKeyEl.value  = geminiKey;  this.validateGeminiKey(); }
     if (mistralKey && mistralEl) { mistralEl.value = mistralKey; this.validateMistralKey(); }
+    if (groqKey && groqEl) { groqEl.value = groqKey; this.validateGroqKey(); }
     const model = $('modelSel');
     if (model) model.value = ApiSettings.getModel();
   },
   
 };
+
+const AGENT_META = Object.freeze({
+  1: Object.freeze({ name: 'Formatador', icon: 'wand-sparkles' }),
+  2: Object.freeze({ name: 'Conferente / QA', icon: 'badge-check' }),
+  3: Object.freeze({ name: 'Copywriter', icon: 'pen-line' }),
+});
+
+function agentRouteMarkup(stage) {
+  const meta = AGENT_META[stage];
+  const provider = ApiSettings.getAgentProvider(stage);
+  const options = AI_PROVIDER_NAMES.map(name => (
+    `<option value="${name}"${name === provider ? ' selected' : ''}>${providerLabel(name)}</option>`
+  )).join('');
+  return `
+    <article class="agent-route-card" data-agent-route="${stage}">
+      <div class="agent-route-card__heading">
+        <span class="agent-route-card__icon"><i data-lucide="${meta.icon}" aria-hidden="true"></i></span>
+        <div><strong>A${stage}</strong><small>${meta.name}</small></div>
+      </div>
+      <label for="agent${stage}Provider">Provedor</label>
+      <select id="agent${stage}Provider">${options}</select>
+      <label for="agent${stage}Model">Modelo</label>
+      <select id="agent${stage}Model"></select>
+      <p class="agent-route-card__hint" id="agent${stage}Hint"></p>
+    </article>`;
+}
 // initSerpConfig - ativa os eventos da seção SerpAPI no modal.
 // Chamada dentro de ConfigModal.open(), após appendChild(overlay).
 export function initSerpConfig() {
@@ -152,7 +197,7 @@ function _serpQuota(labelEl, fillEl) {
 /**
  * ConfigModal - modal de configuração de APIs e modelo.
  *
- * Estratégia: os inputs #apiKey, #mistralKey e #modelSel vivem em
+ * Estratégia: os inputs de credenciais vivem em
  * #hiddenApiInputs (fora da tela) apenas para preservar o estado visual.
  * Ao abrir o modal, os inputs são MOVIDOS para dentro dele.
  * Ao fechar, são DEVOLVIDOS ao container oculto.
@@ -178,21 +223,25 @@ export const ConfigModal = {
         </div>
         <div class="modal-body" style="gap:20px">
 
-          <div class="setup-grid">
+          <section class="config-block">
+            <div class="config-block__heading">
+              <div><span>Credenciais BYOK</span><p>Cada chave permanece somente neste navegador e neste usuário.</p></div>
+            </div>
+            <div class="setup-grid setup-grid--providers">
             <div class="field">
-              <label for="apiKey">API Key do Gemini <span style="color:var(--color-success);font-weight:400">&middot; A2 e A3</span></label>
+              <label for="apiKey">API Key do Gemini</label>
               <div class="key-wrap" id="apiKeySlot"><span class="key-status" id="keyStatus"></span></div>
               <div class="hint">Obtenha grátis em <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a></div>
             </div>
             <div class="field">
-              <label for="mistralKey">API Key da Mistral <span style="color:var(--color-success);font-weight:400">&middot; A1</span></label>
+              <label for="mistralKey">API Key da Mistral</label>
               <div class="key-wrap" id="mistralKeySlot"><span class="key-status" id="mistralKeyStatus"></span></div>
-              <div class="hint">Grátis em <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> &mdash; sem cartão &middot; usado no A1 (Formatador)</div>
+              <div class="hint">Configure em <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a></div>
             </div>
-            <div class="field" style="grid-column:1/-1">
-              <label for="modelSel">Modelo Gemini</label>
-              <div id="modelSelSlot"></div>
-              <div class="hint" id="modelHint"></div>
+            <div class="field">
+              <label for="groqKey">API Key da Groq <span class="fallback-badge">novo</span></label>
+              <div class="key-wrap" id="groqKeySlot"><span class="key-status" id="groqKeyStatus"></span></div>
+              <div class="hint">Crie grátis em <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a></div>
             </div>
             <div class="field">
               <label>Conteúdo comercial</label>
@@ -203,6 +252,17 @@ export const ConfigModal = {
               <div class="hint">Desative para economizar 1 chamada por ficha e gerar depois pelo botão.</div>
             </div>
           </div>
+          </section>
+
+          <section class="config-block">
+            <div class="config-block__heading">
+              <div><span>Roteamento por agente</span><p>Escolha de forma independente qual provedor e modelo executará cada etapa.</p></div>
+            </div>
+            <div class="agent-route-grid">
+              ${[1, 2, 3].map(agentRouteMarkup).join('')}
+            </div>
+            <div class="config-free-tier-note"><i data-lucide="info" aria-hidden="true"></i><span>Na Groq, apenas GPT-OSS 20B e 120B são exibidos. O plano gratuito limita esses modelos a 8 mil tokens por minuto; fichas maiores podem receber erro 429.</span></div>
+          </section>
 
           <details class="config-advanced">
             <summary>
@@ -222,6 +282,10 @@ export const ConfigModal = {
               <div class="field">
                 <label for="apiKey3">Gemini &mdash; Chave 3 <span class="fallback-badge">fallback</span></label>
                 <div class="key-wrap" id="apiKey3Slot"><span class="key-status" id="keyStatus3"></span></div>
+              </div>
+              <div class="field">
+                <label for="groqKey2">Groq &mdash; Chave 2 <span class="fallback-badge">fallback</span></label>
+                <div class="key-wrap" id="groqKey2Slot"><span class="key-status" id="groqKeyStatus2"></span></div>
               </div>
             </div>
           </details>
@@ -246,37 +310,25 @@ export const ConfigModal = {
     };
     moveToSlot('apiKey',     'apiKeySlot');
     moveToSlot('mistralKey', 'mistralKeySlot');
-    moveToSlot('modelSel',   'modelSelSlot');
+    moveToSlot('groqKey',    'groqKeySlot');
 
     // Cria e move inputs de fallback; eles ficam visíveis somente neste modal.
     this._ensureFallbackInputs();
     moveToSlot('apiKey2',    'apiKey2Slot');
     moveToSlot('apiKey3',    'apiKey3Slot');
     moveToSlot('mistralKey2','mistralKey2Slot');
+    moveToSlot('groqKey2',   'groqKey2Slot');
 
-    // Atualizar hint do modelo
-    const hints = {
-      'gemini-3.5-flash-lite': 'Recomendado - maior cota diária gratuita',
-      'gemini-3.5-flash':      'Boa qualidade, cota intermediária',
-      'gemini-3.1-pro-preview': 'Apenas 100 req/dia - use para tarefas que exigem mais raciocínio',
-    };
-    const modelEl = document.getElementById('modelSel');
-    const hintEl  = document.getElementById('modelHint');
-    if (modelEl && hintEl) hintEl.textContent = hints[modelEl.value] || '';
+    this._setupAgentRoutes(signal);
     const autoA3El = document.getElementById('autoA3Check');
     try {
       if (autoA3El) autoA3El.checked = localStorage.getItem('fastseo_auto_a3') !== '0';
     } catch { /* Preferências locais são opcionais. */ }
 
     // Listeners
-    document.getElementById('apiKey')?.addEventListener('input',     () => { ConfigUI.validateGeminiKey();  this._showSaved(); }, { signal });
-    document.getElementById('mistralKey')?.addEventListener('input', () => { ConfigUI.validateMistralKey(); this._showSaved(); }, { signal });
-    document.getElementById('modelSel')?.addEventListener('change',  () => {
-      ApiSettings.setModel(modelEl?.value);
-      ConfigUI.updateQuotaInfo();
-      if (hintEl) hintEl.textContent = hints[modelEl?.value] || '';
-      this._showSaved();
-    }, { signal });
+    document.getElementById('apiKey')?.addEventListener('input', () => { ConfigUI.validateGeminiKey(); this._refreshAgentHints(); this._showSaved(); }, { signal });
+    document.getElementById('mistralKey')?.addEventListener('input', () => { ConfigUI.validateMistralKey(); this._refreshAgentHints(); this._showSaved(); }, { signal });
+    document.getElementById('groqKey')?.addEventListener('input', () => { ConfigUI.validateGroqKey(); this._refreshAgentHints(); this._showSaved(); }, { signal });
     autoA3El?.addEventListener('change', () => {
       try { localStorage.setItem('fastseo_auto_a3', autoA3El.checked ? '1' : '0'); }
       catch { /* A configuração continua válida apenas nesta sessão. */ }
@@ -284,17 +336,25 @@ export const ConfigModal = {
     }, { signal });
 
     // Fallback listeners
-    [['apiKey2','keyStatus2',true],['apiKey3','keyStatus3',true],['mistralKey2','mistralKeyStatus2',false]].forEach(([id,stId,isGemini]) => {
+    [['apiKey2','keyStatus2','gemini'],['apiKey3','keyStatus3','gemini'],['mistralKey2','mistralKeyStatus2','mistral'],['groqKey2','groqKeyStatus2','groq']].forEach(([id,stId,provider]) => {
       const el = document.getElementById(id);
       const st = document.getElementById(stId);
       if (!el) return;
       el.addEventListener('input', () => {
         const v = el.value.trim();
-        const ok = isGemini ? isValidGeminiKey(v) : v.length > 20;
-        if (!v) { el.className=''; if(st) st.textContent=''; ApiSettings.setFallback(id, ''); return; }
+        const ok = isValidProviderKey(provider, v);
+        if (!v) {
+          el.className = '';
+          if (st) st.textContent = '';
+          ApiSettings.setFallback(id, '');
+          this._refreshAgentHints();
+          this._showSaved();
+          return;
+        }
         el.className = ok ? 'valid' : 'invalid';
         if (st) st.textContent = ok ? 'OK' : 'X';
         if (ok) ApiSettings.setFallback(id, v);
+        this._refreshAgentHints();
         this._showSaved();
       }, { signal });
     });
@@ -314,6 +374,7 @@ export const ConfigModal = {
       { id: 'apiKey2',     placeholder: 'AIza... ou AQ.... (secundária)' },
       { id: 'apiKey3',     placeholder: 'AIza... ou AQ.... (terciária)'  },
       { id: 'mistralKey2', placeholder: '... (secundária)'     },
+      { id: 'groqKey2',    placeholder: 'gsk_... (secundária)' },
     ];
     fallbacks.forEach(({ id, placeholder }) => {
       if (!document.getElementById(id)) {
@@ -325,6 +386,59 @@ export const ConfigModal = {
         hidden.appendChild(inp);
       }
     });
+  },
+
+  _setupAgentRoutes(signal) {
+    [1, 2, 3].forEach(stage => {
+      const providerEl = document.getElementById(`agent${stage}Provider`);
+      const modelEl = document.getElementById(`agent${stage}Model`);
+      if (!providerEl || !modelEl) return;
+      this._populateAgentModels(stage);
+      providerEl.addEventListener('change', () => {
+        ApiSettings.setAgentProvider(stage, providerEl.value);
+        this._populateAgentModels(stage);
+        ConfigUI.updateQuotaInfo();
+        this._showSaved();
+      }, { signal });
+      modelEl.addEventListener('change', () => {
+        ApiSettings.setAgentModel(stage, providerEl.value, modelEl.value);
+        this._refreshAgentHint(stage);
+        ConfigUI.updateQuotaInfo();
+        this._showSaved();
+      }, { signal });
+    });
+    this._refreshAgentHints();
+  },
+
+  _populateAgentModels(stage) {
+    const provider = document.getElementById(`agent${stage}Provider`)?.value || ApiSettings.getAgentProvider(stage);
+    const modelEl = document.getElementById(`agent${stage}Model`);
+    if (!modelEl) return;
+    const selected = ApiSettings.getAgentModel(stage, provider);
+    modelEl.replaceChildren(...getProviderModels(provider).map(model => {
+      const option = document.createElement('option');
+      option.value = model.id;
+      option.textContent = model.label;
+      option.selected = model.id === selected;
+      return option;
+    }));
+    ApiSettings.setAgentModel(stage, provider, modelEl.value);
+    this._refreshAgentHint(stage);
+  },
+
+  _refreshAgentHints() {
+    [1, 2, 3].forEach(stage => this._refreshAgentHint(stage));
+  },
+
+  _refreshAgentHint(stage) {
+    const provider = document.getElementById(`agent${stage}Provider`)?.value || ApiSettings.getAgentProvider(stage);
+    const model = document.getElementById(`agent${stage}Model`)?.value || ApiSettings.getAgentModel(stage, provider);
+    const hint = document.getElementById(`agent${stage}Hint`);
+    if (!hint) return;
+    const hasKey = ApiSettings.getProviderKeys(provider).some(key => isValidProviderKey(provider, key));
+    const definition = getModelDefinition(provider, model);
+    hint.textContent = `${hasKey ? 'Chave configurada.' : `Adicione uma chave ${providerLabel(provider)}.`} ${definition?.hint || ''}`;
+    hint.classList.toggle('is-warning', !hasKey);
   },
 
   _showSaved() {
@@ -341,7 +455,7 @@ export const ConfigModal = {
     // Devolver inputs ao container oculto antes de remover o modal
     const hidden = document.getElementById('hiddenApiInputs');
     if (hidden) {
-      ['apiKey','mistralKey','modelSel','apiKey2','apiKey3','mistralKey2'].forEach(id => {
+      ['apiKey','mistralKey','groqKey','modelSel','apiKey2','apiKey3','mistralKey2','groqKey2'].forEach(id => {
         const el = document.getElementById(id);
         if (el) hidden.appendChild(el);
       });

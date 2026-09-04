@@ -99,6 +99,47 @@ export function parseMistralResponse(raw, fallbackModel = '') {
   };
 }
 
+/**
+ * A Groq implementa o formato OpenAI Chat Completions. Mantemos um parser
+ * próprio para preservar o nome do provedor e contabilizar tokens de raciocínio.
+ * @param {unknown} raw
+ * @param {string} [fallbackModel]
+ * @returns {import('./contracts.js').ProviderResult}
+ */
+export function parseGroqResponse(raw, fallbackModel = '') {
+  if (!isRecord(raw)) throw invalidResponse('groq', 'Resposta inválida da Groq.');
+  const choices = raw.choices;
+  const choice = Array.isArray(choices) && isRecord(choices[0]) ? choices[0] : null;
+  const message = choice && isRecord(choice.message) ? choice.message : null;
+  const text = typeof message?.content === 'string' ? message.content.trim() : '';
+  if (!text) throw invalidResponse('groq', 'Resposta vazia da Groq.');
+
+  const model = typeof raw.model === 'string' && raw.model.trim()
+    ? raw.model.trim()
+    : String(fallbackModel || '').trim();
+  if (!model) throw invalidResponse('groq', 'Modelo ausente na resposta da Groq.');
+
+  const usage = isRecord(raw.usage) ? raw.usage : {};
+  const promptDetails = isRecord(usage.prompt_tokens_details) ? usage.prompt_tokens_details : {};
+  const completionDetails = isRecord(usage.completion_tokens_details) ? usage.completion_tokens_details : {};
+  const inputTokens = tokenValue(usage, 'prompt_tokens', 'groq');
+  const completionTokens = tokenValue(usage, 'completion_tokens', 'groq');
+  const thinkingTokens = tokenValue(completionDetails, 'reasoning_tokens', 'groq');
+  // Na API compatível com OpenAI, reasoning_tokens integra completion_tokens.
+  // O contrato do FastSEO mantém saída visível e raciocínio separados.
+  const outputTokens = Math.max(0, completionTokens - thinkingTokens);
+  const cachedTokens = tokenValue(promptDetails, 'cached_tokens', 'groq');
+  const reportedTotal = tokenValue(usage, 'total_tokens', 'groq');
+
+  return {
+    text,
+    usage: {
+      provider: 'groq', model, inputTokens, outputTokens, thinkingTokens, cachedTokens,
+      totalTokens: reportedTotal || inputTokens + completionTokens,
+    },
+  };
+}
+
 /** @param {unknown} raw */
 export function geminiErrorMessage(raw) {
   if (!isRecord(raw) || !isRecord(raw.error)) return '';
@@ -108,5 +149,12 @@ export function geminiErrorMessage(raw) {
 /** @param {unknown} raw */
 export function mistralErrorMessage(raw) {
   if (!isRecord(raw)) return '';
+  return typeof raw.message === 'string' ? raw.message : '';
+}
+
+/** @param {unknown} raw */
+export function groqErrorMessage(raw) {
+  if (!isRecord(raw)) return '';
+  if (isRecord(raw.error) && typeof raw.error.message === 'string') return raw.error.message;
   return typeof raw.message === 'string' ? raw.message : '';
 }

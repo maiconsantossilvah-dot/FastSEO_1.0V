@@ -35,7 +35,7 @@ decisão e seus limites estão registrados na
 
 ## BYOK: uma chave por colaborador
 
-As chamadas ao Gemini e à Mistral continuam no navegador por decisão de produto: cada membro da equipe utiliza a própria chave. `src/services/apiSettings.js` centraliza esse comportamento e isola os valores pelo Firebase UID no `localStorage`. As chaves são enviadas somente ao provedor selecionado, nunca ao backend do FastSEO nem ao Firestore.
+As chamadas ao Gemini, à Mistral e à Groq continuam no navegador por decisão de produto: cada membro da equipe utiliza a própria chave. `src/services/apiSettings.js` centraliza esse comportamento, isola os valores pelo Firebase UID no `localStorage` e mantém a escolha de provedor/modelo de A1, A2 e A3. As chaves são enviadas somente ao provedor selecionado, nunca ao backend do FastSEO nem ao Firestore.
 
 Consequências conscientes desse modelo:
 

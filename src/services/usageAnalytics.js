@@ -33,7 +33,7 @@ function safeInteger(value, max = 100_000_000) {
 
 function normalizeCalls(calls) {
   return (Array.isArray(calls) ? calls : [])
-    .filter(call => ['gemini', 'mistral'].includes(String(call?.provider || '').toLowerCase()))
+    .filter(call => ['gemini', 'mistral', 'groq'].includes(String(call?.provider || '').toLowerCase()))
     .map(call => ({
       stage: Math.min(3, Math.max(1, safeInteger(call.stage, 3) || 1)),
       provider: String(call.provider).toLowerCase(),

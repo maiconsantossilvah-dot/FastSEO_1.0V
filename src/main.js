@@ -24,7 +24,7 @@ import { createAiRuntime } from './ai/createAiRuntime.js';
 import { systemClock } from './ai/clock.js';
 import { configureAiRuntime } from './services/api.js';
 import { ApiSettings } from './services/apiSettings.js';
-import { GEMINI_DEFAULT_MODEL, MISTRAL_MODEL } from './config.js';
+import { GEMINI_DEFAULT_MODEL, GROQ_DEFAULT_MODEL, MISTRAL_MODEL } from './config.js';
 import { isValidGeminiKey } from './utils/apiKeys.js';
 import { runViewTransition } from './utils/viewTransitions.js';
 
@@ -34,8 +34,11 @@ configureAiRuntime(createAiRuntime({
   clock: systemClock,
   getGeminiKeys: () => ApiSettings.getGeminiKeys(),
   getMistralKeys: () => ApiSettings.getMistralKeys(),
+  getGroqKeys: () => ApiSettings.getGroqKeys(),
   getGeminiModel: () => ApiSettings.getModel() || GEMINI_DEFAULT_MODEL,
   mistralModel: MISTRAL_MODEL,
+  groqDefaultModel: GROQ_DEFAULT_MODEL,
+  getAgentRoute: agentNum => ApiSettings.getAgentRoute(agentNum),
   validateGeminiKey: isValidGeminiKey,
 }));
 

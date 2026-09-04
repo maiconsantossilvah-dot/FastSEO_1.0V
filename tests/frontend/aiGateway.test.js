@@ -22,6 +22,52 @@ describe('AiGateway', () => {
     await expect(gateway.generateForAgent(2, request, options([]))).resolves.toMatchObject({ text: 'gemini' });
   });
 
+  it('respeita o provedor e o modelo escolhidos para cada agente', async () => {
+    const providers = {
+      gemini: fakeProvider('gemini'),
+      mistral: fakeProvider('mistral'),
+      groq: fakeProvider('groq'),
+    };
+    const gateway = new AiGateway({
+      providers,
+      getAgentRoute: agent => ({
+        provider: agent === 1 ? 'groq' : 'gemini',
+        models: { groq: 'openai/gpt-oss-20b', gemini: 'gemini-test', mistral: 'mistral-test' },
+      }),
+    });
+
+    await expect(gateway.generateForAgent(1, request, options([]))).resolves.toMatchObject({ text: 'groq' });
+    expect(providers.groq.generate).toHaveBeenCalledWith(
+      expect.objectContaining({ model: 'openai/gpt-oss-20b' }),
+      expect.objectContaining({ provider: 'groq' }),
+    );
+  });
+
+  it('percorre Groq e Mistral quando Gemini está temporariamente indisponível', async () => {
+    const overloaded = new ProviderRuntimeError('fora', {
+      code: 'overloaded', provider: 'gemini', retryable: false, fallbackEligible: true,
+    });
+    const rateLimit = new ProviderRuntimeError('limite', {
+      code: 'rate-limit', provider: 'groq', retryable: false, fallbackEligible: true,
+    });
+    const providers = {
+      gemini: fakeProvider('gemini', async () => { throw overloaded; }),
+      groq: fakeProvider('groq', async () => { throw rateLimit; }),
+      mistral: fakeProvider('mistral'),
+    };
+    const events = [];
+    const gateway = new AiGateway({
+      providers,
+      getAgentRoute: () => ({ provider: 'gemini', models: {} }),
+    });
+
+    await expect(gateway.generateForAgent(2, request, options(events))).resolves.toMatchObject({ text: 'mistral' });
+    expect(events.filter(event => event.type === 'provider-fallback')).toEqual([
+      { type: 'provider-fallback', from: 'gemini', to: 'groq', reason: 'overloaded' },
+      { type: 'provider-fallback', from: 'groq', to: 'mistral', reason: 'rate-limit' },
+    ]);
+  });
+
   it('faz fallback somente quando o erro é elegível', async () => {
     const recoverable = new ProviderRuntimeError('quota', {
       code: 'daily-quota', provider: 'mistral', retryable: false, fallbackEligible: true,

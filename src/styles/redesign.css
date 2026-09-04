@@ -2147,6 +2147,145 @@ input::placeholder {
   margin: 0 12px 12px;
 }
 
+.config-block {
+  display: grid;
+  gap: 14px;
+}
+
+.config-block + .config-block {
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
+}
+
+.config-block__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.config-block__heading span {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.config-block__heading p {
+  margin: 3px 0 0;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.setup-grid--providers {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.agent-route-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.agent-route-card {
+  min-width: 0;
+  padding: 12px;
+  display: grid;
+  gap: 7px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg-subtle);
+}
+
+.agent-route-card__heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 3px;
+}
+
+.agent-route-card__heading div {
+  min-width: 0;
+  display: grid;
+}
+
+.agent-route-card__heading strong {
+  color: var(--color-text-primary);
+  font-size: 12px;
+}
+
+.agent-route-card__heading small,
+.agent-route-card__hint {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.agent-route-card__icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent-border);
+  border-radius: 8px;
+  background: var(--color-accent-bg);
+}
+
+.agent-route-card__icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.agent-route-card label {
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.agent-route-card select {
+  min-width: 0;
+}
+
+.agent-route-card__hint {
+  min-height: 29px;
+  margin: 2px 0 0;
+}
+
+.agent-route-card__hint.is-warning {
+  color: var(--color-warn);
+}
+
+.config-free-tier-note {
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg-subtle);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.config-free-tier-note svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--color-accent);
+}
+
+@media (max-width: 760px) {
+  .agent-route-grid,
+  .setup-grid--providers {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Command palette */
 .command-palette {
   position: fixed;

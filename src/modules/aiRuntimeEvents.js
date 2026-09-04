@@ -1,6 +1,5 @@
 import { PipelineUI } from '../components/PipelineUI.js';
-
-const providerLabel = provider => provider === 'mistral' ? 'Mistral' : 'Gemini';
+import { providerLabel } from '../ai/modelCatalog.js';
 
 /**
  * Única ponte entre eventos neutros do runtime e a apresentação do pipeline.

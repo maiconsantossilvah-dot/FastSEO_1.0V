@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { aggregateUsageEvents, type StoredUsageEvent } from '../src/usage/usage.analytics.js';
 import { usageEventSchema } from '../src/usage/usage.schema.js';
 
-const call = (stage: number, provider: 'gemini' | 'mistral', model: string, input: number, output: number) => ({
+const call = (stage: number, provider: 'gemini' | 'mistral' | 'groq', model: string, input: number, output: number) => ({
   stage,
   provider,
   model,
@@ -34,6 +34,15 @@ describe('telemetria de uso', () => {
       calls: [call(1, 'mistral', 'mistral-large', 100, 20)],
       prompt: 'não deve ser aceito',
     })).toThrow();
+
+    expect(usageEventSchema.parse({
+      eventId: 'evento_groq_com_tamanho_suficiente',
+      status: 'aprovado',
+      durationMs: 800,
+      category: 'Celular',
+      bivolt: false,
+      calls: [call(1, 'groq', 'openai/gpt-oss-120b', 120, 30)],
+    }).calls[0]?.provider).toBe('groq');
   });
 
   it('agrega por usuário, agente, modelo, categoria e dia', () => {

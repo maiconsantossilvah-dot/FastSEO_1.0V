@@ -4,7 +4,7 @@ const tokenCount = z.number().int().min(0).max(2_000_000);
 
 export const usageCallSchema = z.object({
   stage: z.number().int().min(1).max(3),
-  provider: z.enum(['gemini', 'mistral']),
+  provider: z.enum(['gemini', 'mistral', 'groq']),
   model: z.string().trim().min(1).max(120),
   kind: z.enum(['generation', 'regeneration']).default('generation'),
   inputTokens: tokenCount,

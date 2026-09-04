@@ -1,5 +1,5 @@
 import { ProviderRuntimeError, normalizeProviderError } from '../errors.js';
-import { mistralErrorMessage, parseMistralResponse } from '../parsers.js';
+import { groqErrorMessage, parseGroqResponse } from '../parsers.js';
 import {
   isDailyQuota,
   isOverloaded,
@@ -12,17 +12,17 @@ import {
 function uniqueKeys(values) {
   return values
     .map(value => String(value || '').trim())
-    .filter((value, index, all) => value.length > 20 && all.indexOf(value) === index);
+    .filter((value, index, all) => value.startsWith('gsk_') && value.length > 20 && all.indexOf(value) === index);
 }
 
-export class MistralProvider {
+export class GroqProvider {
   /**
    * @param {{
    *  scheduler: import('../contracts.js').ProviderScheduler,
    *  clock: import('../contracts.js').RuntimeClock,
    *  fetch: typeof globalThis.fetch,
    *  getKeys: () => string[],
-   *  model: string,
+   *  defaultModel: string,
    *  maxRetries?: number
    * }} dependencies
    */
@@ -31,9 +31,7 @@ export class MistralProvider {
     this.clock = dependencies.clock;
     this.fetch = dependencies.fetch;
     this.getKeys = dependencies.getKeys;
-    this.model = dependencies.model;
-    // Um retry cobre picos curtos sem prender o pipeline por vários minutos.
-    // Persistindo o 429, o gateway segue imediatamente para o Gemini.
+    this.defaultModel = dependencies.defaultModel;
     this.maxRetries = dependencies.maxRetries ?? 1;
   }
 
@@ -45,17 +43,12 @@ export class MistralProvider {
     return this.keys().length > 0;
   }
 
-  /**
-   * @param {import('../contracts.js').ProviderRequest} request
-   * @param {import('../contracts.js').ProviderContext} suppliedContext
-   * @returns {Promise<import('../contracts.js').ProviderResult>}
-   */
   async generate(request, suppliedContext) {
-    const context = { ...suppliedContext, provider: 'mistral' };
+    const context = { ...suppliedContext, provider: 'groq' };
     const keys = this.keys();
     if (!keys.length) {
-      throw new ProviderRuntimeError('API Key da Mistral não configurada.', {
-        code: 'invalid-key', provider: 'mistral', retryable: false, fallbackEligible: false,
+      throw new ProviderRuntimeError('API Key da Groq não configurada.', {
+        code: 'invalid-key', provider: 'groq', retryable: false, fallbackEligible: false,
       });
     }
 
@@ -63,11 +56,11 @@ export class MistralProvider {
       try {
         return await this._generateWithKey(keys[index], request, context);
       } catch (error) {
-        const normalized = normalizeProviderError(error, 'mistral');
+        const normalized = normalizeProviderError(error, 'groq');
         if (normalized.code === 'aborted') throw normalized;
         if (!normalized.providerWide && shouldRotateKey(normalized.code) && index < keys.length - 1) {
           safeEmit(context, {
-            type: 'key-rotation', provider: 'mistral',
+            type: 'key-rotation', provider: 'groq',
             fromKeyIndex: index + 1, toKeyIndex: index + 2, reason: normalized.code,
           });
           continue;
@@ -76,16 +69,24 @@ export class MistralProvider {
       }
     }
 
-    throw new ProviderRuntimeError('Mistral indisponível.', {
-      code: 'unknown', provider: 'mistral', retryable: false, fallbackEligible: false,
+    throw new ProviderRuntimeError('Groq indisponível.', {
+      code: 'unknown', provider: 'groq', retryable: false, fallbackEligible: false,
     });
   }
 
   async _generateWithKey(key, request, context) {
+    const model = String(request.model || this.defaultModel || '').trim();
+    if (!model) {
+      throw new ProviderRuntimeError('Modelo Groq não configurado.', {
+        code: 'invalid-response', provider: 'groq', retryable: false, fallbackEligible: false,
+      });
+    }
+
     const body = JSON.stringify({
-      model: request.model || this.model,
-      max_tokens: request.maxTokens,
+      model,
+      max_completion_tokens: request.maxTokens,
       temperature: request.jsonMode ? 0 : 0.3,
+      reasoning_effort: 'low',
       ...(request.jsonMode ? { response_format: { type: 'json_object' } } : {}),
       messages: [
         { role: 'system', content: request.system },
@@ -94,9 +95,9 @@ export class MistralProvider {
     });
 
     const response = await requestWithRetry({
-      provider: 'mistral', scheduler: this.scheduler, clock: this.clock, context,
-      maxRetries: this.maxRetries, errorMessage: mistralErrorMessage,
-      fetcher: () => this.fetch('https://api.mistral.ai/v1/chat/completions', {
+      provider: 'groq', scheduler: this.scheduler, clock: this.clock, context,
+      maxRetries: this.maxRetries, errorMessage: groqErrorMessage,
+      fetcher: () => this.fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
         signal: context.signal,
@@ -106,29 +107,29 @@ export class MistralProvider {
 
     if (!response.ok) {
       const rawError = await safeJson(response);
-      const message = mistralErrorMessage(rawError);
-      if (response.status === 401) {
-        throw new ProviderRuntimeError('API Key da Mistral inválida. Verifique em console.mistral.ai.', {
-          code: 'invalid-key', provider: 'mistral', retryable: false, fallbackEligible: false,
+      const message = groqErrorMessage(rawError);
+      if ([401, 403].includes(response.status)) {
+        throw new ProviderRuntimeError('API Key da Groq inválida. Verifique em console.groq.com.', {
+          code: 'invalid-key', provider: 'groq', retryable: false, fallbackEligible: false,
         });
       }
       if (isDailyQuota(message)) {
-        throw new ProviderRuntimeError('Cota diária da Mistral esgotada.', {
-          code: 'daily-quota', provider: 'mistral', retryable: false, fallbackEligible: true,
+        throw new ProviderRuntimeError('Cota diária da Groq esgotada.', {
+          code: 'daily-quota', provider: 'groq', retryable: false, fallbackEligible: true,
         });
       }
       if (isOverloaded(message)) {
-        throw new ProviderRuntimeError(message || 'Mistral temporariamente indisponível.', {
-          code: 'overloaded', provider: 'mistral', retryable: false, fallbackEligible: true,
+        throw new ProviderRuntimeError(message || 'Groq temporariamente indisponível.', {
+          code: 'overloaded', provider: 'groq', retryable: false, fallbackEligible: true,
         });
       }
-      throw new ProviderRuntimeError(`Mistral: ${message || `HTTP ${response.status}`}`, {
-        code: 'unknown', provider: 'mistral', retryable: false, fallbackEligible: false,
+      throw new ProviderRuntimeError(`Groq: ${message || `HTTP ${response.status}`}`, {
+        code: 'unknown', provider: 'groq', retryable: false, fallbackEligible: false,
       });
     }
 
     const raw = await safeJson(response);
-    const result = parseMistralResponse(raw, request.model || this.model);
+    const result = parseGroqResponse(raw, model);
     safeEmit(context, { type: 'usage', usage: result.usage });
     return result;
   }

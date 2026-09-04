@@ -1,4 +1,4 @@
-export type ProviderName = 'gemini' | 'mistral';
+export type ProviderName = 'gemini' | 'mistral' | 'groq';
 
 export type ProviderErrorCode =
   | 'rate-limit'
@@ -23,6 +23,8 @@ export interface ProviderRequest {
   userMessage: string;
   maxTokens: number;
   jsonMode?: boolean;
+  /** Modelo resolvido para o agente e provedor desta tentativa. */
+  model?: string;
 }
 
 export interface TokenUsage {

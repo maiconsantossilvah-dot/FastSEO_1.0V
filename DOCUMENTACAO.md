@@ -6,7 +6,7 @@ Este guia resume as regras de manutenção do FastSEO. Ele serve para orientar a
 
 O FastSEO é uma aplicação modular para gerar fichas técnicas, conferir dados, criar conteúdo comercial, montar FAQs e compilar informações de produtos em arquivos TXT.
 
-O frontend roda no GitHub Pages, o backend Node.js/Express roda no Render e o Firebase fornece autenticação e Firestore. As integrações com Gemini e Mistral continuam no frontend, usando a chave individual configurada por cada usuário.
+O frontend roda no GitHub Pages, o backend Node.js/Express roda no Render e o Firebase fornece autenticação e Firestore. As integrações com Gemini, Mistral e Groq continuam no frontend, usando a chave individual configurada por cada usuário.
 
 Em produção, o frontend usa `https://fastseo-users-backend-maicons.onrender.com/api`. O endpoint `/health` pode ser usado para conferir se o backend está disponível.
 
@@ -30,6 +30,12 @@ Papéis atuais:
 - `admin`: administra usuários, prompts, categorias e analytics, mas não gerencia proprietários ou outros administradores.
 - `collaborator`: usa o pipeline e pode editar conteúdo operacional.
 - `viewer`: usa o FastSEO e consulta conteúdo publicado, sem permissão de edição.
+
+## Configuração das IAs
+
+Em Configurações, cada usuário informa suas próprias chaves Gemini, Mistral e/ou Groq. Em seguida, os cartões A1, A2 e A3 permitem escolher de forma independente qual provedor e modelo cada agente usará. As escolhas ficam isoladas pelo UID no navegador e não são enviadas ao backend do FastSEO.
+
+O padrão legado é mantido para contas existentes: A1 usa Mistral e A2/A3 usam Gemini. Na Groq, o catálogo mostra apenas os modelos gratuitos homologados pelo FastSEO. Se a chave principal do agente estiver ausente ou o provedor ficar indisponível, o gateway tenta outro provedor configurado, sem expor credenciais nos logs.
 
 ## Como Usar a Ficha Técnica
 
@@ -182,7 +188,7 @@ O arquivo TXT baixado usa o Código do Produto como nome. Exemplo: `111255.txt`.
 - Em PDFs escaneados como imagem, o texto pode não ser extraído.
 - Revise o resultado antes de copiar ou baixar.
 - Use o Compilador de Dados quando não quiser usar IA.
-- Nunca compartilhe sua chave Gemini ou Mistral nem a inclua em prints, commits ou chamados.
+- Nunca compartilhe sua chave Gemini, Mistral ou Groq nem a inclua em prints, commits ou chamados.
 
 ## Problemas Comuns
 
@@ -231,7 +237,7 @@ Se uma ferramenta for removida, as outras devem continuar funcionando normalment
 - Não adicionar CSS novo dentro do `index.html`.
 - Não colocar regras de negócio diretamente no HTML.
 - Não expor novas chaves sensíveis no frontend sem avaliar segurança.
-- Não enviar chaves Gemini/Mistral, prompts completos ou conteúdo de fichas para o analytics.
+- Não enviar chaves Gemini/Mistral/Groq, prompts completos ou conteúdo de fichas para o analytics.
 - Não remover suporte existente a PDF, Word, TXT, planilhas ou CSV.
 
 ## O Que Pode Fazer
@@ -298,7 +304,7 @@ pnpm --dir backend test
 pnpm --dir backend typecheck
 ```
 
-Nenhum teste automatizado deve usar chaves reais ou fazer chamadas pagas para Gemini ou Mistral. Integrações de IA devem ser simuladas com mocks ou fixtures locais.
+Nenhum teste automatizado deve usar chaves reais ou fazer chamadas externas para Gemini, Mistral ou Groq. Integrações de IA devem ser simuladas com mocks ou fixtures locais.
 
 ## Backend e Publicação
 

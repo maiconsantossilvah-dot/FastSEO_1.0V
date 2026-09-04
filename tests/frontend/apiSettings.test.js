@@ -11,6 +11,8 @@ vi.mock('../../src/services/userAccess.js', () => ({
 
 vi.mock('../../src/config.js', () => ({
   GEMINI_DEFAULT_MODEL: 'gemini-default-test',
+  MISTRAL_MODEL: 'mistral-default-test',
+  GROQ_DEFAULT_MODEL: 'openai/gpt-oss-120b',
 }));
 
 const { ApiSettings } = await import('../../src/services/apiSettings.js');
@@ -53,5 +55,25 @@ describe('ApiSettings BYOK', () => {
     localStorage.setItem('gemini_key', 'legacy-key');
     expect(ApiSettings.getGeminiPrimary()).toBe('');
     expect(localStorage.getItem('gemini_key')).toBe('legacy-key');
+  });
+
+  it('salva chave Groq e roteamento de cada agente de forma isolada', () => {
+    ApiSettings.setGroqPrimary('gsk_key-user-a-with-enough-length');
+    ApiSettings.setAgentProvider(1, 'groq');
+    ApiSettings.setAgentModel(1, 'groq', 'openai/gpt-oss-20b');
+
+    expect(ApiSettings.getGroqKeys()[0]).toBe('gsk_key-user-a-with-enough-length');
+    expect(ApiSettings.getAgentRoute(1)).toMatchObject({
+      provider: 'groq',
+      models: { groq: 'openai/gpt-oss-20b' },
+    });
+
+    accessState.user = { uid: 'user-b', role: 'collaborator' };
+    expect(ApiSettings.getGroqPrimary()).toBe('');
+    expect(ApiSettings.getAgentProvider(1)).toBe('mistral');
+  });
+
+  it('mantém A1 Mistral e A2/A3 Gemini para usuários ainda não migrados', () => {
+    expect(ApiSettings.getAgentRoutes().map(route => route.provider)).toEqual(['mistral', 'gemini', 'gemini']);
   });
 });

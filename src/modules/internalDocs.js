@@ -25,7 +25,7 @@ const docs = [
     title: 'Arquitetura em produção',
     body: [
       'O GitHub Pages publica somente o frontend. A API protegida está no Render e usa o Firebase Admin SDK para validar usuários e operar dados administrativos.',
-      'Gemini e Mistral continuam no frontend com a chave individual configurada por cada usuário.',
+      'Gemini, Mistral e Groq continuam no frontend com a chave individual configurada por cada usuário.',
     ],
     bullets: [
       'API: https://fastseo-users-backend-maicons.onrender.com/api.',
@@ -196,7 +196,7 @@ const docs = [
       'Em PDFs escaneados como imagem, o texto pode não ser extraído.',
       'Revise o resultado antes de copiar ou baixar.',
       'Use o Compilador de Dados quando não quiser usar IA.',
-      'Nunca compartilhe chaves Gemini/Mistral ou inclua credenciais em prints e commits.',
+      'Nunca compartilhe chaves Gemini/Mistral/Groq ou inclua credenciais em prints e commits.',
     ],
   },
   {
@@ -296,7 +296,7 @@ const docs = [
     title: 'Testes automatizados',
     body: [
       'Execute os comandos a partir da raiz do FastSEO. Os testes do frontend e do backend são independentes.',
-      'Nenhum teste deve usar chaves reais nem fazer chamadas pagas para Gemini ou Mistral.',
+      'Nenhum teste deve usar chaves reais nem fazer chamadas externas para Gemini, Mistral ou Groq.',
     ],
     bullets: [
       'pnpm install — instala as dependências do frontend.',

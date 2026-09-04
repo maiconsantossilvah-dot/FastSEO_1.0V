@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GeminiProvider } from '../../src/ai/providers/GeminiProvider.js';
 import { MistralProvider } from '../../src/ai/providers/MistralProvider.js';
+import { GroqProvider } from '../../src/ai/providers/GroqProvider.js';
 import { RateLimitScheduler } from '../../src/ai/RateLimitScheduler.js';
 
 class FakeClock {
@@ -27,9 +28,42 @@ const successMistral = () => new Response(JSON.stringify({
   model: 'mistral-test', choices: [{ message: { content: 'ficha' } }],
   usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 },
 }), { status: 200, headers: { 'content-type': 'application/json' } });
+const successGroq = () => new Response(JSON.stringify({
+  model: 'openai/gpt-oss-120b', choices: [{ message: { content: 'ficha groq' } }],
+  usage: { prompt_tokens: 11, completion_tokens: 4, total_tokens: 15 },
+}), { status: 200, headers: { 'content-type': 'application/json' } });
 const context = events => ({ provider: 'gemini', signal: new AbortController().signal, emit: event => events.push(event) });
 
 describe('providers de IA', () => {
+  it('envia o modelo escolhido pelo agente para a Groq e contabiliza o uso', async () => {
+    const clock = new FakeClock();
+    const scheduler = new RateLimitScheduler({ minDelayMs: 0, clock });
+    const fetch = vi.fn().mockResolvedValue(successGroq());
+    const events = [];
+    const provider = new GroqProvider({
+      scheduler, clock, fetch,
+      getKeys: () => ['gsk_key-with-enough-length-for-tests'],
+      defaultModel: 'openai/gpt-oss-20b',
+    });
+
+    await expect(provider.generate(
+      { ...request, model: 'openai/gpt-oss-120b', jsonMode: true },
+      { ...context(events), provider: 'groq' },
+    )).resolves.toMatchObject({ text: 'ficha groq', usage: { provider: 'groq', totalTokens: 15 } });
+
+    const [, init] = fetch.mock.calls[0];
+    const body = JSON.parse(init.body);
+    expect(body).toMatchObject({
+      model: 'openai/gpt-oss-120b',
+      max_completion_tokens: 100,
+      response_format: { type: 'json_object' },
+      reasoning_effort: 'low',
+    });
+    expect(body).not.toHaveProperty('max_tokens');
+    expect(init.headers.Authorization).toBe('Bearer gsk_key-with-enough-length-for-tests');
+    expect(events).toContainEqual(expect.objectContaining({ type: 'usage', usage: { provider: 'groq', model: 'openai/gpt-oss-120b', inputTokens: 11, outputTokens: 4, thinkingTokens: 0, cachedTokens: 0, totalTokens: 15 } }));
+  });
+
   it('rotaciona chave Gemini por cota diária sem expor credenciais', async () => {
     const clock = new FakeClock();
     const scheduler = new RateLimitScheduler({ minDelayMs: 0, clock });

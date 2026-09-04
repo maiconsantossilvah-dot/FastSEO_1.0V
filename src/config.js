@@ -9,6 +9,7 @@ export const FIREBASE_CONFIG = {
 };
 export const GEMINI_DEFAULT_MODEL = "gemini-3.5-flash-lite";
 export const MISTRAL_MODEL = "mistral-medium-latest";
+export const GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b";
 
 const LOCAL_USERS_API = 'http://localhost:8787/api';
 const RENDER_USERS_API = 'https://fastseo-users-backend-maicons.onrender.com/api';

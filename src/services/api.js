@@ -71,8 +71,8 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, _at
 }
 
 /**
- * Contrato estável usado pelo pipeline: A1 prefere Mistral; A2/A3 preferem
- * Gemini. A decisão e o fallback pertencem ao gateway.
+ * Contrato estável usado pelo pipeline. O gateway resolve o provedor e modelo
+ * escolhidos pelo usuário para A1, A2 e A3 e controla os fallbacks.
  */
 export async function callAgent(system, userMsg, maxTokens, signal, agentNum, tracking = {}) {
   const result = await requireRuntime().generateForAgent(

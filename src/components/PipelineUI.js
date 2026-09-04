@@ -4,6 +4,7 @@
  */
 
 import { createTokenUsage, formatTokenCount, getStageTokenUsage } from '../modules/tokenUsage.js';
+import { providerLabel } from '../ai/modelCatalog.js';
 
 const $ = id => document.getElementById(id);
 
@@ -16,7 +17,7 @@ const _stepApiLabel = { 1: 'Mistral', 2: 'Gemini', 3: 'Gemini' };
 const _stageNames = { 1: 'Formatador', 2: 'Conferente', 3: 'Copywriter' };
 
 function _providerLabel(provider) {
-  return provider === 'mistral' ? 'Mistral' : provider === 'gemini' ? 'Gemini' : 'IA';
+  return providerLabel(provider);
 }
 
 function _usageBreakdown(call) {

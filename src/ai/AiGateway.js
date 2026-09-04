@@ -5,15 +5,26 @@
  */
 import { ProviderRuntimeError, normalizeProviderError } from './errors.js';
 
+const DEFAULT_ROUTES = Object.freeze({ 1: 'mistral', 2: 'gemini', 3: 'gemini' });
+
+function providerOrder(preferred, availableNames) {
+  const fallbackPriority = preferred === 'mistral'
+    ? ['gemini', 'groq']
+    : ['gemini', 'groq', 'mistral'];
+  return [preferred, ...fallbackPriority]
+    .filter((name, index, values) => availableNames.includes(name) && values.indexOf(name) === index);
+}
+
 function safeEmit(emit, event) {
   try { emit(event); }
   catch { /* A interface não pode quebrar o domínio. */ }
 }
 
 export class AiGateway {
-  /** @param {{providers: {gemini: import('./contracts.js').AiProvider & {isAvailable(): boolean}, mistral: import('./contracts.js').AiProvider & {isAvailable(): boolean}}}} dependencies */
+  /** @param {{providers: Record<string, import('./contracts.js').AiProvider & {isAvailable(): boolean}>, getAgentRoute?: (agentNum: number) => {provider: import('./contracts.js').ProviderName, models?: Record<string, string>}}} dependencies */
   constructor(dependencies) {
     this.providers = dependencies.providers;
+    this.getAgentRoute = dependencies.getAgentRoute || (agentNum => ({ provider: DEFAULT_ROUTES[agentNum] || 'gemini', models: {} }));
   }
 
   /**
@@ -22,32 +33,41 @@ export class AiGateway {
    * @param {{signal: AbortSignal, emit: (event: import('./contracts.js').ProviderEvent) => void}} options
    */
   async generateForAgent(agentNum, request, options) {
-    const initial = agentNum === 1 ? 'mistral' : 'gemini';
-    const alternate = initial === 'gemini' ? 'mistral' : 'gemini';
+    const route = this.getAgentRoute(agentNum) || {};
+    const initial = this.providers[route.provider] ? route.provider : DEFAULT_ROUTES[agentNum] || 'gemini';
+    const candidates = providerOrder(initial, Object.keys(this.providers));
+    let lastError = null;
+    let startIndex = 0;
 
     if (!this.providers[initial].isAvailable()) {
-      if (!this.providers[alternate].isAvailable()) throw this._noProviders(agentNum, initial);
-      safeEmit(options.emit, { type: 'provider-fallback', from: initial, to: alternate, reason: 'invalid-key' });
-      return this._run(alternate, request, options);
+      startIndex = candidates.findIndex(name => this.providers[name].isAvailable());
+      if (startIndex < 0) throw this._noProviders(agentNum, initial);
+      safeEmit(options.emit, {
+        type: 'provider-fallback', from: initial, to: candidates[startIndex], reason: 'invalid-key',
+      });
     }
 
-    try {
-      return await this._run(initial, request, options);
-    } catch (error) {
-      const normalized = normalizeProviderError(error, initial);
-      if (normalized.code === 'aborted' || !normalized.fallbackEligible) throw normalized;
-      if (!this.providers[alternate].isAvailable()) throw normalized;
-      safeEmit(options.emit, {
-        type: 'provider-fallback', from: initial, to: alternate, reason: normalized.code,
-      });
+    for (let index = startIndex; index < candidates.length; index += 1) {
+      const provider = candidates[index];
+      const next = candidates.slice(index + 1).find(name => this.providers[name].isAvailable());
+
+      if (!this.providers[provider].isAvailable()) continue;
+
       try {
-        return await this._run(alternate, request, options);
-      } catch (fallbackError) {
-        const fallback = normalizeProviderError(fallbackError, alternate);
-        if (fallback.code === 'aborted' || !fallback.fallbackEligible) throw fallback;
-        throw this._noProviders(agentNum, alternate, fallback);
+        return await this._run(provider, request, options, route.models?.[provider]);
+      } catch (error) {
+        const normalized = normalizeProviderError(error, provider);
+        if (normalized.code === 'aborted' || !normalized.fallbackEligible) throw normalized;
+        lastError = normalized;
+        if (!next) break;
+        safeEmit(options.emit, {
+          type: 'provider-fallback', from: provider, to: next, reason: normalized.code,
+        });
       }
     }
+
+    if (lastError && candidates.length === 1) throw lastError;
+    throw this._noProviders(agentNum, initial, lastError || undefined);
   }
 
   /**
@@ -61,8 +81,13 @@ export class AiGateway {
     return this._run(provider, request, options);
   }
 
-  _run(provider, request, options) {
-    return this.providers[provider].generate(request, {
+  _run(provider, request, options, model) {
+    if (!this.providers[provider]) {
+      throw new ProviderRuntimeError(`Provedor ${provider} não configurado.`, {
+        code: 'invalid-response', provider, retryable: false, fallbackEligible: false,
+      });
+    }
+    return this.providers[provider].generate({ ...request, ...(model ? { model } : {}) }, {
       provider, signal: options.signal, emit: options.emit,
     });
   }

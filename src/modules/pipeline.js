@@ -2,9 +2,9 @@
  * modules/pipeline.js
  * -----------------------------------------------------------------------------
  * Controla o fluxo de 3 agentes:
- *   1. Formatador (A1 -> Mistral)
- *   2. Conferente/QA (A2 -> Gemini)
- *   3. Copywriter (A3 -> Gemini)
+ *   1. Formatador (A1 -> provedor configurado)
+ *   2. Conferente/QA (A2 -> provedor configurado)
+ *   3. Copywriter (A3 -> provedor configurado)
  *
  * Este arquivo é o adaptador da aplicação: valida entrada, resolve categoria,
  * projeta eventos na UI e persiste o resultado. A sequência A1/A2/A3 e as regras
@@ -23,7 +23,8 @@ import { AppState } from './state.js';
 import { parseQAJson, formatQAReport, mergeQAFindings } from './qa.js?v=20260824-compact';
 import { getCategoryNotice } from './categoryNotices.js';
 import { buildCategoryQaSchemaPrompt, hasCategoryDefinition, textToFieldList } from './categoryQaSchema.js';
-import { isValidGeminiKey } from '../utils/apiKeys.js';
+import { isValidProviderKey } from '../utils/apiKeys.js';
+import { AI_PROVIDER_NAMES, providerLabel } from '../ai/modelCatalog.js';
 import { createTokenUsage } from './tokenUsage.js';
 import { stabilizeFichaOutput, validateFichaOutput } from './outputGuards.js';
 import { UsageAnalytics } from '../services/usageAnalytics.js';
@@ -65,6 +66,24 @@ async function obterContextoSEO(inputUsuario, categoriaAtual) {
 function shouldAutoRunCopywriter() {
   try { return localStorage.getItem('fastseo_auto_a3') !== '0'; }
   catch { return true; }
+}
+
+function hasAnyConfiguredAiKey() {
+  return AI_PROVIDER_NAMES.some(provider => (
+    ApiSettings.getProviderKeys(provider).some(key => isValidProviderKey(provider, key))
+  ));
+}
+
+function routeSummary() {
+  return ApiSettings.getAgentRoutes().map(route => (
+    `A${route.stage}=${providerLabel(route.provider)} (${route.models[route.provider]})`
+  )).join(' · ');
+}
+
+function applyRouteLabels() {
+  ApiSettings.getAgentRoutes().forEach(route => {
+    PipelineUI.setStepApi(route.stage, providerLabel(route.provider));
+  });
 }
 
 function orchestratorDependencies(emit) {
@@ -112,10 +131,8 @@ export const Pipeline = {
       return;
     }
 
-    const geminiKey = ApiSettings.getGeminiPrimary();
-    const mistralKey = ApiSettings.getMistralPrimary();
-    if (!isValidGeminiKey(geminiKey) && mistralKey.length <= 20) {
-      PipelineUI.log('Configure Gemini ou Mistral para gerar o Conteúdo Comercial.', 'w');
+    if (!hasAnyConfiguredAiKey()) {
+      PipelineUI.log('Configure Gemini, Mistral ou Groq para gerar o Conteúdo Comercial.', 'w');
       return;
     }
 
@@ -129,6 +146,7 @@ export const Pipeline = {
 
     // Analytics: registra intenção de regeneração.
     trackRegeneracao();
+    PipelineUI.setStepApi(3, providerLabel(ApiSettings.getAgentProvider(3)));
 
     // Abort controller próprio para não cancelar um pipeline completo em andamento.
     const abort = new AbortController();
@@ -194,12 +212,7 @@ export const Pipeline = {
   async _execute(inputRaw) {
     const t0 = Date.now();
 
-    const geminiKey = ApiSettings.getGeminiPrimary();
-    const mistralKey = ApiSettings.getMistralPrimary();
-    const anyKeyOk = isValidGeminiKey(geminiKey)
-      || mistralKey.length > 20;
-
-    if (!anyKeyOk) { alert('Configure pelo menos uma API Key (Gemini ou Mistral) antes de continuar.'); return; }
+    if (!hasAnyConfiguredAiKey()) { alert('Configure pelo menos uma API Key (Gemini, Mistral ou Groq) antes de continuar.'); return; }
     if (!inputRaw.trim()) { alert('Cole os dados do produto antes de processar.'); return; }
 
     // Aborta execução anterior, se houver.
@@ -221,8 +234,8 @@ export const Pipeline = {
     }
 
     // Metadados para Analytics.
-    const modeloAtual = ApiSettings.getModel();
-    const mistralOk = mistralKey.length > 20;
+    const modeloAtual = routeSummary();
+    const configuredRoutes = ApiSettings.getAgentRoutes();
     const categoriaAtual = Categories.find(AppState.categories.active)?.nome || '';
     const telemetryContext = { category: categoriaAtual, bivolt: false };
     let telemetryRecorded = false;
@@ -238,6 +251,7 @@ export const Pipeline = {
     PipelineUI.clearResults();
     AppState.pipeline.result = {};
     PipelineUI.resetSteps();
+    applyRouteLabels();
     PipelineUI.setRunning(true);
     const tokenUsage = createTokenUsage();
 
@@ -270,8 +284,7 @@ export const Pipeline = {
         : '';
       const unmatched = allCats.filter(c => !matched.includes(c));
 
-      PipelineUI.log(`Pipeline A1 + A2${autoA3 ? ' + A3' : ''} - Modelo Gemini: ${modeloAtual}${mistralOk ? ' - Mistral (A1)' : ''}`, 'i');
-      if (mistralOk) PipelineUI.log('Modo mesclado: A1=Mistral - A2=Gemini - A3=Gemini', 'o');
+      PipelineUI.log(`Pipeline A1 + A2${autoA3 ? ' + A3' : ''} · ${modeloAtual}`, 'i');
       if (!autoA3) PipelineUI.log('A3 opcional: conteúdo comercial ficará disponível no botão Gerar.', 'i');
       if (bivolt) PipelineUI.log('Modo bivolt detectado (110V + 220V)', 'o');
 
@@ -361,7 +374,8 @@ export const Pipeline = {
         duracao_ms: Date.now() - t0,
         modelo: modeloAtual,
         bivolt: !!bivolt,
-        usou_mistral: mistralOk,
+        usou_mistral: tokenUsage.calls.some(call => call.provider === 'mistral')
+          || configuredRoutes.some(route => route.provider === 'mistral'),
         usou_seo: !!contextoSEO,
         total_tokens: tokenUsage.totalTokens,
         input_tokens: tokenUsage.inputTokens,
@@ -391,7 +405,7 @@ export const Pipeline = {
       trackPipelineErro({
         etapa: 'pipeline',
         erro: err.message,
-        modelo: ApiSettings.getModel(),
+        modelo: modeloAtual,
       });
 
       PipelineUI.log(`ERRO: ${err.message}`, 'e');

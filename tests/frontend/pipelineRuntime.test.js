@@ -45,7 +45,7 @@ vi.mock('../../src/modules/categoryNotices.js', () => ({ getCategoryNotice: () =
 vi.mock('../../src/modules/categoryQaSchema.js', () => ({
   buildCategoryQaSchemaPrompt: () => '', hasCategoryDefinition: () => false, textToFieldList: () => [],
 }));
-vi.mock('../../src/utils/apiKeys.js', () => ({ isValidGeminiKey: () => true }));
+vi.mock('../../src/utils/apiKeys.js', () => ({ isValidProviderKey: (_provider, key) => Boolean(key) }));
 vi.mock('../../src/modules/outputGuards.js', () => ({
   stabilizeFichaOutput: (_input, output) => output, validateFichaOutput: () => [],
 }));
@@ -57,7 +57,14 @@ vi.mock('../../src/utils/prepareProductInput.js', () => ({
 }));
 vi.mock('../../src/services/apiSettings.js', () => ({
   ApiSettings: {
-    getGeminiPrimary: () => 'valid-gemini-key', getMistralPrimary: () => '', getModel: () => 'gemini-test',
+    getModel: () => 'gemini-test',
+    getProviderKeys: provider => provider === 'gemini' ? ['valid-gemini-key'] : [],
+    getAgentProvider: stage => stage === 1 ? 'mistral' : 'gemini',
+    getAgentRoutes: () => [
+      { stage: 1, provider: 'mistral', models: { mistral: 'mistral-test' } },
+      { stage: 2, provider: 'gemini', models: { gemini: 'gemini-test' } },
+      { stage: 3, provider: 'gemini', models: { gemini: 'gemini-test' } },
+    ],
   },
 }));
 vi.mock('../../src/services/serp.js', () => ({

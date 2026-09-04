@@ -82,7 +82,7 @@ export class GeminiProvider {
   }
 
   async _generateWithKey(key, request, context) {
-    const model = String(this.getModel() || '').trim();
+    const model = String(request.model || this.getModel() || '').trim();
     if (!model) {
       throw new ProviderRuntimeError('Modelo Gemini não configurado.', {
         code: 'invalid-response', provider: 'gemini', retryable: false, fallbackEligible: false,
