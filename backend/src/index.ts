@@ -12,7 +12,24 @@ import { titleRulesRouter } from './titleRules/titleRules.routes.js';
 import { adminDb } from './firebaseAdmin.js';
 import { asyncRoute } from './http/asyncRoute.js';
 
-export function createApp() {
+interface CreateAppOptions {
+  checkFirestore?: () => Promise<void>;
+}
+
+function readinessErrorCode(error: unknown): string {
+  const code = (error as { code?: unknown } | null)?.code;
+  const message = error instanceof Error ? error.message : String(error);
+  if (code === 8 || code === '8' || code === 'RESOURCE_EXHAUSTED' || code === 'resource-exhausted'
+    || /RESOURCE_EXHAUSTED|Quota exceeded/i.test(message)) {
+    return 'RESOURCE_EXHAUSTED';
+  }
+  return 'FIRESTORE_UNAVAILABLE';
+}
+
+export function createApp(options: CreateAppOptions = {}) {
+  const checkFirestore = options.checkFirestore || (async () => {
+    await adminDb.collection('users').limit(1).get();
+  });
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
@@ -48,10 +65,25 @@ export function createApp() {
     maxAge: 3600,
   }));
   app.use(express.json({ limit: '512kb' }));
-  app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'fastseo-users' }));
+  app.get('/health', (_req, res) => res.json({
+    status: 'ok',
+    service: 'fastseo-users',
+    uptime: Math.floor(process.uptime()),
+  }));
   app.get('/ready', asyncRoute(async (_req, res) => {
-    await adminDb.collection('users').limit(1).get();
-    res.json({ status: 'ready', service: 'fastseo-users', firestore: 'ok' });
+    try {
+      await checkFirestore();
+      res.json({ status: 'ready', service: 'fastseo-users', firestore: 'ok' });
+    } catch (error) {
+      console.warn(JSON.stringify({
+        level: 'warn',
+        event: 'readiness_check_failed',
+        dependency: 'firestore',
+        errorCode: readinessErrorCode(error),
+        requestId: res.getHeader('x-request-id') || null,
+      }));
+      res.status(503).json({ status: 'not_ready', firestore: 'unavailable' });
+    }
   }));
   app.use('/api', apiRateLimiter, usersRouter, categoriesRouter, titleRulesRouter, usageRouter);
   app.use(notFoundHandler);
