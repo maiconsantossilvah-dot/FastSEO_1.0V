@@ -33,6 +33,7 @@ import { ApiSettings } from '../services/apiSettings.js';
 import { buildPipelinePrompts, resolveTitleRule } from './pipelineDomain.js';
 import { runCopywriterAgent, runPipelineAgents } from './pipelineOrchestrator.js';
 import { createPipelineEventHandler } from './pipelineUiAdapter.js';
+import { UserAccess } from '../services/userAccess.js';
 
 // Integrações opcionais: SEO enriquece prompts; Analytics registra uso e erros.
 import { buscarKeywords, montarContextoSEO, hasSerpApiKey } from '../services/serp.js';
@@ -375,10 +376,15 @@ export const Pipeline = {
         calls: tokenUsage.calls,
       });
 
-      // Persistência (Firestore + localStorage como cache local).
-      const preview = (document.getElementById('inputText')?.value || '').slice(0, 100).trim();
-      const historyId = await History.save({ preview, ficha, conteudo, bivolt, tokenUsage });
-      AppState.pipeline.result.historyId = historyId;
+      // No modo degradado o resultado permanece na tela e pode ser copiado, mas
+      // nenhuma escrita é enviada ao Firestore enquanto a quota estiver esgotada.
+      if (!UserAccess.isDegraded()) {
+        const preview = (document.getElementById('inputText')?.value || '').slice(0, 100).trim();
+        const historyId = await History.save({ preview, ficha, conteudo, bivolt, tokenUsage });
+        AppState.pipeline.result.historyId = historyId;
+      } else {
+        PipelineUI.log('Modo local: resultado não salvo no histórico remoto.', 'w');
+      }
       await Logs.save({
         status: reprovado ? 'reprovado' : 'aprovado',
         duracao_ms: Date.now() - t0,

@@ -90,6 +90,12 @@ O GitHub Actions executa `pnpm check` com Node 24 e Java 21 em cada pull request
 
 As restrições de interface são conveniência de UX. A autorização real é repetida no backend e nas regras do Firestore. Categorias e regras de título só podem ser modificadas por `owner` e `admin`; cada mutação relevante gera auditoria.
 
+### Contingência quando o Firestore está indisponível
+
+Depois da autenticação Google, o frontend entra em modo local somente quando o backend confirma em `/ready` que o Firestore está indisponível. Nesse modo ficam disponíveis a geração BYOK, o Compilador e o FAQ, sem categorias, histórico remoto, prompts personalizados, analytics ou recursos administrativos. O resultado permanece na tela para cópia/download, mas não é persistido. Respostas explícitas de acesso pendente, rejeitado ou suspenso nunca ativam a contingência.
+
+Esse modo prioriza disponibilidade: enquanto o Firestore não pode validar a autorização, qualquer conta autenticada pelo Firebase pode usar apenas as funcionalidades locais e suas próprias chaves de IA. Nenhum dado protegido nem privilégio do backend é liberado. Desative essa contingência se a política da organização exigir bloqueio total durante indisponibilidades.
+
 ## Segurança operacional
 
 - Nunca versionar `.env`, JSON de conta de serviço, chaves de IA ou tokens.

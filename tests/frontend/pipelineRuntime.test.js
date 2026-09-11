@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
     pdfTexto: '',
   },
   usageRecord: vi.fn(),
+  degraded: false,
 }));
 
 vi.mock('../../src/services/api.js', () => ({ callAgent: mocks.callAgent }));
@@ -52,6 +53,9 @@ vi.mock('../../src/modules/outputGuards.js', () => ({
 vi.mock('../../src/services/usageAnalytics.js', () => ({
   UsageAnalytics: { record: mocks.usageRecord },
 }));
+vi.mock('../../src/services/userAccess.js', () => ({
+  UserAccess: { isDegraded: () => mocks.degraded },
+}));
 vi.mock('../../src/utils/prepareProductInput.js', () => ({
   prepareProductInput: value => ({ text: value, warnings: [] }),
 }));
@@ -82,6 +86,7 @@ describe('Pipeline com runtime mockado', () => {
     vi.clearAllMocks();
     localStorage.clear();
     mocks.appState.pipeline.result = { ficha: 'FICHA TÉCNICA', bivolt: false };
+    mocks.degraded = false;
     document.body.innerHTML = `
       <textarea id="inputText">Produto</textarea>
       <pre id="fichaOut">FICHA TÉCNICA</pre>
@@ -172,5 +177,23 @@ describe('Pipeline com runtime mockado', () => {
       reprovado: false,
       copywriterError: expect.any(Error),
     });
+  });
+
+  it('mantém a ficha disponível sem tentar salvar histórico no modo degradado', async () => {
+    mocks.degraded = true;
+    mocks.callAgent.mockImplementation(async (_system, _user, _max, _signal, agent) => {
+      if (agent === 1) return 'FICHA LOCAL';
+      if (agent === 2) return '{"status":"APROVADO"}';
+      return 'CONTEÚDO LOCAL';
+    });
+
+    await Pipeline._execute('Produto no modo local');
+
+    expect(mocks.pipelineUI.showResults).toHaveBeenCalledWith(
+      'FICHA LOCAL', 'QA APROVADO', 'CONTEÚDO LOCAL', false, false, expect.any(Object),
+    );
+    expect(mocks.pipelineUI.log).toHaveBeenCalledWith(
+      'Modo local: resultado não salvo no histórico remoto.', 'w',
+    );
   });
 });

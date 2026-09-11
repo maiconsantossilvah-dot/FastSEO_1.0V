@@ -82,6 +82,7 @@ export const UsageAnalytics = {
   },
 
   record({ status, durationMs, category = '', bivolt = false, calls = [] }) {
+    if (UserAccess.isDegraded?.()) return false;
     const normalizedCalls = normalizeCalls(calls);
     if (!normalizedCalls.length) return false;
 
@@ -100,7 +101,7 @@ export const UsageAnalytics = {
   },
 
   flush() {
-    if (!UserAccess.current().user || flushing) return flushing;
+    if (!UserAccess.current().user || UserAccess.isDegraded?.() || flushing) return flushing;
     flushing = flushQueue().finally(() => { flushing = null; });
     return flushing;
   },

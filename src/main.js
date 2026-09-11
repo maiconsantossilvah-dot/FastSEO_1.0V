@@ -192,13 +192,18 @@ function showAccessState(firebaseUser, status = 'pending', detail = '') {
 
 function applyAccessExperience() {
   const { user, permissions } = UserAccess.current();
+  const degraded = UserAccess.isDegraded();
   const roleLabels = { owner: 'Proprietário', admin: 'Administrador', collaborator: 'Colaborador', viewer: 'Espectador' };
   const roleEl = document.getElementById('userRoleLabel');
-  if (roleEl) roleEl.textContent = roleLabels[user?.role] || '';
+  if (roleEl) roleEl.textContent = degraded ? 'Modo local' : roleLabels[user?.role] || '';
+  document.body.classList.toggle('is-degraded', degraded);
   document.body.classList.toggle('is-read-only', permissions?.editContent === false);
   document.getElementById('openUsersBtn')?.toggleAttribute('hidden', !permissions?.viewUsers);
   document.getElementById('openPromptsBtn')?.toggleAttribute('hidden', !permissions?.viewPrompts);
   document.getElementById('openAnalyticsBtn')?.toggleAttribute('hidden', !permissions?.viewUsageAnalytics);
+  document.getElementById('openCategoriasBtn')?.toggleAttribute('hidden', degraded);
+  document.getElementById('openSubcatBtn')?.toggleAttribute('hidden', degraded);
+  document.getElementById('openHistoricoBtn')?.toggleAttribute('hidden', degraded);
   UserAccess.enforceReadOnly(document);
 }
 
@@ -214,17 +219,24 @@ document.addEventListener('fastseo:catsChanged', () => {
 
 let appCleanups = [];
 async function init() {
+  const degraded = UserAccess.isDegraded();
   ConfigUI.restoreSavedKeys();
   ConfigUI.updateCharCount();
   ConfigUI.updateQuotaInfo();
   FAQCreator.init();
-  UsageAnalytics.initialize();
-  appCleanups = [
-    Categories.startSync(),
-    History.startSync(),
-    Prompts.startSync(),
-    SubcatModule.startSync(),
-  ].filter(cleanup => typeof cleanup === 'function');
+  if (degraded) {
+    appCleanups = [Categories.startSync({ remote: false })];
+    PipelineUI.toast('Modo local: categorias e sincronização estão temporariamente desligadas.', 'warn');
+    PipelineUI.log('Firestore sem quota. A ficha será gerada sem categorias e sem histórico remoto.', 'w');
+  } else {
+    UsageAnalytics.initialize();
+    appCleanups = [
+      Categories.startSync(),
+      History.startSync(),
+      Prompts.startSync(),
+      SubcatModule.startSync(),
+    ].filter(cleanup => typeof cleanup === 'function');
+  }
   updateRunReadiness();
   // Painel começa fechado — History.startSync() atualiza só o badge.
   // A lista é renderizada apenas quando o usuário abrir o painel.
@@ -266,6 +278,7 @@ Auth.onChange(user => {
   }
   authRevision += 1;
   UserAccess.clear();
+  document.body.classList.remove('is-degraded');
   document.body.classList.remove('is-read-only');
   appCleanups.forEach(cleanup => cleanup());
   appCleanups = [];
@@ -420,6 +433,12 @@ async function updateInputCategoryHint() {
   const input = document.getElementById('inputText')?.value?.trim() || '';
   const hint = document.getElementById('inputCategoryHint');
   if (!hint) return;
+
+  if (UserAccess.isDegraded()) {
+    hint.hidden = true;
+    hint.textContent = '';
+    return;
+  }
 
   if (input.length < 3) {
     hint.hidden = true;

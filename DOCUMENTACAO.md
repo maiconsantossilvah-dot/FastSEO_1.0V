@@ -214,6 +214,10 @@ Confirme se o domínio está autorizado no Firebase Authentication e se o backen
 
 O plano gratuito do Render pode adormecer sem tráfego. A primeira requisição pode levar cerca de um minuto; o frontend tenta novamente durante esse despertar.
 
+### A quota do Firestore acabou
+
+Se o backend confirmar que o Firestore está indisponível, o FastSEO abre automaticamente em **Modo local** após o login Google. É possível gerar e copiar fichas usando as chaves de IA salvas no navegador, além de utilizar o Compilador e o FAQ. Categorias, padrões de título remotos, histórico, prompts personalizados, analytics e administração ficam temporariamente desligados, e a ficha não é salva no histórico. Recarregue a página após a renovação da quota para voltar ao modo completo.
+
 ### A categoria não foi aplicada
 
 Confirme se a categoria foi publicada. Rascunhos são visíveis para administração, mas o pipeline consome o catálogo publicado.

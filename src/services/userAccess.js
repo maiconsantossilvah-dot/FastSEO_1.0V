@@ -1,7 +1,20 @@
 import { auth } from '../firebase/firebase.js';
 import { APP_CONFIG } from '../config.js';
 
-const EMPTY_STATE = Object.freeze({ user: null, permissions: null });
+const EMPTY_STATE = Object.freeze({ user: null, permissions: null, mode: 'signed-out' });
+const DEGRADED_PERMISSIONS = Object.freeze({
+  useFastSeo: true,
+  editContent: true,
+  viewUsers: false,
+  manageUsers: false,
+  viewPrompts: false,
+  editPrompts: false,
+  approveAccess: false,
+  manageRoles: false,
+  manageCategoryCatalog: false,
+  viewUsageAnalytics: false,
+});
+const FIRESTORE_FAILURES = new Set(['FIRESTORE_QUOTA_EXHAUSTED', 'FIRESTORE_UNAVAILABLE']);
 const WAKE_RETRY_DELAYS = Object.freeze([0, 3000, 7000, 12000, 18000, 25000]);
 const RETRYABLE_STATUS = new Set([502, 503, 504]);
 let state = EMPTY_STATE;
@@ -56,7 +69,17 @@ async function request(path, options = {}) {
       );
     }
 
+    const payload = await response.json().catch(() => ({}));
     if (RETRYABLE_STATUS.has(response.status)) {
+      // Falhas conhecidas do Firestore não são cold start do Render. Repeti-las
+      // só prolongaria o login sem qualquer chance de recuperação imediata.
+      if (FIRESTORE_FAILURES.has(payload?.error?.code)) {
+        throw new UsersApiError(
+          payload.error.message || 'O Firestore está temporariamente indisponível.',
+          payload.error.code,
+          response.status,
+        );
+      }
       if (attempt < retryDelays.length - 1) {
         await response.body?.cancel().catch(() => {});
         continue;
@@ -70,7 +93,6 @@ async function request(path, options = {}) {
       );
     }
 
-    const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       throw new UsersApiError(
         payload?.error?.message || 'Não foi possível concluir a solicitação.',
@@ -85,6 +107,40 @@ async function request(path, options = {}) {
     'O serviço gratuito ainda está iniciando. Aguarde alguns segundos e verifique novamente.',
     'BACKEND_UNAVAILABLE',
   );
+}
+
+async function firestoreIsUnavailable() {
+  const readyUrl = `${APP_CONFIG.usersApiBaseUrl.replace(/\/api\/?$/, '')}/ready`;
+  try {
+    const response = await fetch(readyUrl, { signal: AbortSignal.timeout(5000) });
+    if (response.status !== 503) return false;
+    const payload = await response.json().catch(() => ({}));
+    return payload?.firestore === 'unavailable';
+  } catch {
+    // Sem uma confirmação do backend, não liberamos o modo degradado.
+    return false;
+  }
+}
+
+function degradedState(firebaseUser) {
+  return Object.freeze({
+    user: Object.freeze({
+      uid: firebaseUser.uid,
+      email: String(firebaseUser.email || ''),
+      displayName: String(firebaseUser.displayName || firebaseUser.email || 'Usuário'),
+      role: 'collaborator',
+      status: 'active',
+    }),
+    permissions: DEGRADED_PERMISSIONS,
+    mode: 'degraded',
+  });
+}
+
+function publishState(nextState) {
+  state = nextState;
+  observeReadOnlyUi();
+  document.dispatchEvent(new CustomEvent('fastseo:accessChanged', { detail: state }));
+  return state;
 }
 
 function isSearchControl(control) {
@@ -132,11 +188,27 @@ export const UserAccess = {
   request(path, options) { return request(path, options); },
 
   async initialize() {
-    const payload = await request('/access-requests', { method: 'POST', retryOnWake: true });
-    state = Object.freeze({ user: payload.user, permissions: payload.permissions });
-    observeReadOnlyUi();
-    document.dispatchEvent(new CustomEvent('fastseo:accessChanged', { detail: state }));
-    return state;
+    const firebaseUser = auth.currentUser;
+    if (!firebaseUser) throw new UsersApiError('Sua sessão expirou. Entre novamente.', 'AUTH_REQUIRED', 401);
+
+    try {
+      const payload = await request('/access-requests', { method: 'POST', retryOnWake: true });
+      return publishState(Object.freeze({
+        user: payload.user,
+        permissions: payload.permissions,
+        mode: 'online',
+      }));
+    } catch (error) {
+      const canCheckDependency = error instanceof UsersApiError
+        && (FIRESTORE_FAILURES.has(error.code) || error.status === 0 || error.status >= 500);
+      const confirmedUnavailable = canCheckDependency
+        && (FIRESTORE_FAILURES.has(error.code) || await firestoreIsUnavailable());
+      if (!confirmedUnavailable) throw error;
+
+      // Contingência local: a identidade ainda vem do Firebase Auth, porém nenhum
+      // privilégio administrativo nem dado protegido do backend é disponibilizado.
+      return publishState(degradedState(firebaseUser));
+    }
   },
 
   clear() {
@@ -146,6 +218,7 @@ export const UserAccess = {
   },
 
   current() { return state; },
+  isDegraded() { return state.mode === 'degraded'; },
   can(permission) { return Boolean(state.permissions?.[permission]); },
 
   assert(permission) {

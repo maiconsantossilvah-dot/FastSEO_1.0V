@@ -144,11 +144,17 @@ export const Categories = {
    *
    * @returns {Function} unsubscribe — chame para parar o listener
    */
-  startSync() {
+  startSync({ remote = !UserAccess.isDegraded() } = {}) {
     // Carrega cache local enquanto Firestore ainda não respondeu
     _cache = CategoryCatalogApi.cachedCatalog()?.profiles || this._readLocalFallback();
     _editableCache = _cache;
     let stopped = false;
+
+    if (!remote) {
+      _backendAvailable = false;
+      emitChanged();
+      return () => { stopped = true; };
+    }
 
     const unsubscribeLegacy = CategoriesDB.listen(cats => {
       if (stopped) return;
@@ -222,6 +228,9 @@ export const Categories = {
   },
 
   async resolveDetailed(input) {
+    if (UserAccess.isDegraded()) {
+      return { categories: [], titleRule: null, catalogVersion: _catalogVersion, degraded: true };
+    }
     if (!_backendAvailable) await this.refresh();
     const payload = await CategoryCatalogApi.resolve(input);
     const categories = payload.resolution?.compiledProfile
