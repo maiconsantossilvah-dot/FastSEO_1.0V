@@ -48,6 +48,8 @@ A aba Ficha Técnica é usada para processar dados brutos de produtos e gerar um
 5. Aguarde as etapas A1 Formatador, A2 Conferente e A3 Copywriter.
 6. Revise o resultado gerado.
 
+O título ou descrição principal presente na entrada faz parte dos dados brutos e é destacado para o A1 e o A2. O A3 não bloqueia a ficha: se o serviço do copywriter falhar, a ficha e a conferência continuam visíveis e o conteúdo pode ser gerado novamente pelo botão. Quando o A2 reprovar, o A3 não é executado automaticamente, mas a geração manual permanece disponível para revisão.
+
 O contador de tokens é atualizado conforme cada agente responde. Ele separa entrada, saída e total por chamada e mostra o resumo do processamento, sem incluir ou transmitir a chave da IA.
 
 Resultados disponíveis:

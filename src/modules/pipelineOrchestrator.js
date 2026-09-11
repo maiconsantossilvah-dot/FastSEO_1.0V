@@ -1,4 +1,4 @@
-import { buildQaInput, insertNoticeBeforeSupplier } from './pipelineDomain.js';
+import { buildProductSource, buildQaInput, insertNoticeBeforeSupplier } from './pipelineDomain.js';
 
 /**
  * @typedef {1|2|3} PipelineStage
@@ -10,6 +10,7 @@ import { buildQaInput, insertNoticeBeforeSupplier } from './pipelineDomain.js';
  *   | { type: 'stage-start'; stage: PipelineStage; mode: PipelineRunMode; bivolt?: boolean }
  *   | { type: 'agent-call-complete'; stage: PipelineStage; mode: PipelineRunMode }
  *   | { type: 'stage-complete'; stage: PipelineStage; mode: PipelineRunMode; qa?: object }
+ *   | { type: 'stage-failed'; stage: 3; mode: PipelineRunMode; error: Error }
  *   | { type: 'stage-skipped'; stage: 3; mode: 'pipeline'; reason: 'rejected'|'manual' }
  *   | { type: 'usage'; stage: PipelineStage; mode: PipelineRunMode; usage: object }
  *   | { type: 'provider-event'; stage: PipelineStage; mode: PipelineRunMode; event: object }
@@ -69,7 +70,7 @@ export async function runPipelineAgents(options, dependencies) {
   emit({ type: 'stage-start', stage: 1, mode, bivolt: options.bivolt });
   let ficha = await dependencies.callAgent(
     options.prompts.agent1,
-    `DADOS DO PRODUTO:\n${options.input}`,
+    buildProductSource(options.input),
     7000,
     options.signal,
     1,
@@ -107,13 +108,20 @@ export async function runPipelineAgents(options, dependencies) {
   emit({ type: 'stage-complete', stage: 2, mode, qa });
 
   let conteudo = '';
+  let copywriterError = null;
   if (!reprovado && options.autoRunCopywriter) {
-    conteudo = await runCopywriterAgent({
-      systemPrompt: options.prompts.agent3,
-      ficha,
-      signal: options.signal,
-      mode,
-    }, { ...dependencies, emit });
+    try {
+      conteudo = await runCopywriterAgent({
+        systemPrompt: options.prompts.agent3,
+        ficha,
+        signal: options.signal,
+        mode,
+      }, { ...dependencies, emit });
+    } catch (error) {
+      if (error?.name === 'AbortError') throw error;
+      copywriterError = error instanceof Error ? error : new Error(String(error || 'Falha desconhecida no A3.'));
+      emit({ type: 'stage-failed', stage: 3, mode, error: copywriterError });
+    }
   } else {
     emit({
       type: 'stage-skipped',
@@ -123,5 +131,5 @@ export async function runPipelineAgents(options, dependencies) {
     });
   }
 
-  return { ficha, validacao, validacaoRaw, qa, conteudo, reprovado };
+  return { ficha, validacao, validacaoRaw, qa, conteudo, reprovado, copywriterError };
 }

@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   buildPipelinePrompts,
+  buildProductSource,
   buildQaInput,
+  extractProductTitle,
   insertNoticeBeforeSupplier,
   resolveTitleRule,
 } from '../../src/modules/pipelineDomain.js';
@@ -74,9 +76,27 @@ describe('pipelineDomain', () => {
     });
 
     expect(titleRule).toEqual({ nome: 'Celular', formula: '[Marca]', ex: 'ACME' });
-    expect(input).toContain('DADOS BRUTOS ORIGINAIS:\nBRUTO');
+    expect(input).toContain('DADOS BRUTOS ORIGINAIS:');
+    expect(input).toContain('\nBRUTO\n\n---\nFICHA GERADA:');
     expect(input).toContain('FICHA GERADA:\nFICHA\nAVISO');
     expect(input).toContain('JSON DE VALIDAÇÃO DA CATEGORIA:\n{"tipo":"celular"}');
+  });
+
+  it('destaca o título existente como parte dos dados brutos para A1 e A2', () => {
+    const raw = '1704782\nEAN: 47891150106572\nCREME DENTAL ENLACE KIDS BUBBLE GUM\nFornecedor: ACME';
+
+    expect(extractProductTitle(raw)).toBe('CREME DENTAL ENLACE KIDS BUBBLE GUM');
+    expect(buildProductSource(raw)).toContain(
+      'TÍTULO DO PRODUTO (PARTE DOS DADOS BRUTOS):\nCREME DENTAL ENLACE KIDS BUBBLE GUM',
+    );
+    expect(buildQaInput({ input: raw, ficha: 'FICHA' })).toContain(
+      'TÍTULO DO PRODUTO (PARTE DOS DADOS BRUTOS):\nCREME DENTAL ENLACE KIDS BUBBLE GUM',
+    );
+  });
+
+  it('reconhece título rotulado na mesma linha ou na linha seguinte', () => {
+    expect(extractProductTitle('Descrição do produto: Garrafa Térmica 1L')).toBe('Garrafa Térmica 1L');
+    expect(extractProductTitle('TÍTULO DO PRODUTO:\nPrego de Aço 18x27\nEAN: 1')).toBe('Prego de Aço 18x27');
   });
 });
 
@@ -108,6 +128,41 @@ describe('pipelineOrchestrator', () => {
     expect(dependencies.emit).toHaveBeenCalledWith(expect.objectContaining({
       type: 'stage-skipped', stage: 3, reason: 'rejected',
     }));
+  });
+
+  it('mantém a ficha aprovada disponível quando somente o A3 falha', async () => {
+    const externalError = new Error('Serviço do copywriter indisponível');
+    const callAgent = vi.fn(async (_system, _user, _max, _signal, agent) => {
+      if (agent === 1) return 'FICHA GERADA\n\nFornecedor: ACME';
+      if (agent === 2) return '{"status":"APROVADO"}';
+      throw externalError;
+    });
+    const dependencies = createDependencies({ callAgent });
+
+    const result = await runPipelineAgents(baseOptions(), dependencies);
+
+    expect(result).toMatchObject({
+      ficha: 'FICHA GERADA\n\nFornecedor: ACME',
+      validacao: 'STATUS: APROVADO',
+      conteudo: '',
+      reprovado: false,
+      copywriterError: externalError,
+    });
+    expect(dependencies.emit).toHaveBeenCalledWith({
+      type: 'stage-failed', stage: 3, mode: 'pipeline', error: externalError,
+    });
+  });
+
+  it('não converte cancelamento do A3 em falha opcional', async () => {
+    const aborted = Object.assign(new Error('Cancelado'), { name: 'AbortError' });
+    const callAgent = vi.fn(async (_system, _user, _max, _signal, agent) => {
+      if (agent === 1) return 'FICHA GERADA';
+      if (agent === 2) return '{"status":"APROVADO"}';
+      throw aborted;
+    });
+    const dependencies = createDependencies({ callAgent });
+
+    await expect(runPipelineAgents(baseOptions(), dependencies)).rejects.toBe(aborted);
   });
 
   it('propaga cancelamento e não inicia os agentes seguintes', async () => {

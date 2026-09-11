@@ -118,7 +118,7 @@ export const Pipeline = {
   // sem chamar A1 (Formatador) nem A2 (Conferente).
   // Consome apenas 1 requisição de cota.
   async rerunCopywriter() {
-    const { ficha, bivolt } = AppState.pipeline.result || {};
+    const { ficha, bivolt, reprovado = false } = AppState.pipeline.result || {};
     const tokenUsage = createTokenUsage(AppState.pipeline.result?.tokenUsage);
     const regenerationUsage = createTokenUsage();
     const regenerationStartedAt = Date.now();
@@ -176,7 +176,10 @@ export const Pipeline = {
       AppState.pipeline.result.tokenUsage = tokenUsage;
       const outEl = document.getElementById('conteudoOut');
       if (outEl) outEl.innerText = conteudo;
-      PipelineUI.showResults(fichaText, AppState.pipeline.result.validacao || '', conteudo, bivolt, false, tokenUsage);
+      PipelineUI.showResults(fichaText, AppState.pipeline.result.validacao || '', conteudo, bivolt, reprovado, tokenUsage);
+      if (reprovado) {
+        PipelineUI.log('[A3] Conteúdo gerado manualmente para uma ficha reprovada. Revise antes de utilizar.', 'w');
+      }
 
       // Garante que o bloco esteja visível.
       const copyBlock = document.getElementById('copyBlock');
@@ -191,7 +194,7 @@ export const Pipeline = {
       }
 
       UsageAnalytics.record({
-        status: 'aprovado',
+        status: reprovado ? 'reprovado' : 'aprovado',
         durationMs: Date.now() - regenerationStartedAt,
         category: AppState.pipeline.result.category || '',
         bivolt: Boolean(bivolt),
@@ -321,6 +324,7 @@ export const Pipeline = {
         validacaoRaw,
         qa,
         conteudo,
+        copywriterError,
         reprovado,
       } = await runPipelineAgents({
         input,
@@ -340,13 +344,19 @@ export const Pipeline = {
         validacaoRaw,
         qa,
         conteudo,
+        copywriterError,
         bivolt,
         reprovado,
         category: telemetryContext.category,
         tokenUsage,
       };
       PipelineUI.showResults(ficha, validacao, conteudo, bivolt, reprovado, tokenUsage);
-      PipelineUI.log('Pipeline concluído.', 'o');
+      PipelineUI.log(
+        copywriterError
+          ? 'Ficha concluída. O conteúdo comercial pode ser gerado novamente pelo botão.'
+          : 'Pipeline concluído.',
+        copywriterError ? 'w' : 'o',
+      );
 
       // Analytics: pipeline concluído com sucesso.
       trackPipelineConcluido({

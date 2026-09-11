@@ -6,6 +6,7 @@ import { History } from './modules/history.js';
 import { Prompts } from './modules/prompts.js';
 import { SubcatModule } from './modules/subcategories.js';
 import { Pipeline } from './modules/pipeline.js';
+import { AppState } from './modules/state.js';
 import { FAQCreator } from './modules/faqCreator.js';
 import { DataCompiler } from './modules/dataCompiler.js';
 import { InternalDocs } from './modules/internalDocs.js';
@@ -504,7 +505,8 @@ document.getElementById('regenConteudoBtn')?.addEventListener('click', async () 
     await Pipeline.rerunCopywriter();
   } finally {
     btn.classList.remove('regen-loading');
-    btn.innerHTML = '<i data-lucide="refresh-cw" aria-hidden="true"></i><span>Regenerar</span>';
+    const hasContent = Boolean(AppState.pipeline.result?.conteudo?.trim());
+    btn.innerHTML = `<i data-lucide="refresh-cw" aria-hidden="true"></i><span>${hasContent ? 'Regenerar' : 'Gerar conteúdo'}</span>`;
     AppShell.refreshIcons();
   }
 });

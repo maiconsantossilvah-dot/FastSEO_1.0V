@@ -189,11 +189,13 @@ export const PipelineUI = {
     if ($('bivoltBadge'))  $('bivoltBadge').style.display = bivolt ? 'inline-flex' : 'none';
     const sb = $('statusBadge');
     if (sb) { sb.textContent = reprovado ? 'REPROVADO' : 'APROVADO'; sb.className = `badge ${reprovado ? 'badge-fail' : 'badge-ok'}`; }
-    if (!reprovado && $('conteudoOut') && $('copyBlock')) {
+    if ($('conteudoOut') && $('copyBlock')) {
       $('conteudoOut').textContent = conteudo || 'Conteúdo comercial ainda não gerado.';
       $('copyBlock').style.display = 'block';
       const regenBtn = $('regenConteudoBtn');
-      if (regenBtn) regenBtn.textContent = conteudo ? 'Regenerar' : 'Gerar conteúdo';
+      const regenLabel = regenBtn?.querySelector('span');
+      if (regenLabel) regenLabel.textContent = conteudo ? 'Regenerar' : 'Gerar conteúdo';
+      else if (regenBtn) regenBtn.textContent = conteudo ? 'Regenerar' : 'Gerar conteúdo';
     }
     this.updateTokenUsage(tokenUsage);
     $('results')?.classList.add('vis');

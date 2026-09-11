@@ -55,6 +55,12 @@ export function createPipelineEventHandler({ tokenUsage, regenerationUsage = nul
       return;
     }
 
+    if (event.type === 'stage-failed') {
+      PipelineUI.setStep(event.stage, 'error');
+      PipelineUI.log(`[A3] Conteúdo comercial não gerado: ${event.error?.message || 'falha externa'}. A ficha continua disponível.`, 'w');
+      return;
+    }
+
     if (event.type === 'stage-skipped') {
       PipelineUI.setStep(3, 'skip');
       PipelineUI.log(

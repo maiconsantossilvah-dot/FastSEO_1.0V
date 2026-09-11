@@ -112,6 +112,22 @@ describe('Pipeline com runtime mockado', () => {
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
+  it('permite gerar A3 manualmente sem transformar ficha reprovada em aprovada', async () => {
+    mocks.appState.pipeline.result = {
+      ficha: 'FICHA REPROVADA',
+      validacao: 'QA REPROVADO',
+      bivolt: false,
+      reprovado: true,
+    };
+
+    await Pipeline.rerunCopywriter();
+
+    expect(mocks.pipelineUI.showResults).toHaveBeenCalledWith(
+      'FICHA REPROVADA', 'QA REPROVADO', 'CONTEÚDO COMERCIAL', false, true, expect.any(Object),
+    );
+    expect(mocks.usageRecord).toHaveBeenCalledWith(expect.objectContaining({ status: 'reprovado' }));
+  });
+
   it('executa A1, A2 e A3 em ordem usando somente o contrato mockado', async () => {
     mocks.callAgent.mockImplementation(async (_system, _user, _max, _signal, agent, tracking) => {
       const usage = {
@@ -135,5 +151,26 @@ describe('Pipeline com runtime mockado', () => {
       'FICHA GERADA', 'QA APROVADO', 'CONTEÚDO GERADO', false, false, expect.any(Object),
     );
     expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('renderiza a ficha aprovada mesmo quando o A3 automático falha', async () => {
+    mocks.callAgent.mockImplementation(async (_system, _user, _max, _signal, agent) => {
+      if (agent === 1) return 'FICHA APROVADA';
+      if (agent === 2) return '{"status":"APROVADO"}';
+      throw new Error('A3 indisponível');
+    });
+
+    await Pipeline._execute('Título do produto: Produto completo');
+
+    expect(mocks.pipelineUI.showResults).toHaveBeenCalledWith(
+      'FICHA APROVADA', 'QA APROVADO', '', false, false, expect.any(Object),
+    );
+    expect(mocks.pipelineUI.setStep).toHaveBeenCalledWith(3, 'error');
+    expect(mocks.appState.pipeline.result).toMatchObject({
+      ficha: 'FICHA APROVADA',
+      conteudo: '',
+      reprovado: false,
+      copywriterError: expect.any(Error),
+    });
   });
 });

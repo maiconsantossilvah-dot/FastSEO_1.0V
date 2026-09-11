@@ -58,6 +58,7 @@ const docs = [
     ],
     bullets: [
       'Cole os dados no campo Input.',
+      'O título ou descrição principal presente no input também é tratado como dado bruto.',
       'Opcionalmente importe PDF, planilha ou CSV.',
       'Revise se as informações principais estão presentes.',
       'Clique em Processar ficha.',
@@ -78,6 +79,8 @@ const docs = [
       'Copiar ficha copia a ficha formatada.',
       'Copiar conteúdo copia o conteúdo comercial.',
       'Regenerar executa novamente apenas o conteúdo comercial.',
+      'O A3 é opcional: uma falha externa nele não esconde a ficha já conferida.',
+      'Quando o A2 reprovar, o A3 não roda automaticamente, mas pode ser executado manualmente para revisão.',
       'O consumo é atualizado quando cada resposta da IA termina.',
     ],
   },
