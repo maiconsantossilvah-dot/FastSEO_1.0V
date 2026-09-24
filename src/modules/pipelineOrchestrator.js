@@ -18,6 +18,7 @@ import { buildProductSource, buildQaInput, insertNoticeBeforeSupplier } from './
  */
 
 const noop = () => {};
+const COPYWRITER_MAX_TOKENS = 6000;
 
 function tracking(stage, mode, emit) {
   return {
@@ -45,14 +46,16 @@ export async function runCopywriterAgent(options, dependencies) {
   const mode = options.mode || 'regeneration';
 
   emit({ type: 'stage-start', stage: 3, mode });
-  const conteudo = await dependencies.callAgent(
+  const rawContent = await dependencies.callAgent(
     options.systemPrompt,
     options.ficha,
-    800,
+    COPYWRITER_MAX_TOKENS,
     options.signal,
     3,
     tracking(3, mode, emit),
   );
+  const conteudo = String(rawContent || '').trim();
+  if (!conteudo) throw new Error('O A3 retornou uma resposta vazia após tentar os provedores disponíveis.');
   emit({ type: 'agent-call-complete', stage: 3, mode });
   emit({ type: 'stage-complete', stage: 3, mode });
   return conteudo;

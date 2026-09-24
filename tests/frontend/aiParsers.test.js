@@ -24,6 +24,36 @@ describe('parsers do runtime de IA', () => {
     });
   });
 
+  it('combina partes visíveis do Gemini e ignora partes de raciocínio', () => {
+    const result = parseGeminiResponse({
+      modelVersion: 'gemini-test',
+      candidates: [{
+        finishReason: 'STOP',
+        content: { parts: [
+          { thought: true, text: 'raciocínio interno' },
+          { text: 'DESCRIÇÃO ABREVIADA: texto comercial' },
+          { text: 'META DESCRIPTION: Confira agora!' },
+        ] },
+      }],
+    });
+
+    expect(result.text).toBe('DESCRIÇÃO ABREVIADA: texto comercial\nMETA DESCRIPTION: Confira agora!');
+  });
+
+  it('permite fallback quando o Gemini esgota tokens sem resposta final', () => {
+    expect(() => parseGeminiResponse({
+      modelVersion: 'gemini-test',
+      candidates: [{ finishReason: 'MAX_TOKENS', content: { parts: [{ thought: true, text: 'pensando' }] } }],
+    })).toThrow(expect.objectContaining({ code: 'invalid-response', fallbackEligible: true }));
+  });
+
+  it('não usa fallback para bloqueio de segurança do Gemini', () => {
+    expect(() => parseGeminiResponse({
+      modelVersion: 'gemini-test',
+      candidates: [{ finishReason: 'SAFETY', content: { parts: [] } }],
+    })).toThrow(expect.objectContaining({ code: 'invalid-response', fallbackEligible: false }));
+  });
+
   it('normaliza resposta e tokens da Mistral', () => {
     const result = parseMistralResponse({
       model: 'mistral-test',

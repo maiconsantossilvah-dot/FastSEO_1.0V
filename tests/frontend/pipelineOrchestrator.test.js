@@ -141,7 +141,7 @@ describe('pipelineOrchestrator', () => {
     const result = await runPipelineAgents(baseOptions(), dependencies);
 
     expect(dependencies.callAgent.mock.calls.map(call => call[4])).toEqual([1, 2, 3]);
-    expect(dependencies.callAgent.mock.calls.map(call => call[2])).toEqual([7000, 1500, 800]);
+    expect(dependencies.callAgent.mock.calls.map(call => call[2])).toEqual([7000, 1500, 6000]);
     expect(result).toMatchObject({
       ficha: 'FICHA GERADA\n\nFornecedor: ACME',
       validacao: 'STATUS: APROVADO',
@@ -226,9 +226,19 @@ describe('pipelineOrchestrator', () => {
     }, { callAgent, emit });
 
     expect(result).toBe('NOVA COPY');
-    expect(callAgent).toHaveBeenCalledWith('P3', 'FICHA', 800, signal, 3, expect.any(Object));
+    expect(callAgent).toHaveBeenCalledWith('P3', 'FICHA', 6000, signal, 3, expect.any(Object));
     expect(emit).toHaveBeenCalledWith({
       type: 'usage', stage: 3, mode: 'regeneration', usage,
     });
+  });
+
+  it('não considera resposta vazia do A3 como conclusão bem-sucedida', async () => {
+    const emit = vi.fn();
+    const callAgent = vi.fn(async () => '   ');
+
+    await expect(runCopywriterAgent({
+      systemPrompt: 'P3', ficha: 'FICHA', signal: new AbortController().signal,
+    }, { callAgent, emit })).rejects.toThrow('O A3 retornou uma resposta vazia');
+    expect(emit).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'stage-complete' }));
   });
 });

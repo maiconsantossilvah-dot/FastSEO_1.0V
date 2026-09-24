@@ -81,15 +81,22 @@ export class AiGateway {
     return this._run(provider, request, options);
   }
 
-  _run(provider, request, options, model) {
+  async _run(provider, request, options, model) {
     if (!this.providers[provider]) {
       throw new ProviderRuntimeError(`Provedor ${provider} não configurado.`, {
         code: 'invalid-response', provider, retryable: false, fallbackEligible: false,
       });
     }
-    return this.providers[provider].generate({ ...request, ...(model ? { model } : {}) }, {
+    const result = await this.providers[provider].generate({ ...request, ...(model ? { model } : {}) }, {
       provider, signal: options.signal, emit: options.emit,
     });
+    const text = typeof result?.text === 'string' ? result.text.trim() : '';
+    if (!text) {
+      throw new ProviderRuntimeError(`${provider}: resposta vazia.`, {
+        code: 'invalid-response', provider, retryable: false, fallbackEligible: true,
+      });
+    }
+    return { ...result, text };
   }
 
   _noProviders(agentNum, provider, cause) {

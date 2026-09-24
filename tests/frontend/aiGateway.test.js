@@ -90,6 +90,21 @@ describe('AiGateway', () => {
     await expect(gateway.generateForAgent(1, request, options([]))).rejects.toMatchObject({ code: 'invalid-key' });
   });
 
+  it('faz fallback quando um provedor devolve texto vazio', async () => {
+    const providers = {
+      gemini: fakeProvider('gemini', async () => ({ ...result('gemini'), text: '   ' })),
+      groq: fakeProvider('groq'),
+      mistral: fakeProvider('mistral'),
+    };
+    const events = [];
+    const gateway = new AiGateway({ providers });
+
+    await expect(gateway.generateForAgent(3, request, options(events))).resolves.toMatchObject({ text: 'groq' });
+    expect(events).toContainEqual({
+      type: 'provider-fallback', from: 'gemini', to: 'groq', reason: 'invalid-response',
+    });
+  });
+
   it('nunca transforma cancelamento em fallback', async () => {
     const aborted = new ProviderRuntimeError('cancelado', {
       code: 'aborted', provider: 'mistral', retryable: false, fallbackEligible: true,

@@ -23,10 +23,27 @@ function tokenValue(source, key, provider) {
  * @param {import('./contracts.js').ProviderName} provider
  * @param {string} message
  */
-function invalidResponse(provider, message) {
+function invalidResponse(provider, message, fallbackEligible = false) {
   return new ProviderRuntimeError(message, {
-    code: 'invalid-response', provider, retryable: false, fallbackEligible: false,
+    code: 'invalid-response', provider, retryable: false, fallbackEligible,
   });
+}
+
+function visibleText(value, { excludeThoughts = false } = {}) {
+  if (typeof value === 'string') return value.trim();
+  if (!Array.isArray(value)) return '';
+  return value
+    .filter(item => isRecord(item) && (!excludeThoughts || item.thought !== true))
+    .map(item => typeof item.text === 'string' ? item.text.trim() : '')
+    .filter(Boolean)
+    .join('\n')
+    .trim();
+}
+
+function finishReason(choice, key = 'finish_reason') {
+  return isRecord(choice) && typeof choice[key] === 'string'
+    ? choice[key].trim().toUpperCase()
+    : '';
 }
 
 /**
@@ -40,9 +57,16 @@ export function parseGeminiResponse(raw, fallbackModel = '') {
   const candidate = Array.isArray(candidates) && isRecord(candidates[0]) ? candidates[0] : null;
   const content = candidate && isRecord(candidate.content) ? candidate.content : null;
   const parts = content && Array.isArray(content.parts) ? content.parts : null;
-  const firstPart = parts && isRecord(parts[0]) ? parts[0] : null;
-  const text = typeof firstPart?.text === 'string' ? firstPart.text.trim() : '';
-  if (!text) throw invalidResponse('gemini', 'Resposta vazia do Gemini.');
+  const text = visibleText(parts, { excludeThoughts: true });
+  if (!text) {
+    const reason = finishReason(candidate, 'finishReason');
+    const blocked = ['SAFETY', 'RECITATION', 'PROHIBITED_CONTENT', 'SPII', 'BLOCKLIST']
+      .some(value => reason.includes(value));
+    const message = reason === 'MAX_TOKENS'
+      ? 'Gemini atingiu o limite antes de produzir a resposta final.'
+      : `Resposta vazia do Gemini${reason ? ` (${reason})` : ''}.`;
+    throw invalidResponse('gemini', message, !blocked);
+  }
 
   const model = typeof raw.modelVersion === 'string' && raw.modelVersion.trim()
     ? raw.modelVersion.trim()
@@ -75,8 +99,15 @@ export function parseMistralResponse(raw, fallbackModel = '') {
   const choices = raw.choices;
   const choice = Array.isArray(choices) && isRecord(choices[0]) ? choices[0] : null;
   const message = choice && isRecord(choice.message) ? choice.message : null;
-  const text = typeof message?.content === 'string' ? message.content.trim() : '';
-  if (!text) throw invalidResponse('mistral', 'Resposta vazia da Mistral.');
+  const text = visibleText(message?.content);
+  if (!text) {
+    const reason = finishReason(choice);
+    throw invalidResponse(
+      'mistral',
+      `Resposta vazia da Mistral${reason ? ` (${reason})` : ''}.`,
+      reason !== 'CONTENT_FILTER',
+    );
+  }
 
   const model = typeof raw.model === 'string' && raw.model.trim()
     ? raw.model.trim()
@@ -111,8 +142,15 @@ export function parseGroqResponse(raw, fallbackModel = '') {
   const choices = raw.choices;
   const choice = Array.isArray(choices) && isRecord(choices[0]) ? choices[0] : null;
   const message = choice && isRecord(choice.message) ? choice.message : null;
-  const text = typeof message?.content === 'string' ? message.content.trim() : '';
-  if (!text) throw invalidResponse('groq', 'Resposta vazia da Groq.');
+  const text = visibleText(message?.content);
+  if (!text) {
+    const reason = finishReason(choice);
+    throw invalidResponse(
+      'groq',
+      `Resposta vazia da Groq${reason ? ` (${reason})` : ''}.`,
+      reason !== 'CONTENT_FILTER',
+    );
+  }
 
   const model = typeof raw.model === 'string' && raw.model.trim()
     ? raw.model.trim()
