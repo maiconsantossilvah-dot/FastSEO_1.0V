@@ -3,6 +3,7 @@ import {
   buildPipelinePrompts,
   buildProductSource,
   buildQaInput,
+  createProductSource,
   extractProductTitle,
   insertNoticeBeforeSupplier,
   resolveTitleRule,
@@ -55,7 +56,9 @@ describe('pipelineDomain', () => {
     expect(prompts.agent1).toContain('P1\nEXEMPLO');
     expect(prompts.agent1).toContain('Estrutura do título: [Marca] [Modelo]');
     expect(prompts.agent1).toContain('SEO CONTEXT');
-    expect(prompts.agent2).toBe('P2');
+    expect(prompts.agent2).toContain('P2');
+    expect(prompts.agent1).toContain('POLÍTICA FIXA DE INTERPRETAÇÃO CONTROLADA');
+    expect(prompts.agent2).toContain('POLÍTICA FIXA DE AUDITORIA SEMÂNTICA');
     expect(prompts.agent3).toContain('SEO CONTEXT');
   });
 
@@ -76,7 +79,7 @@ describe('pipelineDomain', () => {
     });
 
     expect(titleRule).toEqual({ nome: 'Celular', formula: '[Marca]', ex: 'ACME' });
-    expect(input).toContain('DADOS BRUTOS ORIGINAIS:');
+    expect(input).toContain('DADOS BRUTOS ORIGINAIS — FONTE FACTUAL:');
     expect(input).toContain('\nBRUTO\n\n---\nFICHA GERADA:');
     expect(input).toContain('FICHA GERADA:\nFICHA\nAVISO');
     expect(input).toContain('JSON DE VALIDAÇÃO DA CATEGORIA:\n{"tipo":"celular"}');
@@ -87,10 +90,10 @@ describe('pipelineDomain', () => {
 
     expect(extractProductTitle(raw)).toBe('CREME DENTAL ENLACE KIDS BUBBLE GUM');
     expect(buildProductSource(raw)).toContain(
-      'TÍTULO DO PRODUTO (PARTE DOS DADOS BRUTOS):\nCREME DENTAL ENLACE KIDS BUBBLE GUM',
+      'TÍTULO ORIGINAL DO PRODUTO — FONTE FACTUAL:\nCREME DENTAL ENLACE KIDS BUBBLE GUM',
     );
     expect(buildQaInput({ input: raw, ficha: 'FICHA' })).toContain(
-      'TÍTULO DO PRODUTO (PARTE DOS DADOS BRUTOS):\nCREME DENTAL ENLACE KIDS BUBBLE GUM',
+      'TÍTULO ORIGINAL DO PRODUTO — FONTE FACTUAL:\nCREME DENTAL ENLACE KIDS BUBBLE GUM',
     );
   });
 
@@ -98,9 +101,41 @@ describe('pipelineDomain', () => {
     expect(extractProductTitle('Descrição do produto: Garrafa Térmica 1L')).toBe('Garrafa Térmica 1L');
     expect(extractProductTitle('TÍTULO DO PRODUTO:\nPrego de Aço 18x27\nEAN: 1')).toBe('Prego de Aço 18x27');
   });
+
+  it('não promove um campo técnico a título do produto', () => {
+    const source = createProductSource('CARACTERÍSTICAS DO PRODUTO\nPotência: 1200 W\nVoltagem: 220 V\nFornecedor: ACME');
+
+    expect(source).toMatchObject({ title: '', titleSource: 'absent', titleConfidence: 'none' });
+    expect(buildProductSource(source)).toContain('TÍTULO ORIGINAL DO PRODUTO — FONTE FACTUAL:\nNÃO IDENTIFICADO');
+  });
+
+  it('permite reutilizar a mesma fonte canônica no contrato do A1 e do A2', () => {
+    const source = createProductSource('Título: Garrafa Térmica 1L\nMaterial: inox');
+    const a1 = buildProductSource(source);
+    const a2 = buildQaInput({ productSource: source, ficha: 'FICHA' });
+
+    expect(a1).toContain('Garrafa Térmica 1L');
+    expect(a2).toContain('Garrafa Térmica 1L');
+    expect(a2).toContain('DADOS BRUTOS ORIGINAIS — FONTE FACTUAL:');
+  });
 });
 
 describe('pipelineOrchestrator', () => {
+  it('entrega a mesma fonte canônica do título ao A1 e ao A2', async () => {
+    const dependencies = createDependencies();
+    const raw = 'Título: Garrafa Térmica 1L\nMaterial: inox\nFornecedor: ACME';
+    const productSource = createProductSource(raw);
+
+    await runPipelineAgents(baseOptions({ input: raw, productSource }), dependencies);
+
+    expect(dependencies.callAgent.mock.calls[0][1]).toContain(
+      'TÍTULO ORIGINAL DO PRODUTO — FONTE FACTUAL:\nGarrafa Térmica 1L',
+    );
+    expect(dependencies.callAgent.mock.calls[1][1]).toContain(
+      'TÍTULO ORIGINAL DO PRODUTO — FONTE FACTUAL:\nGarrafa Térmica 1L',
+    );
+  });
+
   it('executa A1, A2 e A3 em ordem e retorna um resultado aprovado', async () => {
     const dependencies = createDependencies();
     const result = await runPipelineAgents(baseOptions(), dependencies);

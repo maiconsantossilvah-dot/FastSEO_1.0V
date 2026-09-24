@@ -48,7 +48,7 @@ A aba Ficha Técnica é usada para processar dados brutos de produtos e gerar um
 5. Aguarde as etapas A1 Formatador, A2 Conferente e A3 Copywriter.
 6. Revise o resultado gerado.
 
-O título ou descrição principal presente na entrada faz parte dos dados brutos e é destacado para o A1 e o A2. O A3 não bloqueia a ficha: se o serviço do copywriter falhar, a ficha e a conferência continuam visíveis e o conteúdo pode ser gerado novamente pelo botão. Quando o A2 reprovar, o A3 não é executado automaticamente, mas a geração manual permanece disponível para revisão.
+O título ou descrição principal presente na entrada faz parte dos dados brutos e é destacado para o A1 e o A2. Os agentes podem interpretar sinônimos, decompor o título e reorganizar os mesmos fatos em campos mais claros, mas não podem completar informações ausentes nem ampliar a finalidade do produto. O A3 não bloqueia a ficha: se o serviço do copywriter falhar, a ficha e a conferência continuam visíveis e o conteúdo pode ser gerado novamente pelo botão. Quando o A2 reprovar, o A3 não é executado automaticamente, mas a geração manual permanece disponível para revisão.
 
 O contador de tokens é atualizado conforme cada agente responde. Ele separa entrada, saída e total por chamada e mostra o resumo do processamento, sem incluir ou transmitir a chave da IA.
 
@@ -70,6 +70,8 @@ Ações disponíveis:
 A área de Categorias serve para cadastrar referências e exemplos que ajudam o pipeline a identificar famílias de produtos e formatá-las corretamente. O catálogo de trabalho e a versão publicada são gerenciados pelo backend.
 
 Use categorias quando quiser orientar o padrão de uma linha de produtos, como eletrodomésticos, cosméticos, alimentos, eletrônicos ou outras famílias.
+
+O matching é conservador e usa o título ou a descrição principal como evidência de identidade. Menções em compatibilidade, aplicação, acessórios, itens inclusos ou especificações não transformam o item naquela categoria. Quando a evidência for insuficiente ou ambígua, a ficha é processada sem categoria, em vez de aplicar uma estrutura incorreta.
 
 Somente `owner` e `admin` podem criar, editar, importar, publicar ou excluir categorias. Colaboradores e espectadores usam apenas o catálogo publicado.
 
@@ -220,7 +222,7 @@ Se o backend confirmar que o Firestore está indisponível, o FastSEO abre autom
 
 ### A categoria não foi aplicada
 
-Confirme se a categoria foi publicada. Rascunhos são visíveis para administração, mas o pipeline consome o catálogo publicado.
+Confirme se a categoria foi publicada e se o nome do produto ou um alias aparece no título/descrição principal. Rascunhos são visíveis para administração, mas o pipeline consome o catálogo publicado. Menções apenas em compatibilidade, aplicação ou especificações são ignoradas de propósito para evitar falsos positivos.
 
 ### O resultado veio incompleto
 

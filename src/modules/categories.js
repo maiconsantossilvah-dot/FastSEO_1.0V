@@ -13,6 +13,7 @@ import {
 } from './categoryQaSchema.js';
 import { UserAccess } from '../services/userAccess.js';
 import { CategoryCatalogApi } from '../services/categoryCatalog.js';
+import { createProductSource } from './pipelineDomain.js';
 const LS_CATS = 'ficha_categorias'; // chave de cache local
 
 // Caches em memória separados evitam misturar rascunhos com o catálogo publicado.
@@ -229,7 +230,14 @@ export const Categories = {
 
   async resolveDetailed(input) {
     if (UserAccess.isDegraded()) {
-      return { categories: [], titleRule: null, catalogVersion: _catalogVersion, degraded: true };
+      return {
+        categories: [],
+        titleRule: null,
+        catalogVersion: _catalogVersion,
+        degraded: true,
+        categoryMatch: { reason: 'NO_IDENTITY_EVIDENCE', confidence: 0, score: 0, runnerUpScore: 0, evidenceZone: 'none' },
+        productSource: createProductSource(input),
+      };
     }
     if (!_backendAvailable) await this.refresh();
     const payload = await CategoryCatalogApi.resolve(input);
@@ -243,7 +251,18 @@ export const Categories = {
       ex: payload.titleRule.example || '',
       confidence: Number(payload.titleRule.confidence || 0),
     } : null;
-    return { categories, titleRule, catalogVersion: Number(payload.catalogVersion || 0) };
+    const productSource = {
+      ...createProductSource(input),
+      ...(payload.productSource || {}),
+      rawText: String(input || '').trim(),
+    };
+    return {
+      categories,
+      titleRule,
+      categoryMatch: payload.categoryMatch || null,
+      productSource,
+      catalogVersion: Number(payload.catalogVersion || 0),
+    };
   },
 
   async previewLegacyMigration() {

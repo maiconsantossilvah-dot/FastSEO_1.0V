@@ -59,6 +59,7 @@ const docs = [
     bullets: [
       'Cole os dados no campo Input.',
       'O título ou descrição principal presente no input também é tratado como dado bruto.',
+      'A IA pode reorganizar e interpretar os mesmos fatos, mas não completar informações ausentes.',
       'Opcionalmente importe PDF, planilha ou CSV.',
       'Revise se as informações principais estão presentes.',
       'Clique em Processar ficha.',
@@ -94,6 +95,8 @@ const docs = [
     ],
     bullets: [
       'Defina nome, tipo do perfil, herança, aliases e termos negativos.',
+      'O matching usa a identidade do título; compatibilidade, aplicação e especificações não definem a categoria.',
+      'Quando a evidência é ambígua, o pipeline continua sem categoria para evitar falso positivo.',
       'Defina campos obrigatórios, opcionais, ficha ideal, título e modificadores.',
       'Para análise da IA, forneça cinco fichas reais e clique no botão somente quando desejar gastar tokens.',
       'Ao aprovar a proposta da IA, ela substitui a configuração atual do rascunho.',

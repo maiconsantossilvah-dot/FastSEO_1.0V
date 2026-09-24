@@ -45,6 +45,14 @@ import {
   trackRegeneracao,
 } from '../services/analytics.js';
 
+const CATEGORY_MATCH_REASON_LABELS = {
+  NO_IDENTITY_EVIDENCE: 'sem evidência de categoria no título ou descrição principal',
+  CONTEXT_ONLY: 'categoria citada apenas em compatibilidade, aplicação ou acessório',
+  AMBIGUOUS_MATCH: 'mais de uma categoria possível sem diferença segura',
+  NEGATIVE_TERM: 'termo de exclusão da categoria identificado',
+  BELOW_THRESHOLD: 'evidência de categoria insuficiente',
+};
+
 // Helper: busca keywords SEO antes de chamar os agentes
 // Retorna uma string de contexto para injetar nos prompts,
 // ou '' se a chave SerpAPI não estiver configurada / ocorrer erro.
@@ -280,6 +288,7 @@ export const Pipeline = {
       // catálogo publicado quanto o legado ainda não migrado com o mesmo algoritmo.
       const resolution = await Categories.resolveDetailed(input);
       const matched = resolution.categories.slice(0, 1);
+      const productSource = resolution.productSource;
       telemetryContext.category = matched[0]?.nome || categoriaAtual || '';
       const categoriaComAviso = matched.find(cat => getCategoryNotice(cat.avisoFichaTipo).text);
       const aviso = categoriaComAviso ? getCategoryNotice(categoriaComAviso.avisoFichaTipo).text : '';
@@ -296,6 +305,11 @@ export const Pipeline = {
         PipelineUI.log('Nenhuma categoria configurada - processando sem exemplos', 'i');
       } else if (matched.length === 0) {
         PipelineUI.log('Atenção: produto sem categoria correspondente - processando sem exemplos', 'w');
+        if (resolution.categoryMatch?.reason) {
+          const reason = CATEGORY_MATCH_REASON_LABELS[resolution.categoryMatch.reason]
+            || resolution.categoryMatch.reason;
+          PipelineUI.log(`Matching conservador: ${reason}.`, 'i');
+        }
         this._showCategoryWarning();
       } else {
         PipelineUI.log(`${matched.length} categoria(s) aplicada(s): ${matched.map(c => c.nome).join(', ')}`, 'o');
@@ -329,6 +343,7 @@ export const Pipeline = {
         reprovado,
       } = await runPipelineAgents({
         input,
+        productSource,
         bivolt,
         prompts,
         notice: aviso,

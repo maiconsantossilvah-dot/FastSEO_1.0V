@@ -88,4 +88,12 @@ describe('resolução de regra de título', () => {
     ]);
     expect(result?.id).toBe('garrafa-termica');
   });
+
+  it('não aplica regra de título a produto citado apenas em compatibilidade', () => {
+    const result = matchTitleRule('Mouse sem fio\nCompatibilidade: notebook', [
+      { id: 'notebook', name: 'Notebook', formula: 'Produto + Marca + Modelo', example: '', source: 'manual', revision: 1 },
+    ]);
+
+    expect(result).toBeNull();
+  });
 });

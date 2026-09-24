@@ -1,7 +1,34 @@
-import type { CategoryModifier, CategoryProfile, CategoryResolution } from './types.js';
+import type {
+  CategoryMatchDiagnostics,
+  CategoryModifier,
+  CategoryProfile,
+  CategoryResolution,
+  ProductSource,
+} from './types.js';
 
-const STOP_WORDS = new Set(['o', 'a', 'os', 'as', 'um', 'uma', 'de', 'do', 'da', 'dos', 'das', 'para', 'com', 'por', 'em', 'no', 'na', 'e']);
-const CONTEXT_CONNECTORS = ['acessorio para', 'peça para', 'peca para', 'refil para', 'suporte para', 'kit para', 'para'];
+const PRODUCT_TITLE_LABEL = /^(?:t[ií]tulo(?:\s+do\s+produto)?|descri[cç][aã]o(?:\s+do\s+produto)?|nome(?:\s+do\s+produto)?|produto|tipo\s+do\s+produto)\s*[:-]\s*(.*)$/i;
+const SOURCE_METADATA = /^(?:ean|gtin|ncm|c[oó]digo(?:\s+do\s+produto)?|cod\.?|sku|fornecedor|marca|fabricante|modelo|refer[eê]ncia|origem|dados\s+extra[ií]dos|aba|linha|p[aá]gina|m3)\b(?:\s*[:-]|\s+\S)/i;
+const TECHNICAL_FIELD = /^(?:pot[eê]ncia|voltagem|tens[aã]o|frequ[eê]ncia|corrente|capacidade|peso|altura|largura|profundidade|comprimento|dimens[oõ]es?|material|cor|quantidade|garantia|compatibilidade|aplica[cç][aã]o|itens?\s+inclusos?|alimenta[cç][aã]o)\b(?:\s*[:-]|\s+\S)/i;
+const SECTION_HEADING = /^(?:dados\s+(?:do\s+produto|brutos)|caracter[ií]sticas(?:\s+do\s+produto|\s+adicionais)?|especifica[cç][oõ]es(?:\s+t[eé]cnicas|\s+el[eé]tricas)?|dimens[oõ]es(?:\s+e\s+peso)?|benef[ií]cios|modo\s+de\s+uso|instala[cç][aã]o|precau[cç][oõ]es|conserva[cç][aã]o\s+e\s+cuidados)\s*:?$/i;
+const CONTEXT_CONNECTORS = [
+  'compatível com', 'compativel com', 'compatibilidade com', 'para uso em', 'uso em',
+  'aplicação em', 'aplicacao em', 'indicado para', 'acessório para', 'acessorio para',
+  'peça para', 'peca para', 'refil para', 'suporte para', 'capa para', 'kit para', 'para',
+];
+const ATTRIBUTE_PRECEDERS = new Set([
+  'com', 'inclui', 'incluso', 'inclusa', 'acompanha', 'contendo', 'alimentacao', 'compativel',
+]);
+const SINGLE_TOKEN_LEADERS = new Set(['o', 'a', 'um', 'uma', 'smart', 'mini', 'micro', 'super', 'ultra']);
+const MIN_SCORE = 100;
+const MIN_MARGIN = 8;
+
+type ScoredProfile = {
+  profile: CategoryProfile;
+  score: number;
+  evidence: string;
+  evidenceTokens: string[];
+  aliasIndex: number;
+};
 
 export function normalizeMatchText(value: unknown): string {
   return String(value || '')
@@ -13,79 +40,171 @@ export function normalizeMatchText(value: unknown): string {
     .trim();
 }
 
-function singular(token: string): string {
+function canonicalToken(token: string): string {
   if (token.length <= 4) return token;
-  if (token.endsWith('oes')) return `${token.slice(0, -3)}ao`;
+  if (token.endsWith('oes') || token.endsWith('aes')) return `${token.slice(0, -3)}ao`;
   if (token.endsWith('ais')) return `${token.slice(0, -3)}al`;
-  if (token.endsWith('is')) return token.slice(0, -2) + 'il';
-  if (token.endsWith('s') && !token.endsWith('ss')) return token.slice(0, -1);
+  if (token.endsWith('eis')) return `${token.slice(0, -3)}el`;
+  if (token.endsWith('ns')) return `${token.slice(0, -2)}m`;
+  if (token.endsWith('s') && !token.endsWith('ss') && !token.endsWith('is') && !token.endsWith('us')) {
+    return token.slice(0, -1);
+  }
   return token;
 }
 
 function tokens(value: string): string[] {
-  return normalizeMatchText(value).split(' ').filter(token => token && !STOP_WORDS.has(token)).map(singular);
+  return normalizeMatchText(value).split(' ').filter(Boolean).map(canonicalToken);
 }
 
-function splitPrincipal(value: string): { principal: string; context: string } {
-  const normalized = normalizeMatchText(value);
-  let bestIndex = -1;
-  let connector = '';
-  for (const candidate of CONTEXT_CONNECTORS) {
-    const normalizedCandidate = normalizeMatchText(candidate);
-    const match = new RegExp(`\\b${normalizedCandidate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).exec(normalized);
-    const index = match?.index ?? -1;
-    if (index > 1 && (bestIndex < 0 || index < bestIndex)) {
-      bestIndex = index;
-      connector = candidate;
-    }
+function phraseIndex(sourceTokens: string[], candidateTokens: string[]): number {
+  if (!candidateTokens.length || candidateTokens.length > sourceTokens.length) return -1;
+  for (let index = 0; index <= sourceTokens.length - candidateTokens.length; index += 1) {
+    if (candidateTokens.every((token, offset) => sourceTokens[index + offset] === token)) return index;
   }
-  if (bestIndex < 0) return { principal: normalized, context: '' };
-  return {
-    principal: normalized.slice(0, bestIndex).trim(),
-    context: normalized.slice(bestIndex + normalizeMatchText(connector).length).trim(),
-  };
+  return -1;
 }
 
-function phraseMatch(source: string, candidate: string): boolean {
-  const sourceTokens = tokens(source);
-  const candidateTokens = tokens(candidate);
-  if (!candidateTokens.length) return false;
-  return candidateTokens.every(token => sourceTokens.includes(token));
+function containsPhrase(source: string, candidate: string): boolean {
+  return phraseIndex(tokens(source), tokens(candidate)) >= 0;
 }
 
 function unique(values: string[]): string[] {
   return [...new Set(values.map(value => value.trim()).filter(Boolean))];
 }
 
-function scoreProfile(input: string, profile: CategoryProfile) {
-  const firstLines = input.split(/\r?\n/).map(line => line.trim()).filter(Boolean).slice(0, 3).join(' ');
-  const { principal, context } = splitPrincipal(firstLines || input);
-  const aliases = unique([profile.name, ...profile.aliases]);
-  const blocked = profile.negativeTerms.some(term => phraseMatch(input, term));
-  if (blocked) return null;
+function isProductTitleCandidate(value: string): boolean {
+  const line = String(value || '').trim();
+  if (line.length < 5 || line.length > 500 || !/[a-zA-ZÀ-ÿ]/.test(line)) return false;
+  if (SOURCE_METADATA.test(line) || TECHNICAL_FIELD.test(line) || SECTION_HEADING.test(line)) return false;
+  if (/^[^:\n]{1,60}\s*:\s*\S/.test(line)) return false;
+  if (/^[-_=─\s]+$/.test(line) || /^\d[\d\s./-]*$/.test(line)) return false;
+  if (/^[A-ZÀ-Ý\s]{2,40}:$/.test(line)) return false;
+  return true;
+}
 
-  let best = 0;
-  let evidence = '';
-  for (const alias of aliases) {
-    const aliasTokens = tokens(alias);
-    if (!aliasTokens.length) continue;
-    let score = 0;
-    if (phraseMatch(principal, alias)) score += 80 + Math.min(aliasTokens.length, 5) * 5;
-    else if (phraseMatch(firstLines, alias)) score += 58 + Math.min(aliasTokens.length, 5) * 4;
-    else if (phraseMatch(input, alias)) score += 38 + Math.min(aliasTokens.length, 5) * 3;
-    if (context && phraseMatch(context, alias) && !phraseMatch(principal, alias)) score = Math.min(score, 24);
-    if (score > best) {
-      best = score;
-      evidence = alias;
+/**
+ * Extrai uma única representação do produto para matching e para os agentes.
+ * O título nunca é reescrito: ele é apenas referenciado a partir do input original.
+ */
+export function createProductSource(input: string): ProductSource {
+  const rawText = String(input || '').trim();
+  const lines = rawText.replace(/\r\n?/g, '\n').split('\n')
+    .map((raw, index) => ({ raw: raw.trim(), index }))
+    .filter(item => Boolean(item.raw));
+
+  for (let position = 0; position < lines.length; position += 1) {
+    const current = lines[position];
+    if (!current) continue;
+    const match = current.raw.match(PRODUCT_TITLE_LABEL);
+    if (!match) continue;
+    const inlineValue = String(match[1] || '').trim().slice(0, 500);
+    if (inlineValue && isProductTitleCandidate(inlineValue)) {
+      return {
+        rawText, title: inlineValue, titleSource: 'explicit-label', titleConfidence: 'high', titleLine: current.index,
+      };
+    }
+
+    const next = lines[position + 1];
+    if (next && isProductTitleCandidate(next.raw)) {
+      return {
+        rawText, title: next.raw.slice(0, 500), titleSource: 'following-label', titleConfidence: 'high', titleLine: next.index,
+      };
     }
   }
 
-  return best >= 35 ? { profile, score: best, evidence } : null;
+  const inferred = lines.slice(0, 20).find(item => isProductTitleCandidate(item.raw));
+  if (inferred) {
+    return {
+      rawText, title: inferred.raw.slice(0, 500), titleSource: 'inferred-line', titleConfidence: 'medium', titleLine: inferred.index,
+    };
+  }
+
+  return { rawText, title: '', titleSource: 'absent', titleConfidence: 'none', titleLine: null };
+}
+
+function contextBoundary(titleTokens: string[]): { connectorIndex: number; contextStart: number } | null {
+  let best: { connectorIndex: number; contextStart: number } | null = null;
+  for (const connector of CONTEXT_CONNECTORS) {
+    const connectorTokens = tokens(connector);
+    const index = phraseIndex(titleTokens, connectorTokens);
+    if (index <= 0) continue;
+    if (!best || index < best.connectorIndex) {
+      best = { connectorIndex: index, contextStart: index + connectorTokens.length };
+    }
+  }
+  return best;
+}
+
+function aliasEvidence(source: ProductSource, alias: string) {
+  if (!source.title || source.titleConfidence === 'none') return null;
+  const titleTokens = tokens(source.title);
+  const aliasTokens = tokens(alias);
+  const aliasIndex = phraseIndex(titleTokens, aliasTokens);
+  if (aliasIndex < 0 || !aliasTokens.length) return null;
+
+  const boundary = contextBoundary(titleTokens);
+  const contextOnly = Boolean(boundary && aliasIndex >= boundary.contextStart);
+  const spansConnector = Boolean(
+    boundary
+    && aliasIndex < boundary.connectorIndex
+    && aliasIndex + aliasTokens.length > boundary.contextStart,
+  );
+  const previous = titleTokens[aliasIndex - 1] || '';
+  const precededByAttribute = ATTRIBUTE_PRECEDERS.has(previous);
+  const positionAllowed = aliasIndex === 0 || (
+    aliasIndex === 1
+    && SINGLE_TOKEN_LEADERS.has(titleTokens[0] || '')
+  );
+
+  if (contextOnly && !spansConnector) return { kind: 'context' as const };
+  if (!positionAllowed || precededByAttribute) return { kind: 'weak' as const };
+
+  const confidenceBase = source.titleConfidence === 'high' ? 120 : 110;
+  const specificity = Math.min(aliasTokens.length, 5) * 12;
+  const exactTitleBonus = aliasTokens.length === titleTokens.length ? 8 : 0;
+  return {
+    kind: 'identity' as const,
+    score: confidenceBase + specificity + exactTitleBonus - aliasIndex * 10,
+    aliasTokens,
+    aliasIndex,
+  };
+}
+
+function scoreProfile(source: ProductSource, profile: CategoryProfile) {
+  const aliases = unique([profile.name, ...profile.aliases]);
+  const blocked = profile.negativeTerms.some(term => containsPhrase(source.rawText, term));
+  if (blocked) return { candidate: null, blocked: true, contextOnly: false, weak: false };
+
+  let best: ScoredProfile | null = null;
+  let contextOnly = false;
+  let weak = false;
+  for (const alias of aliases) {
+    const evidence = aliasEvidence(source, alias);
+    if (!evidence) continue;
+    if (evidence.kind === 'context') {
+      contextOnly = true;
+      continue;
+    }
+    if (evidence.kind === 'weak') {
+      weak = true;
+      continue;
+    }
+    if (!best || evidence.score > best.score) {
+      best = {
+        profile,
+        score: evidence.score,
+        evidence: alias,
+        evidenceTokens: evidence.aliasTokens,
+        aliasIndex: evidence.aliasIndex,
+      };
+    }
+  }
+  return { candidate: best, blocked: false, contextOnly, weak };
 }
 
 function modifierMatches(input: string, modifier: CategoryModifier): boolean {
-  if (modifier.negativeTerms.some(term => phraseMatch(input, term))) return false;
-  return unique([modifier.name, ...modifier.aliases]).some(alias => phraseMatch(input, alias));
+  if (modifier.negativeTerms.some(term => containsPhrase(input, term))) return false;
+  return unique([modifier.name, ...modifier.aliases]).some(alias => containsPhrase(input, alias));
 }
 
 function mergeProfile(profile: CategoryProfile, parents: CategoryProfile[], modifiers: CategoryModifier[]): CategoryProfile {
@@ -125,22 +244,73 @@ function parentChain(profile: CategoryProfile, profiles: CategoryProfile[]): Cat
   return parents;
 }
 
-export function resolveCategory(input: string, profiles: CategoryProfile[], catalogVersion = 0): CategoryResolution | null {
-  const ranked = profiles.map(profile => scoreProfile(input, profile)).filter(Boolean)
-    .sort((a, b) => b!.score - a!.score || b!.profile.name.length - a!.profile.name.length);
+function diagnostics(
+  reason: CategoryMatchDiagnostics['reason'],
+  score = 0,
+  runnerUpScore = 0,
+  confidence = 0,
+): CategoryMatchDiagnostics {
+  return {
+    reason,
+    score,
+    runnerUpScore,
+    confidence: Number(confidence.toFixed(2)),
+    evidenceZone: score > 0 ? 'title' : 'none',
+  };
+}
+
+export function resolveCategoryDetailed(
+  input: string,
+  profiles: CategoryProfile[],
+  catalogVersion = 0,
+  providedSource?: ProductSource,
+): { resolution: CategoryResolution | null; diagnostics: CategoryMatchDiagnostics; productSource: ProductSource } {
+  const productSource = providedSource || createProductSource(input);
+  if (!productSource.title) {
+    return { resolution: null, diagnostics: diagnostics('NO_IDENTITY_EVIDENCE'), productSource };
+  }
+
+  const evaluated = profiles.map(profile => scoreProfile(productSource, profile));
+  const ranked = evaluated.map(item => item.candidate).filter((item): item is ScoredProfile => Boolean(item))
+    .sort((a, b) => b.score - a.score || b.evidenceTokens.length - a.evidenceTokens.length || a.aliasIndex - b.aliasIndex);
   const best = ranked[0];
-  if (!best) return null;
+
+  if (!best) {
+    const reason = evaluated.some(item => item.contextOnly)
+      ? 'CONTEXT_ONLY'
+      : evaluated.some(item => item.blocked)
+        ? 'NEGATIVE_TERM'
+        : evaluated.some(item => item.weak)
+          ? 'BELOW_THRESHOLD'
+          : 'NO_IDENTITY_EVIDENCE';
+    return { resolution: null, diagnostics: diagnostics(reason), productSource };
+  }
+
+  const runnerUp = ranked[1];
+  const runnerUpScore = runnerUp?.score || 0;
+  if (best.score < MIN_SCORE) {
+    return {
+      resolution: null,
+      diagnostics: diagnostics('BELOW_THRESHOLD', best.score, runnerUpScore),
+      productSource,
+    };
+  }
+  if (runnerUp && best.score - runnerUp.score < MIN_MARGIN) {
+    return {
+      resolution: null,
+      diagnostics: diagnostics('AMBIGUOUS_MATCH', best.score, runnerUp.score),
+      productSource,
+    };
+  }
 
   const parents = parentChain(best.profile, profiles);
   const availableModifiers = [...parents.flatMap(parent => parent.modifiers), ...best.profile.modifiers];
   const modifierById = new Map(availableModifiers.map(modifier => [modifier.id, modifier]));
   const matchedModifiers = [...modifierById.values()].filter(modifier => modifierMatches(input, modifier));
   const compiledProfile = mergeProfile(best.profile, parents, matchedModifiers);
-  const runnerUp = ranked[1]?.score || 0;
-  const distance = Math.max(0, best.score - runnerUp);
-  const confidence = Math.min(0.99, Math.max(0.35, (best.score / 120) * 0.75 + Math.min(distance, 40) / 160));
-
-  return {
+  const distance = Math.max(0, best.score - runnerUpScore);
+  const confidence = Math.min(0.99, 0.68 + Math.min(best.score - MIN_SCORE, 40) / 100 + Math.min(distance, 30) / 150);
+  const resolution: CategoryResolution = {
     family: { id: best.profile.id, name: best.profile.name },
     modifiers: matchedModifiers.map(modifier => ({ id: modifier.id, name: modifier.name })),
     confidence: Number(confidence.toFixed(2)),
@@ -149,4 +319,19 @@ export function resolveCategory(input: string, profiles: CategoryProfile[], cata
     compiledProfile,
     catalogVersion,
   };
+
+  return {
+    resolution,
+    diagnostics: diagnostics('MATCHED', best.score, runnerUpScore, confidence),
+    productSource,
+  };
+}
+
+export function resolveCategory(
+  input: string,
+  profiles: CategoryProfile[],
+  catalogVersion = 0,
+  productSource?: ProductSource,
+): CategoryResolution | null {
+  return resolveCategoryDetailed(input, profiles, catalogVersion, productSource).resolution;
 }

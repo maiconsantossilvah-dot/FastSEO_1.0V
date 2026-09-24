@@ -29,6 +29,7 @@ import { slugifyCategory } from './legacyMigration.js';
 import type { CategoryProfile } from './types.js';
 import { userMutationRateLimiter } from '../rateLimit.js';
 import { resolveTitleRule } from '../titleRules/titleRules.service.js';
+import { createProductSource } from './categoryResolver.js';
 
 function actor(req: AuthenticatedRequest) {
   if (!req.currentUser) throw new AppError(401, 'AUTH_REQUIRED', 'Usuário não autenticado.');
@@ -54,9 +55,10 @@ categoriesRouter.get('/category-catalog', requireRole('useFastSeo'), asyncRoute(
 
 categoriesRouter.post('/category-resolve', requireRole('useFastSeo'), asyncRoute(async (req, res) => {
   const { input } = categoryResolveSchema.parse(req.body);
+  const productSource = createProductSource(input);
   const [category, titleRule] = await Promise.all([
-    resolvePublishedCategory(input),
-    resolveTitleRule(input),
+    resolvePublishedCategory(input, productSource),
+    resolveTitleRule(input, productSource),
   ]);
   res.json({ ...category, titleRule });
 }));

@@ -107,7 +107,7 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 - `POST /api/users/:uid/suspend`
 - `POST /api/users/:uid/reactivate`
 - `GET /api/category-catalog`: catálogo publicado usado pelo pipeline.
-- `POST /api/category-resolve`: classifica o produto, compila herança/modificadores e retorna a regra de título correspondente.
+- `POST /api/category-resolve`: classifica o produto pela identidade do título, compila herança/modificadores e retorna a regra de título, a fonte canônica e o diagnóstico do matching.
 - `GET /api/category-profiles`: lista rascunhos para admin/owner.
 - `GET /api/category-profiles/export`: exporta catálogo novo e coleções legadas em JSON.
 - `POST /api/category-profiles`: cria um perfil em rascunho.

@@ -4,6 +4,33 @@ export const CATEGORY_PROFILE_TYPES = ['compact', 'technical', 'generic'] as con
 export type CategoryStatus = (typeof CATEGORY_STATUSES)[number];
 export type CategoryProfileType = (typeof CATEGORY_PROFILE_TYPES)[number];
 
+export type ProductTitleSource = 'explicit-label' | 'following-label' | 'inferred-line' | 'absent';
+export type ProductTitleConfidence = 'high' | 'medium' | 'none';
+
+export interface ProductSource {
+  rawText: string;
+  title: string;
+  titleSource: ProductTitleSource;
+  titleConfidence: ProductTitleConfidence;
+  titleLine: number | null;
+}
+
+export type CategoryMatchReason =
+  | 'MATCHED'
+  | 'NO_IDENTITY_EVIDENCE'
+  | 'CONTEXT_ONLY'
+  | 'AMBIGUOUS_MATCH'
+  | 'NEGATIVE_TERM'
+  | 'BELOW_THRESHOLD';
+
+export interface CategoryMatchDiagnostics {
+  reason: CategoryMatchReason;
+  confidence: number;
+  score: number;
+  runnerUpScore: number;
+  evidenceZone: 'title' | 'none';
+}
+
 export interface CategoryTitleRule {
   formula: string;
   example: string;

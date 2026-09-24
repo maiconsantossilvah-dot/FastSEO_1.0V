@@ -70,7 +70,7 @@ export async function runPipelineAgents(options, dependencies) {
   emit({ type: 'stage-start', stage: 1, mode, bivolt: options.bivolt });
   let ficha = await dependencies.callAgent(
     options.prompts.agent1,
-    buildProductSource(options.input),
+    buildProductSource(options.productSource || options.input),
     7000,
     options.signal,
     1,
@@ -88,6 +88,7 @@ export async function runPipelineAgents(options, dependencies) {
     options.prompts.agent2,
     buildQaInput({
       input: options.input,
+      productSource: options.productSource,
       ficha,
       noticeValidation: options.noticeValidation,
       qaSchemaPrompt: options.qaSchemaPrompt,

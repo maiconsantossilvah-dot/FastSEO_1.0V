@@ -2,9 +2,9 @@ import { FieldValue } from 'firebase-admin/firestore';
 import type { UserDocument } from '../users/types.js';
 import { AppError } from '../errors.js';
 import { adminDb } from '../firebaseAdmin.js';
-import { normalizeMatchText, resolveCategory } from './categoryResolver.js';
+import { normalizeMatchText, resolveCategoryDetailed } from './categoryResolver.js';
 import { convertLegacyCatalog, slugifyCategory } from './legacyMigration.js';
-import type { CategoryProfile } from './types.js';
+import type { CategoryProfile, ProductSource } from './types.js';
 import type { CategoryProfileInput, CategoryProfilePatch } from './categories.schema.js';
 
 const profilesRef = () => adminDb.collection('categoryProfiles');
@@ -261,7 +261,7 @@ export async function deleteProfile(actor: UserDocument, id: string) {
   return { id, deleted: true, catalogVersion: result.version, removed: result.removed };
 }
 
-export async function resolvePublishedCategory(input: string) {
+export async function resolvePublishedCategory(input: string, productSource?: ProductSource) {
   const [catalog, legacyCategories, legacySubcategories] = await Promise.all([
     getPublishedCatalog(),
     adminDb.collection('categories').get(),
@@ -281,8 +281,18 @@ export async function resolvePublishedCategory(input: string) {
 
   // Durante a migração o legado continua disponível, mas a decisão acontece
   // exclusivamente aqui. O navegador não mantém mais um segundo algoritmo.
-  const resolution = resolveCategory(input, [...published, ...legacy], catalog.version);
-  return { resolution, catalogVersion: catalog.version };
+  const result = resolveCategoryDetailed(input, [...published, ...legacy], catalog.version, productSource);
+  return {
+    resolution: result.resolution,
+    categoryMatch: result.diagnostics,
+    productSource: {
+      title: result.productSource.title,
+      titleSource: result.productSource.titleSource,
+      titleConfidence: result.productSource.titleConfidence,
+      titleLine: result.productSource.titleLine,
+    },
+    catalogVersion: catalog.version,
+  };
 }
 
 export function previewProfiles(profiles: CategoryProfile[], existingProfiles: CategoryProfile[]) {

@@ -16,6 +16,7 @@ FONTE E FIDELIDADE
 - Categoria, regra de título e estrutura de referência orientam formato e campos, nunca fornecem valores.
 - Não use pesquisa, conhecimento próprio, exemplos ou suposições. Preserve códigos, EANs, medidas, unidades, associações e todos os dados técnicos relevantes.
 - Pode corrigir espaços, caixa e redação sem mudar o significado. Não amplie propriedades, compatibilidades, aplicações ou desempenho.
+- Interprete semanticamente os mesmos fatos: reconheça sinônimos, decomponha o título, consolide duplicações e escolha campos/blocos claros. A redação pode ser nova; o fato, não.
 - Nunca derive quantidade contando itens de listas. Se houver "Programas: 5", preserve 5 mesmo que a lista tenha outro número de nomes.
 - Garantia só pode aparecer quando houver menção literal nos dados.
 - Copie o fornecedor literalmente, caractere por caractere; ele deve ser a última linha.
@@ -85,6 +86,7 @@ VALIDAÇÃO
 - Não interprete 110/127 V e 220/240 V como bivolt sem indicação de que o mesmo item aceita ambas.
 - Conflito real na fonte bloqueia aprovação mesmo que a ficha omita ou escolha um valor. Variações identificadas, produto/embalagem e conversões exatas não são conflito.
 - Aceite reorganização, campos equivalentes, caixa, acentuação, espaços, separador decimal e conversão matemática exata quando o significado não mudar.
+- Aceite sinônimos, paráfrases fiéis, decomposição do título e consolidação de dados equivalentes; não exija cópia literal fora dos campos que possuem regra explícita de literalidade.
 - Reprove classificação ambígua como marca, modelo, linha, cor ou material quando ela acrescentar significado não sustentado.
 - SEO e benefícios podem reformular fatos, mas não criar propriedade, aplicação, desempenho, compatibilidade ou promessa.
 - Campo obrigatório existente nos brutos e ausente da ficha reprova. Se não existir nos brutos, aceite "Não informado", exceto Marca, Cor, Modelo, Linha, Código, EAN, Fornecedor e Garantia, que devem ser omitidos.

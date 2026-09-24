@@ -5,7 +5,7 @@ import type { UserDocument } from '../users/types.js';
 import { normalizeMatchText } from '../categories/categoryResolver.js';
 import { resolveCategory } from '../categories/categoryResolver.js';
 import { slugifyCategory } from '../categories/legacyMigration.js';
-import type { CategoryProfile } from '../categories/types.js';
+import type { CategoryProfile, ProductSource } from '../categories/types.js';
 import type { TitleRuleInput } from './titleRules.schema.js';
 
 const rulesRef = () => adminDb.collection('titleRules');
@@ -62,7 +62,7 @@ export async function listTitleRules() {
   return sorted.map(rule => ({ ...rule }));
 }
 
-export function matchTitleRule(input: string, rules: ReturnType<typeof publicRule>[]) {
+export function matchTitleRule(input: string, rules: ReturnType<typeof publicRule>[], productSource?: ProductSource) {
   const candidates: CategoryProfile[] = rules.map(rule => ({
     id: rule.id,
     name: rule.name,
@@ -82,14 +82,14 @@ export function matchTitleRule(input: string, rules: ReturnType<typeof publicRul
     revision: rule.revision,
     source: rule.source === 'legacy' ? 'legacy-migration' : 'manual',
   }));
-  const match = resolveCategory(input, candidates);
+  const match = resolveCategory(input, candidates, 0, productSource);
   if (!match) return null;
   const rule = rules.find(item => item.id === match.family.id);
   return rule ? { ...rule, confidence: match.confidence, evidence: match.evidence } : null;
 }
 
-export async function resolveTitleRule(input: string) {
-  return matchTitleRule(input, await listTitleRules());
+export async function resolveTitleRule(input: string, productSource?: ProductSource) {
+  return matchTitleRule(input, await listTitleRules(), productSource);
 }
 
 export async function upsertTitleRule(actor: UserDocument, previousId: string, input: TitleRuleInput) {
