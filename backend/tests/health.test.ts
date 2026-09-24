@@ -61,4 +61,26 @@ describe('health checks', () => {
     expect(warning).toHaveBeenCalledWith(expect.stringContaining('"errorCode":"RESOURCE_EXHAUSTED"'));
     expect(unhandled).not.toHaveBeenCalled();
   });
+
+  it('não expõe as mutações de histórico e prompts sem Firebase ID Token', async () => {
+    const baseUrl = await startApp(async () => undefined);
+
+    const [history, prompt] = await Promise.all([
+      fetch(`${baseUrl}/api/history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ficha: 'forjada' }),
+      }),
+      fetch(`${baseUrl}/api/prompts/P1`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: 'forjado' }),
+      }),
+    ]);
+
+    expect(history.status).toBe(401);
+    expect(prompt.status).toBe(401);
+    expect(await history.json()).toMatchObject({ error: { code: 'AUTH_REQUIRED' } });
+    expect(await prompt.json()).toMatchObject({ error: { code: 'AUTH_REQUIRED' } });
+  });
 });

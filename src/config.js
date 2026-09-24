@@ -13,6 +13,9 @@ export const GROQ_DEFAULT_MODEL = "openai/gpt-oss-120b";
 
 const LOCAL_USERS_API = 'http://localhost:8787/api';
 const RENDER_USERS_API = 'https://fastseo-users-backend-maicons.onrender.com/api';
+// Chave pública do reCAPTCHA Enterprise. Pode ser versionada; não é segredo.
+// Preencha após registrar o app Web no Firebase App Check.
+const FIREBASE_APP_CHECK_SITE_KEY = '6LfDIM0tAAAAAAObpxUAkd6F3fOHztxTSA4damSS';
 const isLocalHost = /^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostname || '');
 
 export const APP_CONFIG = {
@@ -21,6 +24,7 @@ export const APP_CONFIG = {
   inputMaxChars:   20000,
   autoSaveDelay:   700,
   toastDuration:   2000,
+  appCheckSiteKey: String(globalThis.FASTSEO_APPCHECK_SITE_KEY || FIREBASE_APP_CHECK_SITE_KEY).trim(),
   usersApiBaseUrl: globalThis.FASTSEO_BACKEND_URL
     || (isLocalHost ? LOCAL_USERS_API : RENDER_USERS_API),
 };

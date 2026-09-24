@@ -7,6 +7,8 @@ import { usageCallSchema, usageEventSchema } from '../src/usage/usage.schema.js'
 import { previewProfiles } from '../src/categories/categories.service.js';
 import type { CategoryProfile } from '../src/categories/types.js';
 import { matchTitleRule } from '../src/titleRules/titleRules.service.js';
+import { historyCreateSchema, historyUpdateSchema } from '../src/history/history.schema.js';
+import { promptKeySchema, promptUpdateSchema } from '../src/prompts/prompts.schema.js';
 
 function profile(id: string, parentId: string | null = null): CategoryProfile {
   return {
@@ -77,6 +79,51 @@ describe('schemas de telemetria', () => {
       forgedField: true,
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe('schemas de histórico e prompts', () => {
+  const tokenUsage = {
+    calls: [{
+      stage: 1,
+      provider: 'gemini',
+      model: 'gemini-test',
+      kind: 'generation',
+      inputTokens: 100,
+      outputTokens: 20,
+      thinkingTokens: 0,
+      cachedTokens: 0,
+      totalTokens: 120,
+    }],
+    requestCount: 1,
+    inputTokens: 100,
+    outputTokens: 20,
+    thinkingTokens: 0,
+    cachedTokens: 0,
+    totalTokens: 120,
+  };
+
+  it('aceita o histórico normalizado e rejeita campos extras', () => {
+    expect(historyCreateSchema.safeParse({
+      preview: 'Produto', ficha: 'Ficha', conteudo: 'Conteúdo', bivolt: false, tokenUsage,
+    }).success).toBe(true);
+    expect(historyCreateSchema.safeParse({
+      preview: 'Produto', ficha: 'Ficha', conteudo: 'Conteúdo', bivolt: false, tokenUsage, uid: 'forjado',
+    }).success).toBe(false);
+  });
+
+  it('rejeita totais de tokens adulterados e conteúdo excessivo', () => {
+    expect(historyUpdateSchema.safeParse({
+      conteudo: 'Resultado', tokenUsage: { ...tokenUsage, totalTokens: 999 },
+    }).success).toBe(false);
+    expect(historyUpdateSchema.safeParse({ conteudo: 'x'.repeat(50_001), tokenUsage: null }).success).toBe(false);
+  });
+
+  it('aceita somente as seis chaves conhecidas e prompts de até 20 mil caracteres', () => {
+    expect(promptKeySchema.safeParse({ key: 'P3B' }).success).toBe(true);
+    expect(promptKeySchema.safeParse({ key: 'ADMIN' }).success).toBe(false);
+    expect(promptUpdateSchema.safeParse({ value: 'x'.repeat(20_000) }).success).toBe(true);
+    expect(promptUpdateSchema.safeParse({ value: 'x'.repeat(20_001) }).success).toBe(false);
   });
 });
 

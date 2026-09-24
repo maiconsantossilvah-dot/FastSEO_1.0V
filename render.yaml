@@ -22,6 +22,14 @@ services:
         value: "600"
       - key: USER_RATE_LIMIT_MAX
         value: "120"
+      - key: HISTORY_MAX_ITEMS
+        value: "50"
+      - key: HISTORY_DAILY_WRITE_LIMIT
+        value: "200"
+      - key: PROMPT_DAILY_WRITE_LIMIT
+        value: "100"
+      - key: APP_CHECK_ENFORCEMENT
+        value: "false"
       - key: ALLOW_PRODUCTION_BOOTSTRAP
         value: "false"
       - key: FIREBASE_CLIENT_EMAIL

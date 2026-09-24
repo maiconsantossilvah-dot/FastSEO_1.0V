@@ -20,23 +20,18 @@ service cloud.firestore {
       return isActive() && currentUser().role in roles;
     }
 
-    function canManagePrompts() {
-      return hasRole(['owner', 'admin']);
-    }
-
     // Perfis e auditoria são gravados exclusivamente pelo backend (Admin SDK).
     match /users/{uid} {
       allow get: if signedIn() && (request.auth.uid == uid || hasRole(['owner', 'admin']));
       allow list: if hasRole(['owner', 'admin']);
       allow create, update, delete: if false;
 
-      // O histórico pertence ao usuário que o gerou. Mantê-lo como subcoleção
-      // evita consultas globais e impede que um colaborador leia ou apague as
-      // fichas de outro membro da equipe.
+      // O histórico pertence ao usuário que o gerou. O cliente pode ler apenas
+      // o próprio histórico; toda escrita passa pelo backend, que valida schema,
+      // permissão, limite diário e retenção.
       match /history/{historyId} {
         allow read: if isActive() && request.auth.uid == uid;
-        allow create, update, delete: if request.auth.uid == uid
-          && hasRole(['owner', 'admin', 'collaborator']);
+        allow create, update, delete: if false;
       }
     }
 
@@ -76,11 +71,17 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Colaboradores precisam ler os prompts para executar o pipeline, mas só
-    // owner/admin podem alterar as instruções dos agentes.
+    // Colaboradores precisam ler os prompts para executar o pipeline. Alterações
+    // de owner/admin passam pelo backend e geram auditoria sem armazenar o texto
+    // do prompt no log.
     match /prompts/{document=**} {
       allow read: if isActive();
-      allow write: if canManagePrompts();
+      allow write: if false;
+    }
+
+    // Contadores de abuso são internos e nunca ficam visíveis ao navegador.
+    match /mutationQuotas/{document=**} {
+      allow read, write: if false;
     }
 
     // Coleção legada mantida apenas para consulta administrativa durante a transição.

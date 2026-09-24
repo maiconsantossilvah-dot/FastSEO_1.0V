@@ -9,9 +9,12 @@ import { usersRouter } from './users/users.routes.js';
 import { categoriesRouter } from './categories/categories.routes.js';
 import { usageRouter } from './usage/usage.routes.js';
 import { titleRulesRouter } from './titleRules/titleRules.routes.js';
+import { historyRouter } from './history/history.routes.js';
+import { promptsRouter } from './prompts/prompts.routes.js';
 import { adminDb } from './firebaseAdmin.js';
 import { asyncRoute } from './http/asyncRoute.js';
 import { CATEGORY_MATCHER_VERSION } from './categories/categoryResolver.js';
+import { requireAppCheck } from './auth/requireAppCheck.js';
 
 interface CreateAppOptions {
   checkFirestore?: () => Promise<void>;
@@ -61,7 +64,7 @@ export function createApp(options: CreateAppOptions = {}) {
       callback(new AppError(403, 'ORIGIN_NOT_ALLOWED', 'Origem não autorizada.'));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type', 'X-Request-ID'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'X-Request-ID', 'X-Firebase-AppCheck'],
     exposedHeaders: ['X-Request-ID', 'RateLimit', 'RateLimit-Policy'],
     maxAge: 3600,
   }));
@@ -88,7 +91,17 @@ export function createApp(options: CreateAppOptions = {}) {
       res.status(503).json({ status: 'not_ready', firestore: 'unavailable' });
     }
   }));
-  app.use('/api', apiRateLimiter, usersRouter, categoriesRouter, titleRulesRouter, usageRouter);
+  app.use(
+    '/api',
+    apiRateLimiter,
+    requireAppCheck,
+    usersRouter,
+    historyRouter,
+    promptsRouter,
+    categoriesRouter,
+    titleRulesRouter,
+    usageRouter,
+  );
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;

@@ -1,5 +1,6 @@
 import { applicationDefault, cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { getAppCheck } from 'firebase-admin/app-check';
 import { getFirestore } from 'firebase-admin/firestore';
 import { existsSync, statSync } from 'node:fs';
 import { config } from './config.js';
@@ -39,4 +40,5 @@ const app = getApps()[0] || initializeApp({
 });
 
 export const adminAuth = getAuth(app);
+export const adminAppCheck = getAppCheck(app);
 export const adminDb = getFirestore(app);

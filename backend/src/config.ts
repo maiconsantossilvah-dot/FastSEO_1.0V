@@ -70,4 +70,8 @@ export const config = Object.freeze({
   rateLimitWindowMs: positiveInteger(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000, 'RATE_LIMIT_WINDOW_MS'),
   rateLimitMax: positiveInteger(process.env.RATE_LIMIT_MAX, 120, 'RATE_LIMIT_MAX'),
   userRateLimitMax: positiveInteger(process.env.USER_RATE_LIMIT_MAX, 120, 'USER_RATE_LIMIT_MAX'),
+  historyMaxItems: positiveInteger(process.env.HISTORY_MAX_ITEMS, 50, 'HISTORY_MAX_ITEMS'),
+  historyDailyWriteLimit: positiveInteger(process.env.HISTORY_DAILY_WRITE_LIMIT, 200, 'HISTORY_DAILY_WRITE_LIMIT'),
+  promptDailyWriteLimit: positiveInteger(process.env.PROMPT_DAILY_WRITE_LIMIT, 100, 'PROMPT_DAILY_WRITE_LIMIT'),
+  appCheckEnforcement: enabled(process.env.APP_CHECK_ENFORCEMENT),
 });

@@ -1,4 +1,4 @@
-import { auth } from '../firebase/firebase.js';
+import { auth, getAppCheckToken } from '../firebase/firebase.js';
 import { APP_CONFIG } from '../config.js';
 
 const EMPTY_STATE = Object.freeze({ user: null, permissions: null, mode: 'signed-out' });
@@ -38,7 +38,10 @@ async function request(path, options = {}) {
   const firebaseUser = auth.currentUser;
   if (!firebaseUser) throw new UsersApiError('Sua sessão expirou. Entre novamente.', 'AUTH_REQUIRED', 401);
 
-  const token = await firebaseUser.getIdToken();
+  const [token, appCheckToken] = await Promise.all([
+    firebaseUser.getIdToken(),
+    getAppCheckToken(),
+  ]);
   const retryDelays = retryOnWake ? WAKE_RETRY_DELAYS : [0];
 
   for (const [attempt, wait] of retryDelays.entries()) {
@@ -55,6 +58,7 @@ async function request(path, options = {}) {
         signal: requestSignal,
         headers: {
           Authorization: `Bearer ${token}`,
+          ...(appCheckToken ? { 'X-Firebase-AppCheck': appCheckToken } : {}),
           ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
           ...fetchOptions.headers,
         },

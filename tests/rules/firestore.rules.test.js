@@ -29,12 +29,15 @@ beforeEach(async () => {
 afterAll(async () => environment.cleanup());
 
 describe('isolamento do histórico', () => {
-  it('permite que colaborador grave e leia apenas o próprio histórico', async () => {
+  it('permite que colaborador leia apenas o próprio histórico e bloqueia escrita direta', async () => {
     const ownDb = environment.authenticatedContext('collab-1').firestore();
     const otherDb = environment.authenticatedContext('viewer-1').firestore();
     const reference = doc(ownDb, 'users', 'collab-1', 'history', 'item-1');
 
-    await assertSucceeds(setDoc(reference, { ficha: 'Produto', ts: new Date() }));
+    await environment.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), 'users', 'collab-1', 'history', 'item-1'), { ficha: 'Produto', ts: new Date() });
+    });
+    await assertFails(setDoc(reference, { ficha: 'Alterado', ts: new Date() }));
     await assertSucceeds(getDoc(reference));
     await assertFails(getDoc(doc(otherDb, 'users', 'collab-1', 'history', 'item-1')));
     const adminDb = environment.authenticatedContext('admin-1').firestore();
@@ -54,10 +57,14 @@ describe('fronteiras de escrita', () => {
     await assertFails(deleteDoc(doc(db, 'subcategories', 'teste')));
   });
 
-  it('restringe prompts a owner/admin e telemetria ao backend', async () => {
+  it('bloqueia escrita direta de prompts e telemetria para qualquer perfil', async () => {
     const ownerDb = environment.authenticatedContext('owner-1').firestore();
     const collaboratorDb = environment.authenticatedContext('collab-1').firestore();
-    await assertSucceeds(setDoc(doc(ownerDb, 'prompts', 'P1'), { value: 'Prompt' }));
+    await environment.withSecurityRulesDisabled(async context => {
+      await setDoc(doc(context.firestore(), 'prompts', 'P1'), { value: 'Prompt' });
+    });
+    await assertSucceeds(getDoc(doc(collaboratorDb, 'prompts', 'P1')));
+    await assertFails(setDoc(doc(ownerDb, 'prompts', 'P1'), { value: 'Alterado pelo owner' }));
     await assertFails(setDoc(doc(collaboratorDb, 'prompts', 'P1'), { value: 'Alterado' }));
     await assertFails(setDoc(doc(ownerDb, 'usageEvents', 'fake'), { totalTokens: 1 }));
   });

@@ -68,6 +68,8 @@ O arquivo `render.yaml`, na raiz do repositório, descreve um Web Service gratui
 - liveness em `/health`, readiness do Firestore em `/ready` e encerramento gracioso em `SIGTERM`;
 - CORS restrito a `https://maiconsantossilvah-dot.github.io`;
 - limite geral por IP e limite separado por UID autenticado nas rotas de mutação, com resposta `429` e cabeçalhos `RateLimit`;
+- cota diária persistente por UID para histórico e prompts, além de retenção dos 50 históricos mais recentes;
+- App Check preparado em modo de monitoramento antes do enforcement;
 - `BOOTSTRAP_OWNER_EMAILS` vazio em produção;
 - credenciais do Firebase em variáveis secretas, nunca dentro da imagem ou do Git.
 
@@ -124,8 +126,27 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 - `POST /api/title-rules/import`: importa ou restaura o conjunto de regras.
 - `POST /api/usage-events`: recebe telemetria autenticada e validada por schema estrito.
 - `GET /api/usage-analytics`: analytics paginado para owner/admin.
+- `POST /api/history`: cria um item somente para o UID autenticado (owner/admin/collaborator).
+- `PATCH /api/history/:id`: altera somente resultado e telemetria do próprio item.
+- `DELETE /api/history`: limpa somente o histórico do UID autenticado.
+- `PUT /api/prompts/:key`: altera uma das seis chaves permitidas (owner/admin) e registra auditoria.
+- `DELETE /api/prompts/:key`: restaura o prompt padrão (owner/admin) e registra auditoria.
 
 Todas as rotas recebem `Authorization: Bearer <Firebase ID Token>`. Cargo, status e UID do ator são sempre lidos do token validado e de `users/{uid}`; valores administrativos enviados pelo frontend não são usados como prova de autorização.
+
+As URLs da API são públicas por necessidade do navegador, mas as operações não são públicas: o backend verifica Firebase ID Token, usuário ativo, cargo, schema estrito, rate limit e cota diária. As Rules negam escrita direta em `prompts` e `users/{uid}/history`, inclusive para owner; o Admin SDK do backend é o único escritor.
+
+## Ativação do Firebase App Check
+
+O código inicia com `APP_CHECK_ENFORCEMENT=false`, sem interromper usuários enquanto o app Web ainda não possui uma chave. Para concluir a ativação:
+
+1. No Firebase Console, abra **App Check**, registre o app Web com **reCAPTCHA Enterprise** e adicione os domínios local e de produção permitidos.
+2. Copie a chave pública do site para `FIREBASE_APP_CHECK_SITE_KEY` em `src/config.js`. A chave pode ser commitada; a credencial privada do Firebase continua somente no Render.
+3. Publique o frontend e mantenha `APP_CHECK_ENFORCEMENT=false`. Confirme no painel do App Check e nos logs que as requisições chegam com `X-Firebase-AppCheck` válido.
+4. No Render, altere `APP_CHECK_ENFORCEMENT` para `true` e faça novo deploy.
+5. Depois de observar o tráfego, habilite enforcement também para o Firestore no Firebase Console. Leituras legítimas do navegador continuam funcionando; escritas diretas já estão bloqueadas pelas Rules.
+
+Em desenvolvimento local, use o token de depuração oficial do App Check e cadastre-o no Console. Não desative a validação em produção e não coloque credenciais de conta de serviço no frontend.
 
 Somente `admin` e `owner` possuem `manageCategoryCatalog`. Colaboradores e espectadores conseguem ler o catálogo publicado e resolver categorias, mas não conseguem consultar rascunhos nem criar, editar, importar, publicar ou excluir perfis.
 

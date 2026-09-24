@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const authState = vi.hoisted(() => ({ currentUser: null }));
 
-vi.mock('../../src/firebase/firebase.js', () => ({ auth: authState }));
+vi.mock('../../src/firebase/firebase.js', () => ({
+  auth: authState,
+  getAppCheckToken: vi.fn(async () => 'app-check-token'),
+}));
 vi.mock('../../src/config.js', () => ({
   APP_CONFIG: { usersApiBaseUrl: 'https://backend.example/api' },
 }));
@@ -45,6 +48,10 @@ describe('UserAccess em modo degradado', () => {
     expect(access.mode).toBe('online');
     expect(UserAccess.isDegraded()).toBe(false);
     expect(UserAccess.can('viewUsers')).toBe(true);
+    expect(fetch.mock.calls[0][1].headers).toMatchObject({
+      Authorization: 'Bearer firebase-token',
+      'X-Firebase-AppCheck': 'app-check-token',
+    });
   });
 
   it('entra no modo local quando o backend identifica quota do Firestore', async () => {

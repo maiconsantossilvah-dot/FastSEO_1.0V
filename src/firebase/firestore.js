@@ -1,8 +1,8 @@
 /**
  * firebase/firestore.js
  * ─────────────────────
- * Expõe leitura do legado e persistência das coleções ainda mantidas no cliente.
- * Categorias e regras de título são alteradas exclusivamente pelo backend.
+ * Expõe leituras em tempo real protegidas pelas Rules. Toda persistência de
+ * prompts e histórico passa pelo backend autenticado e validado.
  *
  * Importa db do firebase.js central — não inicializa de novo.
  *
@@ -18,18 +18,11 @@ import { UserAccess } from '../services/userAccess.js';
 
 import {
   collection,
-  doc,
-  addDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
   getDocs,
   onSnapshot,
   query,
   orderBy,
   limit,
-  serverTimestamp,
-  writeBatch,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 // ── Referências de coleções ──────────────────────────────────
@@ -76,16 +69,15 @@ export const PromptsDB = {
 
   async save(key, value) {
     UserAccess.assert('editPrompts');
-    await setDoc(doc(db, 'prompts', key), {
-      key,
-      value,
-      updatedAt: serverTimestamp(),
+    await UserAccess.request(`/prompts/${encodeURIComponent(key)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ value }),
     });
   },
 
   async delete(key) {
     UserAccess.assert('editPrompts');
-    await deleteDoc(doc(db, 'prompts', key));
+    await UserAccess.request(`/prompts/${encodeURIComponent(key)}`, { method: 'DELETE' });
   },
 
   listen(callback) {
@@ -115,40 +107,34 @@ export const HistoryDB = {
 
   async save(data) {
     UserAccess.assert('editContent');
-    const ref = await addDoc(Refs.history(currentUid()), {
+    const result = await UserAccess.request('/history', {
+      method: 'POST',
+      body: JSON.stringify({
       preview:  data.preview  || '',
       ficha:    data.ficha    || '',
       conteudo: data.conteudo || '',
       bivolt:   !!data.bivolt,
       tokenUsage: data.tokenUsage || null,
-      data:     new Date().toLocaleString('pt-BR'),
-      ts:       serverTimestamp(),
+      }),
     });
-    return ref.id;
+    return result.id;
   },
 
   async updateResult(id, data) {
     UserAccess.assert('editContent');
     if (!id) return;
-    await updateDoc(doc(db, 'users', currentUid(), 'history', id), {
-      conteudo: data.conteudo || '',
-      tokenUsage: data.tokenUsage || null,
-      updatedAt: serverTimestamp(),
+    await UserAccess.request(`/history/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        conteudo: data.conteudo || '',
+        tokenUsage: data.tokenUsage || null,
+      }),
     });
   },
 
   async clearAll() {
     UserAccess.assert('editContent');
-    const history = Refs.history(currentUid());
-    // Firestore limita batches a 500 operações. O laço mantém a exclusão segura
-    // mesmo quando um usuário acumular um histórico maior no futuro.
-    while (true) {
-      const snap = await getDocs(query(history, limit(400)));
-      if (snap.empty) break;
-      const batch = writeBatch(db);
-      snap.docs.forEach(d => batch.delete(d.ref));
-      await batch.commit();
-    }
+    await UserAccess.request('/history', { method: 'DELETE' });
   },
 
   listen(callback) {
