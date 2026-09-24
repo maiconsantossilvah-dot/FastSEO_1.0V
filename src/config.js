@@ -15,7 +15,7 @@ const LOCAL_USERS_API = 'http://localhost:8787/api';
 const RENDER_USERS_API = 'https://fastseo-users-backend-maicons.onrender.com/api';
 // Chave pública do reCAPTCHA Enterprise. Pode ser versionada; não é segredo.
 // Preencha após registrar o app Web no Firebase App Check.
-const FIREBASE_APP_CHECK_SITE_KEY = '6LfDIM0tAAAAAAObpxUAkd6F3fOHztxTSA4damSS';
+const FIREBASE_APP_CHECK_SITE_KEY = '6LcAEs0tAAAAABf3JvGNuFlcdkzlN3rCD9Su0hXk';
 const isLocalHost = /^(localhost|127\.0\.0\.1)$/.test(globalThis.location?.hostname || '');
 
 export const APP_CONFIG = {
