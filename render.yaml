@@ -29,7 +29,7 @@ services:
       - key: PROMPT_DAILY_WRITE_LIMIT
         value: "100"
       - key: APP_CHECK_ENFORCEMENT
-        value: "false"
+        value: "true"
       - key: ALLOW_PRODUCTION_BOOTSTRAP
         value: "false"
       - key: FIREBASE_CLIENT_EMAIL
