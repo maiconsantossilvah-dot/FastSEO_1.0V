@@ -21,11 +21,13 @@ const ATTRIBUTE_PRECEDERS = new Set([
 const SINGLE_TOKEN_LEADERS = new Set(['o', 'a', 'um', 'uma', 'smart', 'mini', 'micro', 'super', 'ultra']);
 const MIN_SCORE = 100;
 const MIN_MARGIN = 8;
+export const CATEGORY_MATCHER_VERSION = 'title-identity-v2';
 
 type ScoredProfile = {
   profile: CategoryProfile;
   score: number;
   evidence: string;
+  evidenceKind: 'name' | 'alias';
   evidenceTokens: string[];
   aliasIndex: number;
 };
@@ -194,6 +196,7 @@ function scoreProfile(source: ProductSource, profile: CategoryProfile) {
         profile,
         score: evidence.score,
         evidence: alias,
+        evidenceKind: normalizeMatchText(alias) === normalizeMatchText(profile.name) ? 'name' : 'alias',
         evidenceTokens: evidence.aliasTokens,
         aliasIndex: evidence.aliasIndex,
       };
@@ -249,6 +252,7 @@ function diagnostics(
   score = 0,
   runnerUpScore = 0,
   confidence = 0,
+  candidate?: ScoredProfile,
 ): CategoryMatchDiagnostics {
   return {
     reason,
@@ -256,6 +260,10 @@ function diagnostics(
     runnerUpScore,
     confidence: Number(confidence.toFixed(2)),
     evidenceZone: score > 0 ? 'title' : 'none',
+    evidence: candidate ? [candidate.evidence] : [],
+    evidenceKind: candidate?.evidenceKind || 'none',
+    candidate: candidate ? { id: candidate.profile.id, name: candidate.profile.name } : null,
+    matcherVersion: CATEGORY_MATCHER_VERSION,
   };
 }
 
@@ -291,14 +299,14 @@ export function resolveCategoryDetailed(
   if (best.score < MIN_SCORE) {
     return {
       resolution: null,
-      diagnostics: diagnostics('BELOW_THRESHOLD', best.score, runnerUpScore),
+      diagnostics: diagnostics('BELOW_THRESHOLD', best.score, runnerUpScore, 0, best),
       productSource,
     };
   }
   if (runnerUp && best.score - runnerUp.score < MIN_MARGIN) {
     return {
       resolution: null,
-      diagnostics: diagnostics('AMBIGUOUS_MATCH', best.score, runnerUp.score),
+      diagnostics: diagnostics('AMBIGUOUS_MATCH', best.score, runnerUp.score, 0, best),
       productSource,
     };
   }
@@ -322,7 +330,7 @@ export function resolveCategoryDetailed(
 
   return {
     resolution,
-    diagnostics: diagnostics('MATCHED', best.score, runnerUpScore, confidence),
+    diagnostics: diagnostics('MATCHED', best.score, runnerUpScore, confidence, best),
     productSource,
   };
 }

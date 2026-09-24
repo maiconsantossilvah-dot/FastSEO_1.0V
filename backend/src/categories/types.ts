@@ -29,6 +29,10 @@ export interface CategoryMatchDiagnostics {
   score: number;
   runnerUpScore: number;
   evidenceZone: 'title' | 'none';
+  evidence: string[];
+  evidenceKind: 'name' | 'alias' | 'none';
+  candidate: { id: string; name: string } | null;
+  matcherVersion: string;
 }
 
 export interface CategoryTitleRule {

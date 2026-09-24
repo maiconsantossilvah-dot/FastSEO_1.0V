@@ -11,6 +11,7 @@ import { usageRouter } from './usage/usage.routes.js';
 import { titleRulesRouter } from './titleRules/titleRules.routes.js';
 import { adminDb } from './firebaseAdmin.js';
 import { asyncRoute } from './http/asyncRoute.js';
+import { CATEGORY_MATCHER_VERSION } from './categories/categoryResolver.js';
 
 interface CreateAppOptions {
   checkFirestore?: () => Promise<void>;
@@ -68,6 +69,8 @@ export function createApp(options: CreateAppOptions = {}) {
   app.get('/health', (_req, res) => res.json({
     status: 'ok',
     service: 'fastseo-users',
+    revision: String(process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || 'unknown').slice(0, 12),
+    categoryMatcher: CATEGORY_MATCHER_VERSION,
     uptime: Math.floor(process.uptime()),
   }));
   app.get('/ready', asyncRoute(async (_req, res) => {

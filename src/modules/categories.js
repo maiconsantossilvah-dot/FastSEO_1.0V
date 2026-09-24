@@ -27,6 +27,38 @@ let _backendProfileIds = new Set();
 const _promotionQueue = new Map();
 let _changeTimer = null; // throttle do evento catsChanged
 
+function canonicalIdentityToken(token) {
+  if (token.length <= 4) return token;
+  if (token.endsWith('oes') || token.endsWith('aes')) return `${token.slice(0, -3)}ao`;
+  if (token.endsWith('ais')) return `${token.slice(0, -3)}al`;
+  if (token.endsWith('eis')) return `${token.slice(0, -3)}el`;
+  if (token.endsWith('ns')) return `${token.slice(0, -2)}m`;
+  if (token.endsWith('s') && !token.endsWith('ss') && !token.endsWith('is') && !token.endsWith('us')) {
+    return token.slice(0, -1);
+  }
+  return token;
+}
+
+function normalizeIdentityText(value) {
+  return String(value || '')
+    .toLocaleLowerCase('pt-BR')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean)
+    .map(canonicalIdentityToken)
+    .join(' ');
+}
+
+function titleContainsEvidence(title, evidence) {
+  const normalizedTitle = normalizeIdentityText(title);
+  const normalizedEvidence = normalizeIdentityText(evidence);
+  if (!normalizedTitle || !normalizedEvidence) return false;
+  return ` ${normalizedTitle} `.includes(` ${normalizedEvidence} `);
+}
+
 function emitChanged() {
   document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
 }
@@ -235,15 +267,26 @@ export const Categories = {
         titleRule: null,
         catalogVersion: _catalogVersion,
         degraded: true,
-        categoryMatch: { reason: 'NO_IDENTITY_EVIDENCE', confidence: 0, score: 0, runnerUpScore: 0, evidenceZone: 'none' },
+        categoryMatch: {
+          reason: 'NO_IDENTITY_EVIDENCE', confidence: 0, score: 0, runnerUpScore: 0,
+          evidenceZone: 'none', evidence: [], evidenceKind: 'none', candidate: null, matcherVersion: 'local-degraded',
+        },
         productSource: createProductSource(input),
       };
     }
     if (!_backendAvailable) await this.refresh();
     const payload = await CategoryCatalogApi.resolve(input);
-    const categories = payload.resolution?.compiledProfile
+    let categories = payload.resolution?.compiledProfile
       ? [normalizeCategory(payload.resolution.compiledProfile)]
       : [];
+    let categoryMatch = payload.categoryMatch ? {
+      ...payload.categoryMatch,
+      evidence: payload.categoryMatch.evidence?.length
+        ? payload.categoryMatch.evidence
+        : payload.resolution?.evidence || [],
+      candidate: payload.categoryMatch.candidate || payload.resolution?.family || null,
+      matcherVersion: payload.categoryMatch.matcherVersion || 'legacy-or-unknown',
+    } : null;
     const titleRule = payload.titleRule ? {
       id: payload.titleRule.id,
       nome: payload.titleRule.name,
@@ -256,10 +299,28 @@ export const Categories = {
       ...(payload.productSource || {}),
       rawText: String(input || '').trim(),
     };
+    // Valida um invariante, sem executar um segundo ranking no navegador: a
+    // evidência vencedora precisa existir como frase no título canônico. Isso
+    // bloqueia respostas de backends antigos que encontravam a categoria em
+    // qualquer trecho do corpo do produto.
+    if (categories.length && categoryMatch) {
+      const identityConfirmed = categoryMatch.evidence
+        .some(item => titleContainsEvidence(productSource.title, item));
+      if (!identityConfirmed) {
+        categories = [];
+        categoryMatch = {
+          ...categoryMatch,
+          reason: 'NO_IDENTITY_EVIDENCE',
+          confidence: 0,
+          evidenceZone: 'none',
+          rejectedOutOfTitleEvidence: true,
+        };
+      }
+    }
     return {
       categories,
       titleRule,
-      categoryMatch: payload.categoryMatch || null,
+      categoryMatch,
       productSource,
       catalogVersion: Number(payload.catalogVersion || 0),
     };

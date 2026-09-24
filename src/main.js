@@ -437,12 +437,14 @@ async function updateInputCategoryHint() {
   if (UserAccess.isDegraded()) {
     hint.hidden = true;
     hint.textContent = '';
+    hint.title = '';
     return;
   }
 
   if (input.length < 3) {
     hint.hidden = true;
     hint.textContent = '';
+    hint.title = '';
     return;
   }
 
@@ -453,6 +455,7 @@ async function updateInputCategoryHint() {
     if (revision === categoryHintRevision) {
       hint.hidden = true;
       hint.textContent = '';
+      hint.title = '';
     }
     return;
   }
@@ -463,6 +466,7 @@ async function updateInputCategoryHint() {
   if (!matchedCats.length && !subcatRule) {
     hint.hidden = true;
     hint.textContent = '';
+    hint.title = '';
     return;
   }
 
@@ -471,9 +475,16 @@ async function updateInputCategoryHint() {
     : 'Categoria cadastrada: não encontrada';
 
   const subcatText = subcatRule ? ` • Padrão: ${subcatRule.nome}` : '';
+  const evidence = resolution.categoryMatch?.evidence || [];
+  const evidenceText = matchedCats.length && evidence.length
+    ? ` • Correspondência: “${evidence.join('”, “')}”`
+    : '';
 
   hint.hidden = false;
-  hint.textContent = `${catText}${subcatText}`;
+  hint.textContent = `${catText}${subcatText}${evidenceText}`;
+  hint.title = resolution.categoryMatch
+    ? `Fonte: ${resolution.categoryMatch.evidenceKind || 'desconhecida'} · Matcher: ${resolution.categoryMatch.matcherVersion || 'desconhecido'}`
+    : '';
 }
 
 document.getElementById('inputText')?.addEventListener('input', () => {

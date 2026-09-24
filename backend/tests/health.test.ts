@@ -27,7 +27,12 @@ describe('health checks', () => {
     const response = await fetch(`${baseUrl}/health`);
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ status: 'ok', service: 'fastseo-users' });
+    expect(await response.json()).toMatchObject({
+      status: 'ok',
+      service: 'fastseo-users',
+      categoryMatcher: 'title-identity-v2',
+      revision: expect.any(String),
+    });
     expect(checkFirestore).not.toHaveBeenCalled();
   });
 

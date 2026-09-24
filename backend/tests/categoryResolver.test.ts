@@ -81,6 +81,41 @@ describe('resolvedor de categorias', () => {
     expect(resolveCategory('Controle remoto universal\nAplicação: ar condicionado split', [arCondicionado])).toBeNull();
   });
 
+  it('não classifica Saco quando o termo aparece somente no corpo do produto', () => {
+    const saco = profile({ id: 'saco', name: 'Saco', aliases: [], negativeTerms: [], modifiers: [] });
+    const input = [
+      '2100601',
+      'LIQUIDO LUSTRADOR FINALIZADOR 3M PRETO 500ML',
+      'EAN: 7891040079742',
+      '',
+      'Enviado pelo fornecedor:',
+      'Sessão: Polimento',
+      'Tipo de Produto: Lustrador',
+      'Textura: Líquido',
+      'Volume: 500 ml',
+      '',
+      'A embalagem de transporte pode conter saco plástico protetor.',
+    ].join('\n');
+    const result = resolveCategoryDetailed(input, [saco]);
+
+    expect(result.resolution).toBeNull();
+    expect(result.diagnostics.reason).toBe('NO_IDENTITY_EVIDENCE');
+    expect(result.productSource.title).toBe('LIQUIDO LUSTRADOR FINALIZADOR 3M PRETO 500ML');
+  });
+
+  it('informa quando a correspondência veio de um alias do catálogo', () => {
+    const result = resolveCategoryDetailed('Squeeze esportiva 750 ml', [profile({})]);
+
+    expect(result.resolution?.family.id).toBe('garrafa');
+    expect(result.diagnostics).toMatchObject({
+      reason: 'MATCHED',
+      evidence: ['squeeze'],
+      evidenceKind: 'alias',
+      candidate: { id: 'garrafa', name: 'Garrafa' },
+      matcherVersion: 'title-identity-v2',
+    });
+  });
+
   it('não confunde uma característica de alimentação com o produto', () => {
     const bateria = profile({ id: 'bateria', name: 'Bateria', aliases: [], negativeTerms: [], modifiers: [] });
 
