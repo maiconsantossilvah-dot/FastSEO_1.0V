@@ -27,7 +27,7 @@ describe('CategoryModalState', () => {
 
     state.scheduleSave(first);
     state.scheduleSave(second);
-    vi.advanceTimersByTime(700);
+    vi.advanceTimersByTime(1500);
 
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalledOnce();

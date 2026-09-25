@@ -210,8 +210,10 @@ function applyAccessExperience() {
 // ── Inicialização do app (só roda uma vez após login) ─────────
 // Ponte: HistoryModal dispara evento, HistoryUI escuta
 document.addEventListener('fastseo:historyRender', () => { HistoryUI.resetPage(); HistoryUI.render(); });
-document.addEventListener('fastseo:catsChanged', () => {
-  scheduleInputCategoryHint(100);
+document.addEventListener('fastseo:catsChanged', event => {
+  // Rascunhos não alteram a resolução operacional. Recalcular aqui fazia cada
+  // autosave do editor disparar novas leituras e requisições desnecessárias.
+  if (event.detail?.affectsResolution !== false) scheduleInputCategoryHint(100);
   if (document.getElementById('categoriasModalOverlay')) {
     CategoriasModal.onCatsChanged();
   }

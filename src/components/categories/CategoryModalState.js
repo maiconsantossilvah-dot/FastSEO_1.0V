@@ -19,7 +19,7 @@ export class CategoryModalState {
     this.aiSuggestion = null;
   }
 
-  scheduleSave(callback, delayMs = 700) {
+  scheduleSave(callback, delayMs = 1500) {
     this.cancelSave();
     this.saveTimer = this.clock.setTimeout(() => {
       this.saveTimer = null;

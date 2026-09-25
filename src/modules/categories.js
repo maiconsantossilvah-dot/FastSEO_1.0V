@@ -2,11 +2,10 @@
  * modules/categories.js
  * ──────────────────────
  * Fachada do catálogo: o backend é a autoridade de leitura operacional,
- * resolução e mutações. Firestore direto existe somente para ler o legado
- * durante a migração; localStorage acelera a primeira pintura da interface.
+ * resolução e mutações. O legado também chega pela API para que cada navegador
+ * não abra sua própria varredura do Firestore; localStorage acelera a pintura.
  */
 
-import { CategoriesDB } from '../firebase/firestore.js';
 import {
   buildCategoryPayload,
   normalizeCategory,
@@ -25,7 +24,6 @@ let _backendAvailable = false;
 let _catalogVersion = 0;
 let _backendProfileIds = new Set();
 const _promotionQueue = new Map();
-let _changeTimer = null; // throttle do evento catsChanged
 
 function canonicalIdentityToken(token) {
   if (token.length <= 4) return token;
@@ -59,8 +57,17 @@ function titleContainsEvidence(title, evidence) {
   return ` ${normalizedTitle} `.includes(` ${normalizedEvidence} `);
 }
 
-function emitChanged() {
-  document.dispatchEvent(new CustomEvent('fastseo:catsChanged'));
+function emitChanged(kind = 'draft', affectsResolution = false) {
+  document.dispatchEvent(new CustomEvent('fastseo:catsChanged', {
+    detail: { kind, affectsResolution },
+  }));
+}
+
+function upsertById(categories, next) {
+  const found = categories.some(category => category.id === next.id);
+  return found
+    ? categories.map(category => category.id === next.id ? next : category)
+    : [...categories, next];
 }
 
 function mergePublishedWithLegacy() {
@@ -155,61 +162,46 @@ export const Categories = {
     _publishedBackendCache = _publishedBackendCache.filter(cat => cat.id !== id);
     _backendProfileIds.delete(id);
     this._writeCache(mergePublishedWithLegacy());
-    emitChanged();
+    emitChanged('deleted', true);
     try {
-      await CategoryCatalogApi.delete(id);
-      await this.refresh();
+      const result = await CategoryCatalogApi.delete(id);
+      _catalogVersion = Number(result.catalogVersion || _catalogVersion);
     } catch (err) {
       _editableCache = beforeEditable;
       _legacyCache = beforeLegacy;
       _publishedBackendCache = beforePublished;
       _backendProfileIds = new Set(beforeEditable.map(cat => cat.id));
       this._writeCache(mergePublishedWithLegacy());
-      emitChanged();
+      emitChanged('rollback', true);
       throw err;
     }
   },
 
   // ─── Sincronização de leitura durante a migração ──────────
   /**
-   * Observa somente a coleção legada e busca o catálogo atual no backend.
-   * Alterações novas chamam refresh explicitamente após a resposta da API.
+   * Restaura o cache local e busca catálogo publicado + legado pelo backend.
+   * Não abre listener Firestore por usuário; mutações locais atualizam o cache.
    *
    * @returns {Function} unsubscribe — chame para parar o listener
    */
   startSync({ remote = !UserAccess.isDegraded() } = {}) {
-    // Carrega cache local enquanto Firestore ainda não respondeu
-    _cache = CategoryCatalogApi.cachedCatalog()?.profiles || this._readLocalFallback();
+    const cached = CategoryCatalogApi.cachedCatalog();
+    _publishedBackendCache = (cached?.profiles || []).map(normalizeCategory);
+    _legacyCache = (cached?.legacyProfiles || []).map(normalizeCategory);
+    _cache = cached ? mergePublishedWithLegacy() : this._readLocalFallback();
     _editableCache = _cache;
-    let stopped = false;
 
     if (!remote) {
       _backendAvailable = false;
-      emitChanged();
-      return () => { stopped = true; };
+      emitChanged('local-cache', false);
+      return () => {};
     }
-
-    const unsubscribeLegacy = CategoriesDB.listen(cats => {
-      if (stopped) return;
-      _legacyCache = (cats || []).map(normalizeCategory);
-      this._writeCache(mergePublishedWithLegacy());
-      if (!_backendAvailable || !_editableCache.length) _editableCache = (cats || []).map(normalizeCategory);
-      // Throttle: dispara o evento no máximo 1x a cada 200ms para evitar
-      // múltiplos re-renders em cascata durante sincronizações do Firestore
-      clearTimeout(_changeTimer);
-      _changeTimer = setTimeout(() => {
-        emitChanged();
-      }, 200);
-    });
 
     this.refresh().catch(err => {
       if (!CategoryCatalogApi.isUnavailable(err)) console.warn('[Categories] Catálogo backend indisponível:', err);
     });
 
-    return () => {
-      stopped = true;
-      unsubscribeLegacy?.();
-    };
+    return () => {};
   },
 
   async refresh() {
@@ -217,7 +209,8 @@ export const Categories = {
     _backendAvailable = true;
     _catalogVersion = Number(catalog.version || 0);
     _publishedBackendCache = catalog.profiles.map(normalizeCategory);
-    if (_publishedBackendCache.length) this._writeCache(mergePublishedWithLegacy());
+    _legacyCache = (catalog.legacyProfiles || []).map(normalizeCategory);
+    this._writeCache(mergePublishedWithLegacy());
 
     if (UserAccess.can('manageCategoryCatalog')) {
       const working = await CategoryCatalogApi.getProfiles();
@@ -226,7 +219,7 @@ export const Categories = {
     } else {
       _editableCache = catalog.profiles.map(normalizeCategory);
     }
-    emitChanged();
+    emitChanged('catalog', true);
     return { catalog: _cache, editable: _editableCache };
   },
 
@@ -234,9 +227,15 @@ export const Categories = {
     UserAccess.assert('manageCategoryCatalog');
     if (!_backendAvailable) throw new Error('Publique categorias somente após atualizar o backend.');
     await this._ensureBackendProfile(id);
-    await CategoryCatalogApi.publish(id);
-    await this.refresh();
-    return this.find(id);
+    const result = await CategoryCatalogApi.publish(id);
+    const published = normalizeCategory(result.profile);
+    _catalogVersion = Number(result.catalogVersion || _catalogVersion);
+    _publishedBackendCache = upsertById(_publishedBackendCache, published);
+    _editableCache = upsertById(_editableCache, published);
+    _backendProfileIds.add(published.id);
+    this._writeCache(mergePublishedWithLegacy());
+    emitChanged('published', true);
+    return published;
   },
 
   async _ensureBackendProfile(id) {
@@ -336,9 +335,9 @@ export const Categories = {
     return CategoryCatalogApi.exportBackup();
   },
 
-  async migrateLegacy() {
+  async migrateLegacy(previewId) {
     UserAccess.assert('manageCategoryCatalog');
-    const result = await CategoryCatalogApi.commitLegacyMigration();
+    const result = await CategoryCatalogApi.commitLegacyMigration(previewId);
     await this.refresh();
     return result;
   },

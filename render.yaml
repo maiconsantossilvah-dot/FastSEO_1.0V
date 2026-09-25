@@ -28,6 +28,12 @@ services:
         value: "200"
       - key: PROMPT_DAILY_WRITE_LIMIT
         value: "100"
+      - key: CATEGORY_CATALOG_CACHE_TTL_MS
+        value: "600000"
+      - key: TITLE_RULE_CACHE_TTL_MS
+        value: "600000"
+      - key: CATEGORY_MIGRATION_PREVIEW_TTL_MS
+        value: "600000"
       - key: APP_CHECK_ENFORCEMENT
         value: "true"
       - key: ALLOW_PRODUCTION_BOOTSTRAP

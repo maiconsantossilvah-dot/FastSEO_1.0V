@@ -1,6 +1,8 @@
+import { randomUUID } from 'node:crypto';
 import { FieldValue } from 'firebase-admin/firestore';
 import type { UserDocument } from '../users/types.js';
 import { AppError } from '../errors.js';
+import { config } from '../config.js';
 import { adminDb } from '../firebaseAdmin.js';
 import { normalizeMatchText, resolveCategoryDetailed } from './categoryResolver.js';
 import { convertLegacyCatalog, slugifyCategory } from './legacyMigration.js';
@@ -10,6 +12,25 @@ import type { CategoryProfileInput, CategoryProfilePatch } from './categories.sc
 const profilesRef = () => adminDb.collection('categoryProfiles');
 const publishedRef = () => adminDb.collection('categoryCatalogPublished');
 const catalogMetaRef = () => adminDb.collection('categoryCatalog').doc('meta');
+const IMPORT_BATCH_SIZE = 450;
+
+interface RuntimeCatalog {
+  version: number;
+  publishedProfiles: CategoryProfile[];
+  legacyProfiles: CategoryProfile[];
+  profiles: CategoryProfile[];
+}
+
+interface LegacyMigrationPlan {
+  actorUid: string;
+  expiresAt: number;
+  profiles: CategoryProfile[];
+}
+
+let runtimeCatalogCache: { expiresAt: number; catalog: RuntimeCatalog } | null = null;
+let runtimeCatalogLoad: Promise<RuntimeCatalog> | null = null;
+let runtimeCatalogGeneration = 0;
+const legacyMigrationPlans = new Map<string, LegacyMigrationPlan>();
 
 function iso(value: any): string | null {
   return value?.toDate?.().toISOString?.() || (typeof value === 'string' ? value : null);
@@ -35,6 +56,75 @@ function sortProfiles(profiles: CategoryProfile[]): CategoryProfile[] {
 async function catalogVersion(): Promise<number> {
   const meta = await catalogMetaRef().get();
   return Number(meta.data()?.version || 0);
+}
+
+function invalidateRuntimeCatalog(): void {
+  runtimeCatalogGeneration += 1;
+  runtimeCatalogCache = null;
+  // Uma leitura antiga pode continuar até o fim, mas não será mais reutilizada
+  // nem substituirá a geração criada depois da mutação.
+  runtimeCatalogLoad = null;
+}
+
+async function readRuntimeCatalog(): Promise<RuntimeCatalog> {
+  const [publishedCatalog, legacyCategories, legacySubcategories] = await Promise.all([
+    adminDb.runTransaction(async transaction => {
+      const [snap, meta] = await Promise.all([
+        transaction.get(publishedRef()),
+        transaction.get(catalogMetaRef()),
+      ]);
+      return {
+        version: Number(meta.data()?.version || 0),
+        profiles: sortProfiles(snap.docs.map(fromDoc)),
+      };
+    }),
+    adminDb.collection('categories').get(),
+    adminDb.collection('subcategories').get(),
+  ]);
+  const publishedIds = new Set(publishedCatalog.profiles.map(profile => profile.id));
+  const publishedNames = new Set(publishedCatalog.profiles.map(profile => normalizeMatchText(profile.name)));
+  const legacyProfiles = convertLegacyCatalog(
+    legacyCategories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Parameters<typeof convertLegacyCatalog>[0],
+    legacySubcategories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Parameters<typeof convertLegacyCatalog>[1],
+  ).filter(profile => !publishedIds.has(profile.id) && !publishedNames.has(normalizeMatchText(profile.name)));
+
+  return {
+    version: publishedCatalog.version,
+    publishedProfiles: publishedCatalog.profiles,
+    legacyProfiles: sortProfiles(legacyProfiles),
+    profiles: [...publishedCatalog.profiles, ...legacyProfiles],
+  };
+}
+
+async function getRuntimeCatalog(): Promise<RuntimeCatalog> {
+  if (runtimeCatalogCache && runtimeCatalogCache.expiresAt > Date.now()) {
+    return runtimeCatalogCache.catalog;
+  }
+  if (runtimeCatalogLoad) return runtimeCatalogLoad;
+
+  const generation = runtimeCatalogGeneration;
+  const load = readRuntimeCatalog().then(catalog => {
+    if (generation === runtimeCatalogGeneration) {
+      runtimeCatalogCache = {
+        expiresAt: Date.now() + config.categoryCatalogCacheTtlMs,
+        catalog,
+      };
+    }
+    return catalog;
+  });
+  runtimeCatalogLoad = load;
+  try {
+    return await load;
+  } finally {
+    if (runtimeCatalogLoad === load) runtimeCatalogLoad = null;
+  }
+}
+
+function pruneLegacyMigrationPlans(): void {
+  const now = Date.now();
+  legacyMigrationPlans.forEach((plan, id) => {
+    if (plan.expiresAt <= now) legacyMigrationPlans.delete(id);
+  });
 }
 
 function auditRecord(action: string, actor: UserDocument, targetId: string, details: Record<string, unknown> = {}) {
@@ -81,18 +171,14 @@ export async function listWorkingProfiles() {
 }
 
 export async function getPublishedCatalog() {
-  // Perfil e versão são lidos na mesma transação para que o cache nunca associe
-  // uma versão nova a um conjunto antigo de documentos.
-  return adminDb.runTransaction(async transaction => {
-    const [snap, meta] = await Promise.all([
-      transaction.get(publishedRef()),
-      transaction.get(catalogMetaRef()),
-    ]);
-    return {
-      version: Number(meta.data()?.version || 0),
-      profiles: sortProfiles(snap.docs.map(fromDoc)).map(publicProfile),
-    };
-  });
+  const catalog = await getRuntimeCatalog();
+  return {
+    version: catalog.version,
+    profiles: catalog.publishedProfiles.map(publicProfile),
+    // O navegador recebe o legado pela API e não precisa manter um listener
+    // Firestore próprio para cada usuário conectado.
+    legacyProfiles: catalog.legacyProfiles.map(publicProfile),
+  };
 }
 
 export async function exportCategoryBackup() {
@@ -204,6 +290,7 @@ export async function publishProfile(actor: UserDocument, id: string) {
     );
     return { profile: publication, version };
   });
+  invalidateRuntimeCatalog();
   return { profile: publicProfile(result.profile), catalogVersion: result.version };
 }
 
@@ -258,30 +345,16 @@ export async function deleteProfile(actor: UserDocument, id: string) {
       },
     };
   });
+  invalidateRuntimeCatalog();
   return { id, deleted: true, catalogVersion: result.version, removed: result.removed };
 }
 
 export async function resolvePublishedCategory(input: string, productSource?: ProductSource) {
-  const [catalog, legacyCategories, legacySubcategories] = await Promise.all([
-    getPublishedCatalog(),
-    adminDb.collection('categories').get(),
-    adminDb.collection('subcategories').get(),
-  ]);
-  const published = catalog.profiles as CategoryProfile[];
-  const publishedIds = new Set(published.map(profile => profile.id));
-  const publishedNames = new Set(published.map(profile => normalizeMatchText(profile.name)));
-  const legacyCategoryData = legacyCategories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as
-    Parameters<typeof convertLegacyCatalog>[0];
-  const legacySubcategoryData = legacySubcategories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as
-    Parameters<typeof convertLegacyCatalog>[1];
-  const legacy = convertLegacyCatalog(
-    legacyCategoryData,
-    legacySubcategoryData,
-  ).filter(profile => !publishedIds.has(profile.id) && !publishedNames.has(normalizeMatchText(profile.name)));
-
+  const catalog = await getRuntimeCatalog();
   // Durante a migração o legado continua disponível, mas a decisão acontece
-  // exclusivamente aqui. O navegador não mantém mais um segundo algoritmo.
-  const result = resolveCategoryDetailed(input, [...published, ...legacy], catalog.version, productSource);
+  // exclusivamente aqui. Todas as chamadas concorrentes compartilham a mesma
+  // carga do Firestore e as seguintes usam o cache operacional.
+  const result = resolveCategoryDetailed(input, catalog.profiles, catalog.version, productSource);
   return {
     resolution: result.resolution,
     categoryMatch: result.diagnostics,
@@ -352,14 +425,9 @@ export async function commitImport(actor: UserDocument, profiles: CategoryProfil
   const preview = previewProfiles(profiles, existingProfiles);
   if (preview.conflicts.length) throw new AppError(409, 'IMPORT_CONFLICT', 'A importação possui conflitos que precisam ser corrigidos.');
   const job = adminDb.collection('categoryMigrationJobs').doc();
-  const batch = adminDb.batch();
-  batch.create(job, {
-    source, status: 'completed', total: profiles.length, actorUid: actor.uid, createdAt: FieldValue.serverTimestamp(),
-  });
-  for (const profile of profiles) {
-    const ref = profilesRef().doc(profile.id);
+  const importDocument = (profile: CategoryProfile) => {
     const previous = existingById.get(profile.id);
-    batch.set(ref, {
+    return {
       ...profile,
       status: 'draft',
       source,
@@ -368,17 +436,76 @@ export async function commitImport(actor: UserDocument, profiles: CategoryProfil
       updatedBy: actor.uid,
       createdAt: previous?.createdAt || FieldValue.serverTimestamp(),
       createdBy: previous?.createdBy || actor.uid,
+    };
+  };
+
+  // Importações comuns continuam atômicas. O fluxo em blocos existe apenas
+  // para migrações legadas grandes, que ultrapassariam as 500 operações.
+  if (profiles.length <= 498) {
+    const batch = adminDb.batch();
+    batch.create(job, {
+      source,
+      status: 'completed',
+      total: profiles.length,
+      imported: profiles.length,
+      actorUid: actor.uid,
+      createdAt: FieldValue.serverTimestamp(),
+      completedAt: FieldValue.serverTimestamp(),
     });
+    profiles.forEach(profile => batch.set(profilesRef().doc(profile.id), importDocument(profile)));
+    batch.create(
+      adminDb.collection('auditLogs').doc(),
+      auditRecord('CATEGORY_IMPORT_COMMITTED', actor, job.id, { source, total: profiles.length }),
+    );
+    await batch.commit();
+    return { jobId: job.id, imported: profiles.length, status: 'completed' };
   }
-  batch.create(
-    adminDb.collection('auditLogs').doc(),
-    auditRecord('CATEGORY_IMPORT_COMMITTED', actor, job.id, { source, total: profiles.length }),
-  );
-  await batch.commit();
+
+  await job.create({
+    source,
+    status: 'running',
+    total: profiles.length,
+    imported: 0,
+    actorUid: actor.uid,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  try {
+    for (let offset = 0; offset < profiles.length; offset += IMPORT_BATCH_SIZE) {
+      const chunk = profiles.slice(offset, offset + IMPORT_BATCH_SIZE);
+      const batch = adminDb.batch();
+      for (const profile of chunk) {
+        batch.set(profilesRef().doc(profile.id), importDocument(profile));
+      }
+      batch.set(job, {
+        imported: offset + chunk.length,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      await batch.commit();
+    }
+    const completed = adminDb.batch();
+    completed.set(job, {
+      status: 'completed',
+      imported: profiles.length,
+      completedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    completed.create(
+      adminDb.collection('auditLogs').doc(),
+      auditRecord('CATEGORY_IMPORT_COMMITTED', actor, job.id, { source, total: profiles.length }),
+    );
+    await completed.commit();
+  } catch (error) {
+    await job.set({
+      status: 'failed',
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true }).catch(() => undefined);
+    throw error;
+  }
   return { jobId: job.id, imported: profiles.length, status: 'completed' };
 }
 
-export async function previewLegacyMigration() {
+export async function previewLegacyMigration(actor: UserDocument) {
   const [categories, subcategories, existing] = await Promise.all([
     adminDb.collection('categories').get(),
     adminDb.collection('subcategories').get(),
@@ -388,10 +515,28 @@ export async function previewLegacyMigration() {
     categories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[],
     subcategories.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[],
   );
-  return previewProfiles(converted, existing.docs.map(fromDoc));
+  const preview = previewProfiles(converted, existing.docs.map(fromDoc));
+  pruneLegacyMigrationPlans();
+  const previewId = randomUUID();
+  const expiresAt = Date.now() + config.categoryMigrationPreviewTtlMs;
+  legacyMigrationPlans.set(previewId, { actorUid: actor.uid, expiresAt, profiles: preview.profiles });
+  const { profiles: _profiles, ...publicPreview } = preview;
+  return { ...publicPreview, previewId, expiresAt: new Date(expiresAt).toISOString() };
 }
 
-export async function commitLegacyMigration(actor: UserDocument) {
-  const preview = await previewLegacyMigration();
-  return commitImport(actor, preview.profiles, 'legacy-migration');
+export async function commitLegacyMigration(actor: UserDocument, requestedPreviewId?: string) {
+  pruneLegacyMigrationPlans();
+  const previewId = requestedPreviewId || [...legacyMigrationPlans.entries()]
+    .find(([, plan]) => plan.actorUid === actor.uid)?.[0];
+  const plan = previewId ? legacyMigrationPlans.get(previewId) : null;
+  if (!previewId || !plan || plan.actorUid !== actor.uid) {
+    throw new AppError(
+      410,
+      'MIGRATION_PREVIEW_EXPIRED',
+      'A prévia da migração expirou. Gere uma nova prévia antes de confirmar.',
+    );
+  }
+  const result = await commitImport(actor, plan.profiles, 'legacy-migration');
+  legacyMigrationPlans.delete(previewId);
+  return result;
 }

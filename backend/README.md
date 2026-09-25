@@ -108,7 +108,7 @@ O plano gratuito não exige o pré-pagamento do Google Cloud, mas possui limita�
 - `PATCH /api/users/:uid/role`
 - `POST /api/users/:uid/suspend`
 - `POST /api/users/:uid/reactivate`
-- `GET /api/category-catalog`: catálogo publicado usado pelo pipeline.
+- `GET /api/category-catalog`: catálogo publicado e fallback legado usados pelo pipeline, servidos pelo cache operacional.
 - `POST /api/category-resolve`: classifica o produto pela identidade do título, compila herança/modificadores e retorna a regra de título, a fonte canônica e o diagnóstico do matching.
 - `GET /api/category-profiles`: lista rascunhos para admin/owner.
 - `GET /api/category-profiles/export`: exporta catálogo novo e coleções legadas em JSON.
@@ -160,6 +160,8 @@ Somente `admin` e `owner` possuem `manageCategoryCatalog`. Colaboradores e espec
 6. Revise aliases, herança, termos negativos, campos, título e modificadores.
 7. Publique família por família. O resolvedor do backend combina publicadas e legadas ainda não migradas com o mesmo algoritmo.
 8. Somente após concluir a validação, remova o matcher e as coleções legadas em uma atualização futura.
+
+O catálogo de resolução e as regras de título usam cache em memória com *single-flight*: requisições simultâneas compartilham uma única carga do Firestore. O padrão é 10 minutos (`CATEGORY_CATALOG_CACHE_TTL_MS` e `TITLE_RULE_CACHE_TTL_MS`), com invalidação imediata nas mutações feitas por esta instância. A prévia da migração fica temporariamente associada ao usuário por `CATEGORY_MIGRATION_PREVIEW_TTL_MS`, evitando reler o legado na confirmação; se o processo reiniciar, gere a prévia novamente.
 
 ## Primeiro owner
 

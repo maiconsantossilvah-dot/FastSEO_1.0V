@@ -96,13 +96,21 @@ export const CategoryCatalogApi = {
 
   cachedCatalog() {
     const cached = readCache();
-    return cached ? { ...cached, profiles: (cached.profiles || []).map(categoryFromBackend) } : null;
+    return cached ? {
+      ...cached,
+      profiles: (cached.profiles || []).map(categoryFromBackend),
+      legacyProfiles: (cached.legacyProfiles || []).map(categoryFromBackend),
+    } : null;
   },
 
   async getCatalog() {
     const payload = await UserAccess.request('/category-catalog');
     saveCache(payload);
-    return { ...payload, profiles: (payload.profiles || []).map(categoryFromBackend) };
+    return {
+      ...payload,
+      profiles: (payload.profiles || []).map(categoryFromBackend),
+      legacyProfiles: (payload.legacyProfiles || []).map(categoryFromBackend),
+    };
   },
 
   async getProfiles() {
@@ -136,7 +144,8 @@ export const CategoryCatalogApi = {
   },
 
   async publish(id) {
-    return UserAccess.request(`/category-profiles/${encodeURIComponent(id)}/publish`, { method: 'POST' });
+    const payload = await UserAccess.request(`/category-profiles/${encodeURIComponent(id)}/publish`, { method: 'POST' });
+    return { ...payload, profile: categoryFromBackend(payload.profile) };
   },
 
   async resolve(input) {
@@ -194,8 +203,11 @@ export const CategoryCatalogApi = {
     return UserAccess.request('/category-profiles/migrate-legacy/preview', { method: 'POST' });
   },
 
-  commitLegacyMigration() {
-    return UserAccess.request('/category-profiles/migrate-legacy/commit', { method: 'POST' });
+  commitLegacyMigration(previewId) {
+    return UserAccess.request('/category-profiles/migrate-legacy/commit', {
+      method: 'POST',
+      body: JSON.stringify({ previewId }),
+    });
   },
 
   previewImport(categories) {

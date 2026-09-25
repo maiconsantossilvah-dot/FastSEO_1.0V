@@ -73,5 +73,20 @@ export const config = Object.freeze({
   historyMaxItems: positiveInteger(process.env.HISTORY_MAX_ITEMS, 50, 'HISTORY_MAX_ITEMS'),
   historyDailyWriteLimit: positiveInteger(process.env.HISTORY_DAILY_WRITE_LIMIT, 200, 'HISTORY_DAILY_WRITE_LIMIT'),
   promptDailyWriteLimit: positiveInteger(process.env.PROMPT_DAILY_WRITE_LIMIT, 100, 'PROMPT_DAILY_WRITE_LIMIT'),
+  categoryCatalogCacheTtlMs: positiveInteger(
+    process.env.CATEGORY_CATALOG_CACHE_TTL_MS,
+    10 * 60 * 1000,
+    'CATEGORY_CATALOG_CACHE_TTL_MS',
+  ),
+  titleRuleCacheTtlMs: positiveInteger(
+    process.env.TITLE_RULE_CACHE_TTL_MS,
+    10 * 60 * 1000,
+    'TITLE_RULE_CACHE_TTL_MS',
+  ),
+  categoryMigrationPreviewTtlMs: positiveInteger(
+    process.env.CATEGORY_MIGRATION_PREVIEW_TTL_MS,
+    10 * 60 * 1000,
+    'CATEGORY_MIGRATION_PREVIEW_TTL_MS',
+  ),
   appCheckEnforcement: enabled(process.env.APP_CHECK_ENFORCEMENT),
 });

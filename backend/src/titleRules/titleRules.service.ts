@@ -1,4 +1,5 @@
 import { FieldValue } from 'firebase-admin/firestore';
+import { config } from '../config.js';
 import { adminDb } from '../firebaseAdmin.js';
 import { AppError } from '../errors.js';
 import type { UserDocument } from '../users/types.js';
@@ -9,11 +10,14 @@ import type { CategoryProfile, ProductSource } from '../categories/types.js';
 import type { TitleRuleInput } from './titleRules.schema.js';
 
 const rulesRef = () => adminDb.collection('titleRules');
-const CACHE_TTL_MS = 60_000;
 let cachedRules: { expiresAt: number; rules: ReturnType<typeof publicRule>[] } | null = null;
+let rulesLoad: Promise<ReturnType<typeof publicRule>[]> | null = null;
+let rulesGeneration = 0;
 
 function invalidateRuleCache() {
+  rulesGeneration += 1;
   cachedRules = null;
+  rulesLoad = null;
 }
 
 function publicRule(id: string, data: FirebaseFirestore.DocumentData) {
@@ -27,10 +31,7 @@ function publicRule(id: string, data: FirebaseFirestore.DocumentData) {
   };
 }
 
-export async function listTitleRules() {
-  if (cachedRules && cachedRules.expiresAt > Date.now()) {
-    return cachedRules.rules.map(rule => ({ ...rule }));
-  }
+async function readTitleRules() {
   const [current, legacy] = await Promise.all([
     rulesRef().get(),
     adminDb.collection('subcategories').get(),
@@ -57,9 +58,28 @@ export async function listTitleRules() {
       revision: 1,
     });
   });
-  const sorted = rules.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-  cachedRules = { expiresAt: Date.now() + CACHE_TTL_MS, rules: sorted };
-  return sorted.map(rule => ({ ...rule }));
+  return rules.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+}
+
+export async function listTitleRules() {
+  if (cachedRules && cachedRules.expiresAt > Date.now()) {
+    return cachedRules.rules.map(rule => ({ ...rule }));
+  }
+  if (rulesLoad) return (await rulesLoad).map(rule => ({ ...rule }));
+
+  const generation = rulesGeneration;
+  const load = readTitleRules().then(rules => {
+    if (generation === rulesGeneration) {
+      cachedRules = { expiresAt: Date.now() + config.titleRuleCacheTtlMs, rules };
+    }
+    return rules;
+  });
+  rulesLoad = load;
+  try {
+    return (await load).map(rule => ({ ...rule }));
+  } finally {
+    if (rulesLoad === load) rulesLoad = null;
+  }
 }
 
 export function matchTitleRule(input: string, rules: ReturnType<typeof publicRule>[], productSource?: ProductSource) {

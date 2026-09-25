@@ -7,6 +7,7 @@ import { AppError } from '../errors.js';
 import {
   categoryIdSchema,
   categoryImportSchema,
+  categoryLegacyMigrationCommitSchema,
   categoryProfileInputSchema,
   categoryProfilePatchSchema,
   categoryResolveSchema,
@@ -80,12 +81,13 @@ categoriesRouter.post('/category-profiles/import/commit', requireRole('manageCat
   res.status(201).json(await commitImport(actor(req), importProfiles(req.body)));
 }));
 
-categoriesRouter.post('/category-profiles/migrate-legacy/preview', requireRole('manageCategoryCatalog'), asyncRoute(async (_req, res) => {
-  res.json(await previewLegacyMigration());
+categoriesRouter.post('/category-profiles/migrate-legacy/preview', requireRole('manageCategoryCatalog'), asyncRoute(async (req, res) => {
+  res.json(await previewLegacyMigration(actor(req)));
 }));
 
 categoriesRouter.post('/category-profiles/migrate-legacy/commit', requireRole('manageCategoryCatalog'), userMutationRateLimiter, asyncRoute(async (req, res) => {
-  res.status(201).json(await commitLegacyMigration(actor(req)));
+  const { previewId } = categoryLegacyMigrationCommitSchema.parse(req.body || {});
+  res.status(201).json(await commitLegacyMigration(actor(req), previewId));
 }));
 
 categoriesRouter.post('/category-profiles', requireRole('manageCategoryCatalog'), userMutationRateLimiter, asyncRoute(async (req, res) => {

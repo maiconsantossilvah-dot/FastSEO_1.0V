@@ -297,7 +297,7 @@ export const CategoriasModal = {
       const conflictText = preview.conflicts?.length ? `\n${preview.conflicts.length} conflito(s) precisam ser corrigidos.` : '';
       const confirmed = confirm(`Foram encontrados ${preview.total} perfis: ${preview.creates} novos e ${preview.updates} atualizações.${conflictText}\n\nImportar todos como rascunho? Nada será publicado automaticamente.`);
       if (!confirmed || preview.conflicts?.length) return;
-      await Categories.migrateLegacy();
+      await Categories.migrateLegacy(preview.previewId);
       this._renderList();
       this._showSaved('Migração concluída');
     } catch (error) {

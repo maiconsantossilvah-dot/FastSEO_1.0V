@@ -57,5 +57,11 @@ export const categoryImportSchema = z.object({
   })).min(1).max(200),
 });
 
+export const categoryLegacyMigrationCommitSchema = z.object({
+  // Opcional por compatibilidade com clientes já abertos: nesse caso o backend
+  // usa a prévia ainda válida mais recente criada pelo mesmo usuário.
+  previewId: z.uuid().optional(),
+});
+
 export type CategoryProfileInput = z.infer<typeof categoryProfileInputSchema>;
 export type CategoryProfilePatch = z.infer<typeof categoryProfilePatchSchema>;

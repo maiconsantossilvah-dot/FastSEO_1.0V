@@ -62,7 +62,7 @@ describe('CategoriasModal controller', () => {
     expect(mocks.appState.categories.active).toBe('celular');
     name.value = 'Celulares';
     name.dispatchEvent(new Event('input', { bubbles: true }));
-    await vi.advanceTimersByTimeAsync(700);
+    await vi.advanceTimersByTimeAsync(1500);
 
     expect(mocks.update).toHaveBeenCalledWith('celular', expect.objectContaining({ nome: 'Celulares' }));
   });
