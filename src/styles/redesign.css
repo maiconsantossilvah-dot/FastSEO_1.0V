@@ -1179,7 +1179,7 @@ input::placeholder {
 }
 
 .faq-bulk-input {
-  min-height: 250px !important;
+  min-height: 120px !important;
   font: 12px/1.55 var(--font-mono);
 }
 

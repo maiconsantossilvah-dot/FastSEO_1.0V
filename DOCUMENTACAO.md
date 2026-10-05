@@ -119,12 +119,13 @@ O Histórico guarda fichas já geradas.
 A aba Criador de FAQ serve para montar um bloco de perguntas e respostas em HTML.
 
 1. Abra a aba Criador de FAQ.
-2. Escolha **Manual** para editar cada pergunta ou **Em massa** para colar vários pares.
-3. No modo em massa, cole uma lista numerada ou blocos com tags `<Q>` e `<A>`.
+2. Edite cada pergunta diretamente ou cole vários pares no campo acima da lista.
+3. Para preencher em massa, cole uma lista numerada ou blocos com tags `<Q>` e `<A>`.
 4. Clique em Interpretar conteúdo.
-5. Confira a prévia.
-6. Alterne para a aba HTML se quiser revisar o código.
-7. Copie o HTML final.
+5. As perguntas preenchidas ficam recolhidas; clique em uma delas para editar.
+6. Confira a prévia.
+7. Alterne para a aba HTML se quiser revisar o código.
+8. Copie o HTML final.
 
 Formatos aceitos:
 

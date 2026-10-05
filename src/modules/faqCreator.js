@@ -116,12 +116,12 @@ function updateOutput() {
   }
 }
 
-function renderEditor() {
+function renderEditor(openIndex = state.items.findIndex(item => !item.question.trim() || !item.answer.trim())) {
   const editor = $('faqEditor');
   if (!editor) return;
 
   editor.innerHTML = state.items.map((item, index) => `
-    <details class="faq-editor__item" data-index="${index}"${index === 0 ? ' open' : ''}>
+    <details class="faq-editor__item" data-index="${index}"${index === openIndex ? ' open' : ''}>
   <summary class="faq-editor__bar">
     <strong>Pergunta ${index + 1}</strong>
     <button class="copy-btn faq-remove-btn" type="button" data-action="remove" aria-label="Remover pergunta ${index + 1}"><i data-lucide="trash-2" aria-hidden="true"></i><span>Remover</span></button>
@@ -147,7 +147,7 @@ function renderEditor() {
 function addItem() {
   state.items.push({ question: '', answer: '' });
   scheduleDraftSave();
-  renderEditor();
+  renderEditor(state.items.length - 1);
   $('faqEditor')?.querySelector('.faq-editor__item:last-child input')?.focus();
 }
 
@@ -240,22 +240,8 @@ function fillFromBulk() {
     bulkStatus.dataset.tone = 'success';
   }
 
-  renderEditor();
-  setEditorMode('manual');
-}
-
-function setEditorMode(mode) {
-  const bulk = mode === 'bulk';
-  const bulkTab = $('faqBulkTab');
-  const manualTab = $('faqManualTab');
-  const bulkPanel = $('faqBulkPanel');
-  const manualPanel = $('faqManualPanel');
-  bulkTab?.classList.toggle('is-active', bulk);
-  manualTab?.classList.toggle('is-active', !bulk);
-  bulkTab?.setAttribute('aria-selected', String(bulk));
-  manualTab?.setAttribute('aria-selected', String(!bulk));
-  if (bulkPanel) bulkPanel.hidden = !bulk;
-  if (manualPanel) manualPanel.hidden = bulk;
+  // Itens importados já chegam preenchidos e devem ocupar o mínimo de espaço.
+  renderEditor(-1);
 }
 
 function setOutputMode(mode) {
@@ -336,8 +322,6 @@ function bindEvents() {
   $('faqPasteBulk')?.addEventListener('click', pasteBulkInput);
   $('faqFillFromBulk')?.addEventListener('click', fillFromBulk);
   $('faqCopyHtml')?.addEventListener('click', copyGeneratedHtml);
-  $('faqBulkTab')?.addEventListener('click', () => setEditorMode('bulk'));
-  $('faqManualTab')?.addEventListener('click', () => setEditorMode('manual'));
   $('faqPreviewTab')?.addEventListener('click', () => setOutputMode('preview'));
   $('faqHtmlTab')?.addEventListener('click', () => setOutputMode('html'));
 }

@@ -538,11 +538,7 @@
               </div>
             </div>
             <div class="faq-panel__body">
-              <div class="ui-segmented" role="tablist" aria-label="Modo de edição do FAQ">
-                <button id="faqBulkTab" class="is-active" type="button" role="tab" aria-selected="true" aria-controls="faqBulkPanel">Em massa</button>
-                <button id="faqManualTab" type="button" role="tab" aria-selected="false" aria-controls="faqManualPanel">Manual</button>
-              </div>
-              <div class="faq-editor-tools" id="faqBulkPanel" role="tabpanel" aria-labelledby="faqBulkTab">
+              <div class="faq-editor-tools" id="faqBulkPanel">
                 <label class="faq-field">
                   <span>Colar perguntas e respostas</span>
                   <textarea class="faq-bulk-input" id="faqBulkInput" spellcheck="false"
@@ -553,7 +549,7 @@
                   <span class="faq-bulk-status" id="faqBulkStatus" aria-live="polite"></span>
                 </div>
               </div>
-              <div class="faq-editor" id="faqManualPanel" role="tabpanel" aria-labelledby="faqManualTab" hidden>
+              <div class="faq-editor" id="faqManualPanel">
                 <div id="faqEditor"></div>
               </div>
             </div>
