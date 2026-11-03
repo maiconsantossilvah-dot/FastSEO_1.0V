@@ -102,6 +102,12 @@ describe('pipelineDomain', () => {
     expect(extractProductTitle('TÍTULO DO PRODUTO:\nPrego de Aço 18x27\nEAN: 1')).toBe('Prego de Aço 18x27');
   });
 
+  it('preserva escala numérica com dois-pontos no título inferido', () => {
+    const input = '3024433\nCarrinho MAISTO 1:24 2015 CHEVROLET CORVETTE ZO6 AMARELO\nEAN: 90159311331';
+
+    expect(extractProductTitle(input)).toBe('Carrinho MAISTO 1:24 2015 CHEVROLET CORVETTE ZO6 AMARELO');
+  });
+
   it('não promove um campo técnico a título do produto', () => {
     const source = createProductSource('CARACTERÍSTICAS DO PRODUTO\nPotência: 1200 W\nVoltagem: 220 V\nFornecedor: ACME');
 

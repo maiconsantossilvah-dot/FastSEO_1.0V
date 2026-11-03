@@ -20,6 +20,7 @@ import { HistoryModal } from './components/HistoryModal.js';
 import { PromptModal } from './components/PromptModal.js';
 import { SubcatModal } from './components/SubcatModal.js';
 import { UsersModal } from './components/UsersModal.js';
+import { renderCategoryReferenceIndicator } from './components/CategoryReferenceIndicator.js';
 import { buildExportWithFaqPrompt } from './modules/exportPrompt.js';
 import { createAiRuntime } from './ai/createAiRuntime.js';
 import { systemClock } from './ai/clock.js';
@@ -214,6 +215,7 @@ document.addEventListener('fastseo:catsChanged', event => {
   // Rascunhos não alteram a resolução operacional. Recalcular aqui fazia cada
   // autosave do editor disparar novas leituras e requisições desnecessárias.
   if (event.detail?.affectsResolution !== false) scheduleInputCategoryHint(100);
+  else if (!(document.getElementById('inputText')?.value?.trim())) updateCategoryReferenceSummary();
   if (document.getElementById('categoriasModalOverlay')) {
     CategoriasModal.onCatsChanged();
   }
@@ -240,6 +242,7 @@ async function init() {
     ].filter(cleanup => typeof cleanup === 'function');
   }
   updateRunReadiness();
+  updateCategoryReferenceSummary();
   // Painel começa fechado — History.startSync() atualiza só o badge.
   // A lista é renderizada apenas quando o usuário abrir o painel.
 }
@@ -425,6 +428,14 @@ function updateRunReadiness() {
 let categoryHintTimer = null;
 let categoryHintRevision = 0;
 
+function updateCategoryReferenceSummary(options = {}) {
+  renderCategoryReferenceIndicator(document.getElementById('learnIndicator'), {
+    catalog: Categories.getAll(),
+    degraded: UserAccess.isDegraded(),
+    ...options,
+  });
+}
+
 function scheduleInputCategoryHint(delay = 500) {
   clearTimeout(categoryHintTimer);
   categoryHintTimer = setTimeout(() => { void updateInputCategoryHint(); }, delay);
@@ -437,6 +448,7 @@ async function updateInputCategoryHint() {
   if (!hint) return;
 
   if (UserAccess.isDegraded()) {
+    updateCategoryReferenceSummary();
     hint.hidden = true;
     hint.textContent = '';
     hint.title = '';
@@ -444,6 +456,7 @@ async function updateInputCategoryHint() {
   }
 
   if (input.length < 3) {
+    updateCategoryReferenceSummary();
     hint.hidden = true;
     hint.textContent = '';
     hint.title = '';
@@ -455,6 +468,7 @@ async function updateInputCategoryHint() {
     resolution = await Categories.resolveDetailed(input);
   } catch {
     if (revision === categoryHintRevision) {
+      updateCategoryReferenceSummary({ failed: true });
       hint.hidden = true;
       hint.textContent = '';
       hint.title = '';
@@ -462,6 +476,7 @@ async function updateInputCategoryHint() {
     return;
   }
   if (revision !== categoryHintRevision) return;
+  updateCategoryReferenceSummary({ resolution });
   const matchedCats = resolution.categories;
   const subcatRule = resolution.titleRule;
 

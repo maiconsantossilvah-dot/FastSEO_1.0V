@@ -147,6 +147,8 @@ describe('CategoryModalView', () => {
 
     expect(editor).toContain('id="catEditNome"');
     expect(editor).toContain('id="catAnalyzeAiBtn"');
+    expect(editor).toContain('Esta referência ainda não está ativa na ficha.');
+    expect(editor).toContain('Publicar e ativar');
     expect(modifiersHtml([], true)).toContain('Nenhum modificador');
     expect(aiSuggestionHtml({
       profileType: 'compact', summary: '<b>resumo</b>', aliases: [], requiredFields: [], optionalFields: [], modifiers: [],

@@ -37,6 +37,24 @@ describe('resolvedor de categorias', () => {
     expect(result?.compiledProfile.optionalFields).not.toContain('Tempo de conservação');
   });
 
+  it('identifica Carrinho no título mesmo quando o código vem na primeira linha', () => {
+    const carrinho = profile({
+      id: 'carrinho', name: 'Carrinho', aliases: [], negativeTerms: [], modifiers: [],
+      requiredFields: ['Marca', 'Cor', 'EAN'],
+    });
+    const input = [
+      '3024433',
+      'Carrinho MAISTO 1:24 2015 CHEVROLET CORVETTE ZO6 AMARELO',
+      'EAN: 90159311331',
+      'Fornecedor: MAY CHEONG TOY PR FTY.LTD &&MM',
+    ].join('\n');
+    const result = resolveCategoryDetailed(input, [carrinho]);
+
+    expect(result.resolution?.family.id).toBe('carrinho');
+    expect(result.resolution?.compiledProfile.requiredFields).toEqual(['Marca', 'Cor', 'EAN']);
+    expect(result.productSource.title).toContain('Carrinho MAISTO');
+  });
+
   it('não classifica acessórios e refis como a família principal', () => {
     expect(resolveCategory('Suporte para garrafa térmica de bicicleta', [profile({})])).toBeNull();
     expect(resolveCategory('Refil para garrafa térmica', [profile({})])).toBeNull();

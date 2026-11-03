@@ -81,6 +81,9 @@ export function categoryEditorHtml(category, { canManage, parents, noticeOptions
     `<option value="${escapeHtml(item.id)}"${category.parentId === item.id ? ' selected' : ''}>${escapeHtml(item.nome)}</option>`,
   ).join('');
   const editable = canManage && category.status !== 'archived';
+  const draftNotice = category.status === 'draft'
+    ? `<div class="cats-activation-notice" role="status"><strong>Esta referência ainda não está ativa na ficha.</strong><span>Rascunhos não são consumidos pelo pipeline. Revise os campos e clique em “Publicar e ativar”.</span></div>`
+    : '';
 
   return `<div class="cats-editor-form">
     <div class="cats-editor-hdr">
@@ -88,9 +91,10 @@ export function categoryEditorHtml(category, { canManage, parents, noticeOptions
       <div class="cats-publish-group">
         <span class="cats-status cats-status--${escapeHtml(category.status || 'published')}">${categoryStatusLabel(category.status)}</span>
         ${editable ? '<button class="btn btn-ghost" id="catAnalyzeAiBtn" type="button"><i data-lucide="sparkles" aria-hidden="true"></i> Analisar com IA</button>' : ''}
-        ${editable ? '<button class="btn btn-primary" id="catPublishBtn" type="button"><i data-lucide="cloud-upload" aria-hidden="true"></i> Publicar</button>' : ''}
+        ${editable ? '<button class="btn btn-primary" id="catPublishBtn" type="button"><i data-lucide="cloud-upload" aria-hidden="true"></i> Publicar e ativar</button>' : ''}
       </div>
     </div>
+    ${draftNotice}
     <div class="cats-ai-examples" id="catsAiExamples" hidden>
       <div class="cats-ai-heading"><div><strong>Base para análise da categoria</strong><span>Cole cinco fichas reais. A IA comparará recorrência, variações e complexidade antes de sugerir a estrutura.</span></div><span class="cats-ai-type" id="catsAiExamplesCount">0/5 prontas</span></div>
       <div class="cats-ai-example-grid">${[1, 2, 3, 4, 5].map(number => `

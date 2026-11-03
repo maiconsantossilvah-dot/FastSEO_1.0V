@@ -1848,6 +1848,22 @@ input::placeholder {
   padding: 16px 20px;
 }
 
+.cats-activation-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 20px;
+  color: var(--color-warn);
+  background: var(--color-warn-bg);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-warn) 30%, transparent);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.cats-activation-notice strong {
+  font-size: 12px;
+}
+
 .modal--cats .cats-field {
   padding: 16px 20px;
   gap: 8px;

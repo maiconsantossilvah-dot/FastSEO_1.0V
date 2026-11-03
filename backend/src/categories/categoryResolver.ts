@@ -78,7 +78,11 @@ function isProductTitleCandidate(value: string): boolean {
   const line = String(value || '').trim();
   if (line.length < 5 || line.length > 500 || !/[a-zA-ZÀ-ÿ]/.test(line)) return false;
   if (SOURCE_METADATA.test(line) || TECHNICAL_FIELD.test(line) || SECTION_HEADING.test(line)) return false;
-  if (/^[^:\n]{1,60}\s*:\s*\S/.test(line)) return false;
+  const firstColon = line.indexOf(':');
+  const colonSeparatesNumbers = firstColon > 0
+    && /\d/.test(line.slice(0, firstColon).trimEnd().slice(-1))
+    && /\d/.test(line.slice(firstColon + 1).trimStart().charAt(0));
+  if (!colonSeparatesNumbers && /^[^:\n]{1,60}\s*:\s*\S/.test(line)) return false;
   if (/^[-_=─\s]+$/.test(line) || /^\d[\d\s./-]*$/.test(line)) return false;
   if (/^[A-ZÀ-Ý\s]{2,40}:$/.test(line)) return false;
   return true;
