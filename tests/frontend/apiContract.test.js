@@ -26,10 +26,23 @@ describe('contrato público de api.js', () => {
     await expect(callAgent('sys', 'user', 1500, controller.signal, 2, { onUsage, onEvent })).resolves.toBe('resultado');
     const [agent, request, options] = runtime.generateForAgent.mock.calls[0];
     expect(agent).toBe(2);
-    expect(request).toEqual({ system: 'sys', userMessage: 'user', maxTokens: 1500, jsonMode: true });
+    expect(request).toEqual({
+      system: 'sys', userMessage: 'user', maxTokens: 1500, jsonMode: true, temperature: 0,
+    });
     expect(options.signal).toBe(controller.signal);
     expect(onUsage).toHaveBeenCalledWith(expect.objectContaining({ totalTokens: 3 }));
     expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({ type: 'usage' }));
+  });
+
+  it('define temperatura estável por agente', async () => {
+    const signal = new AbortController().signal;
+
+    await callAgent('s', 'u', 100, signal, 1);
+    await callAgent('s', 'u', 100, signal, 2);
+    await callAgent('s', 'u', 100, signal, 3);
+
+    expect(runtime.generateForAgent.mock.calls.map(([, request]) => request.temperature))
+      .toEqual([0.1, 0, 0.3]);
   });
 
   it('mantém chamada direta ao Gemini sem fallback implícito', async () => {

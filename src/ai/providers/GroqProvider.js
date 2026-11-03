@@ -85,7 +85,9 @@ export class GroqProvider {
     const body = JSON.stringify({
       model,
       max_completion_tokens: request.maxTokens,
-      temperature: request.jsonMode ? 0 : 0.3,
+      temperature: Number.isFinite(request.temperature)
+        ? request.temperature
+        : (request.jsonMode ? 0 : 0.3),
       reasoning_effort: 'low',
       ...(request.jsonMode ? { response_format: { type: 'json_object' } } : {}),
       messages: [

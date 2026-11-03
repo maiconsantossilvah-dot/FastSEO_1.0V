@@ -41,14 +41,20 @@ function createEventSink(options = {}) {
   };
 }
 
-function requestOf(system, userMessage, maxTokens, jsonMode = false) {
+function requestOf(system, userMessage, maxTokens, jsonMode = false, temperature) {
+  const numericTemperature = Number(temperature);
   return {
     system: String(system || ''),
     userMessage: String(userMessage || ''),
     maxTokens: Math.max(1, Math.round(Number(maxTokens) || 1)),
     jsonMode: Boolean(jsonMode),
+    ...(Number.isFinite(numericTemperature)
+      ? { temperature: Math.min(1, Math.max(0, numericTemperature)) }
+      : {}),
   };
 }
+
+const AGENT_TEMPERATURES = Object.freeze({ 1: 0.1, 2: 0, 3: 0.3 });
 
 /** Compatibilidade com a análise de categoria, que exige Gemini explicitamente. */
 export async function callGemini(system, userMsg, maxTokens, _attempt = 1, signal = null, options = {}) {
@@ -77,7 +83,7 @@ export async function callMistral(system, userMsg, maxTokens, signal = null, _at
 export async function callAgent(system, userMsg, maxTokens, signal, agentNum, tracking = {}) {
   const result = await requireRuntime().generateForAgent(
     agentNum,
-    requestOf(system, userMsg, maxTokens, agentNum === 2),
+    requestOf(system, userMsg, maxTokens, agentNum === 2, AGENT_TEMPERATURES[agentNum] ?? 0.3),
     { signal: activeSignal(signal), emit: createEventSink(tracking) },
   );
   return result.text;

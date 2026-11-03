@@ -56,6 +56,7 @@ describe('providers de IA', () => {
     expect(body).toMatchObject({
       model: 'openai/gpt-oss-120b',
       max_completion_tokens: 100,
+      temperature: 0,
       response_format: { type: 'json_object' },
       reasoning_effort: 'low',
     });

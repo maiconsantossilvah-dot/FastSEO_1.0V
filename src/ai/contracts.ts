@@ -23,6 +23,8 @@ export interface ProviderRequest {
   userMessage: string;
   maxTokens: number;
   jsonMode?: boolean;
+  /** Criatividade da geração, normalizada entre 0 e 1 pelo chamador. */
+  temperature?: number;
   /** Modelo resolvido para o agente e provedor desta tentativa. */
   model?: string;
 }

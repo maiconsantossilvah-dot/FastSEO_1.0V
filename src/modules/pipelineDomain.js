@@ -10,7 +10,7 @@ export function buildTitleRuleSnippet(rule) {
   if (!rule?.formula) return '';
   return `\n\n-- PADRÃO DE TÍTULO PARA "${rule.nome}" --\n`
     + `Estrutura do título: ${rule.formula}\n`
-    + 'Siga exatamente essa estrutura ao gerar o TÍTULO SEO desta ficha.';
+    + 'Siga essa estrutura ao gerar o título factual desta ficha, sem acrescentar atributos não comprovados.';
 }
 
 export function resolveTitleRule(matched = [], resolution = {}) {
@@ -60,19 +60,27 @@ function isProductTitleCandidate(value) {
 const A1_INTERPRETATION_POLICY = `
 
 -- POLÍTICA FIXA DE INTERPRETAÇÃO CONTROLADA --
+- Esta política prevalece sobre qualquer instrução anterior incompatível do prompt personalizado.
 - O TÍTULO ORIGINAL e os DADOS BRUTOS ORIGINAIS são fontes factuais com o mesmo valor.
 - Interprete semanticamente o conteúdo: reconheça sinônimos, decomponha o título, reorganize tabelas/listas, agrupe atributos, elimine duplicações equivalentes e use nomes de campos mais claros.
 - Você pode reescrever e estruturar; não pode criar fatos. Cada afirmação factual deve ser rastreável ao título ou aos dados brutos.
 - Não amplie finalidade, compatibilidade, aplicação, desempenho, material, garantia ou benefício além do que a fonte sustenta.
-- Categoria, regra de título, ficha ideal, exemplos e contexto SEO orientam somente a estrutura e nunca comprovam valores.`;
+- Use "Características Principais do Produto:" como bloco central e "Características Adicionais:" para recursos complementares; crie outros blocos apenas quando forem úteis ao produto.
+- Confirmação booleana positiva deve aparecer como afirmação sem ": Sim"; negativa e valores com informação adicional devem preservar o valor.
+- Se houver contradição real, continue gerando com os fatos seguros: não combine versões, não escolha arbitrariamente e omita somente o atributo contraditório. O A2 fará a reprovação.
+- Categoria, regra de título, ficha ideal e exemplos orientam somente a estrutura e nunca comprovam valores.
+- Quando existir, o fornecedor deve ser copiado literalmente e permanecer como a última linha.`;
 
 const A2_INTERPRETATION_POLICY = `
 
 -- POLÍTICA FIXA DE AUDITORIA SEMÂNTICA --
+- Esta política prevalece sobre qualquer instrução anterior incompatível do prompt personalizado.
 - O TÍTULO ORIGINAL é parte dos dados brutos e pode, sozinho, comprovar um atributo da ficha.
 - Aceite paráfrases fiéis, sinônimos, rótulos equivalentes, reorganização, consolidação de duplicatas e conversões exatas.
+- Aceite uma confirmação booleana positiva sem ": Sim"; preserve negativas e valores que contenham informação adicional.
+- Conflito real nos dados brutos sempre reprova, mesmo que a ficha omita o campo. Para o mesmo campo, registre CONFLITO_NA_FONTE sem duplicar como DADO_OMITIDO.
 - Não reprove apenas porque a redação ou o nome do campo mudou; reprove quando o significado mudou, foi ampliado ou não possui fonte.
-- Categoria, regra de título, ficha ideal, exemplos e contexto SEO nunca comprovam fatos.`;
+- Categoria, regra de título, ficha ideal, exemplos e qualquer contexto externo nunca comprovam fatos.`;
 
 /**
  * Identifica o título comercial já presente na entrada. O valor continua sendo
@@ -134,7 +142,8 @@ export function buildPipelinePrompts({ getPrompt, bivolt, fewShot = '', titleRul
   const withSeo = base => seoContext ? `${base}\n\n${seoContext}` : base;
 
   return {
-    agent1: withSeo(getPrompt(bivolt ? 'P1B' : 'P1') + fewShot + titleSnippet) + A1_INTERPRETATION_POLICY,
+    // A ficha técnica é factual; contexto SEO fica restrito ao conteúdo comercial do A3.
+    agent1: getPrompt(bivolt ? 'P1B' : 'P1') + fewShot + titleSnippet + A1_INTERPRETATION_POLICY,
     // O A2 é auditor factual: contexto SEO não comprova dados e só aumenta o prompt.
     agent2: getPrompt(bivolt ? 'P2B' : 'P2') + A2_INTERPRETATION_POLICY,
     agent3: withSeo(getPrompt(bivolt ? 'P3B' : 'P3') + fewShot + titleSnippet),

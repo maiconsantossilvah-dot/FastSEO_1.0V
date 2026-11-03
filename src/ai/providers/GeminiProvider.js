@@ -95,6 +95,9 @@ export class GeminiProvider {
       contents: [{ role: 'user', parts: [{ text: request.userMessage }] }],
       generationConfig: {
         maxOutputTokens: request.maxTokens,
+        temperature: Number.isFinite(request.temperature)
+          ? request.temperature
+          : (request.jsonMode ? 0 : 0.3),
         ...(request.jsonMode ? { responseMimeType: 'application/json' } : {}),
       },
     });

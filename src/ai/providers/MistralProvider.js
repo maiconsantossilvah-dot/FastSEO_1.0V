@@ -85,7 +85,9 @@ export class MistralProvider {
     const body = JSON.stringify({
       model: request.model || this.model,
       max_tokens: request.maxTokens,
-      temperature: request.jsonMode ? 0 : 0.3,
+      temperature: Number.isFinite(request.temperature)
+        ? request.temperature
+        : (request.jsonMode ? 0 : 0.3),
       ...(request.jsonMode ? { response_format: { type: 'json_object' } } : {}),
       messages: [
         { role: 'system', content: request.system },

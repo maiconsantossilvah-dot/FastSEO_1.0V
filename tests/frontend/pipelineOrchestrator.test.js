@@ -44,7 +44,7 @@ function baseOptions(overrides = {}) {
 }
 
 describe('pipelineDomain', () => {
-  it('preserva SEO fora do A2 e aplica a regra de título ao A1/A3', () => {
+  it('restringe SEO ao A3 e aplica a regra de título factual ao A1/A3', () => {
     const prompts = buildPipelinePrompts({
       getPrompt: key => key,
       bivolt: false,
@@ -55,10 +55,14 @@ describe('pipelineDomain', () => {
 
     expect(prompts.agent1).toContain('P1\nEXEMPLO');
     expect(prompts.agent1).toContain('Estrutura do título: [Marca] [Modelo]');
-    expect(prompts.agent1).toContain('SEO CONTEXT');
+    expect(prompts.agent1).not.toContain('SEO CONTEXT');
     expect(prompts.agent2).toContain('P2');
+    expect(prompts.agent2).not.toContain('SEO CONTEXT');
     expect(prompts.agent1).toContain('POLÍTICA FIXA DE INTERPRETAÇÃO CONTROLADA');
+    expect(prompts.agent1).toContain('continue gerando com os fatos seguros');
+    expect(prompts.agent1).toContain('sem ": Sim"');
     expect(prompts.agent2).toContain('POLÍTICA FIXA DE AUDITORIA SEMÂNTICA');
+    expect(prompts.agent2).toContain('CONFLITO_NA_FONTE');
     expect(prompts.agent3).toContain('SEO CONTEXT');
   });
 
